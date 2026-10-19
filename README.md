@@ -157,6 +157,12 @@ executable is not patched. Static fixture rendering does not establish account
 appearance, clothing, accessory, animation, arbitrary body-scale, or game-joining
 support. Player was downloaded and identified but has not been launched for joining.
 
+[The Funnel Method review](docs/funnel-method-review.md) tracks a separate
+hosting research path: its patch set targets a 2016 RCC with December 2013L
+clients and requires a separate stock source tree. It has no standalone build
+or published release in the inspected repository. Compatibility with our
+November Player, or game joining through that path, has not been tested.
+
 ## References
 
 - [Daniel-176's reverse-engineering wiki](https://github.com/Daniel-176/Roblox-Reverse-Engineering-Wiki)
