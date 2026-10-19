@@ -1,0 +1,325 @@
+{
+  "artifact_sha256": "cc70176d50d5f2c1edc26d40f1fcdc530748fc83dedc63c2fdbb251f766972d2",
+  "candidate_rva": 81647120,
+  "candidate_unwind_range": [
+    81647120,
+    81647153
+  ],
+  "candidate_direct_outgoing_edges": [
+    {
+      "rva": 81647136,
+      "kind": "call",
+      "target_rva": 67837792
+    },
+    {
+      "rva": 81647144,
+      "kind": "je",
+      "target_rva": 81647421
+    }
+  ],
+  "anchors": [
+    {
+      "rva": 143450912,
+      "labels": [
+        "trust_failure"
+      ],
+      "literal_sha256": "7fce3bda2598d6d9d1ff50ab8d9bbd878cc9b38ae3083bb8067a760fc91d94e0",
+      "literal_bytes": 22
+    },
+    {
+      "rva": 146839344,
+      "labels": [
+        "trust_failure"
+      ],
+      "literal_sha256": "cf068e198c5b7d13722960a810f33f959f9cd9aea19d90548464fd5e1749d853",
+      "literal_bytes": 18
+    },
+    {
+      "rva": 151483624,
+      "labels": [
+        "http_request_untrusted"
+      ],
+      "literal_sha256": "43883d5f5c8dd03f038c2ed9f5ebbcad2eb8f27b07e83d544e1799f6a9b5970a",
+      "literal_bytes": 30
+    },
+    {
+      "rva": 145838992,
+      "labels": [
+        "image_url_untrusted"
+      ],
+      "literal_sha256": "93b66164d1ea7203d0d7b062ba61cb1513b81cba8dfdd5b12149a52d0988583e",
+      "literal_bytes": 24
+    },
+    {
+      "rva": 178798928,
+      "labels": [
+        "cookie_cache_message"
+      ],
+      "literal_sha256": "0e7ece12d1302be0a8da0b46ab521fc167dc7e869af4bd85648915032e913d8c",
+      "literal_bytes": 79
+    }
+  ],
+  "anchor_references": [
+    {
+      "rva": 9535416,
+      "target_rva": 143450912,
+      "bytes": 7,
+      "kind": "rip_relative_memory",
+      "unwind_range": [
+        9532256,
+        9538471
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 34067528,
+      "target_rva": 145838992,
+      "bytes": 7,
+      "kind": "rip_relative_memory",
+      "unwind_range": [
+        34066208,
+        34067697
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 46269164,
+      "target_rva": 146839344,
+      "bytes": 7,
+      "kind": "rip_relative_memory",
+      "unwind_range": [
+        46268976,
+        46272957
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 61570806,
+      "target_rva": 146839344,
+      "bytes": 7,
+      "kind": "rip_relative_memory",
+      "unwind_range": [
+        61569872,
+        61572086
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 61570912,
+      "target_rva": 146839344,
+      "bytes": 7,
+      "kind": "rip_relative_memory",
+      "unwind_range": [
+        61569872,
+        61572086
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 61777654,
+      "target_rva": 146839344,
+      "bytes": 7,
+      "kind": "rip_relative_memory",
+      "unwind_range": [
+        61776608,
+        61778596
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 61777923,
+      "target_rva": 146839344,
+      "bytes": 7,
+      "kind": "rip_relative_memory",
+      "unwind_range": [
+        61776608,
+        61778596
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 81823076,
+      "target_rva": 151483624,
+      "bytes": 7,
+      "kind": "rip_relative_memory",
+      "unwind_range": [
+        81820448,
+        81823258
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 119820319,
+      "target_rva": 178798928,
+      "bytes": 7,
+      "kind": "rip_relative_memory",
+      "unwind_range": [
+        119820112,
+        119820719
+      ],
+      "boundary_verified": true
+    }
+  ],
+  "incoming_direct_branches": [
+    {
+      "rva": 9510717,
+      "target_rva": 9532256,
+      "bytes": 5,
+      "kind": "direct_call",
+      "unwind_range": [
+        9510624,
+        9510727
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 34049036,
+      "target_rva": 34066208,
+      "bytes": 5,
+      "kind": "direct_call",
+      "unwind_range": [
+        34048896,
+        34049867
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 40861105,
+      "target_rva": 119820112,
+      "bytes": 5,
+      "kind": "direct_call",
+      "unwind_range": [
+        40860992,
+        40861247
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 40861203,
+      "target_rva": 119820112,
+      "bytes": 5,
+      "kind": "direct_call",
+      "unwind_range": [
+        40860992,
+        40861247
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 40889210,
+      "target_rva": 119820112,
+      "bytes": 5,
+      "kind": "direct_call",
+      "unwind_range": [
+        40888112,
+        40889262
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 46243741,
+      "target_rva": 46268976,
+      "bytes": 5,
+      "kind": "direct_call",
+      "unwind_range": [
+        46243392,
+        46244087
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 46243935,
+      "target_rva": 46268976,
+      "bytes": 5,
+      "kind": "direct_call",
+      "unwind_range": [
+        46243392,
+        46244087
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 61564653,
+      "target_rva": 61569872,
+      "bytes": 5,
+      "kind": "direct_call",
+      "unwind_range": [
+        61564432,
+        61564667
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 81629443,
+      "target_rva": 81647120,
+      "bytes": 5,
+      "kind": "direct_call",
+      "unwind_range": [
+        81629408,
+        81629720
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 81632234,
+      "target_rva": 81647120,
+      "bytes": 5,
+      "kind": "direct_call",
+      "unwind_range": [
+        81631856,
+        81633243
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 81636276,
+      "target_rva": 81647120,
+      "bytes": 5,
+      "kind": "direct_call",
+      "unwind_range": [
+        81636208,
+        81636738
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 81669935,
+      "target_rva": 81647120,
+      "bytes": 5,
+      "kind": "direct_call",
+      "unwind_range": [
+        81669856,
+        81670388
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 81821113,
+      "target_rva": 81647120,
+      "bytes": 5,
+      "kind": "direct_call",
+      "unwind_range": [
+        81820448,
+        81823258
+      ],
+      "boundary_verified": true
+    },
+    {
+      "rva": 61782340,
+      "target_rva": 61776608,
+      "bytes": 5,
+      "kind": "direct_jump",
+      "unwind_range": null,
+      "boundary_verified": null
+    }
+  ],
+  "runtime_validated": false,
+  "hooks_installed": false,
+  "limitations": [
+    "Selected x64 encodings only; indirect references and UTF-16 anchors are not covered.",
+    "Linear instruction boundaries from unwind starts are not proof of reachability.",
+    "Unwind ranges may be fragments, not complete functions.",
+    "String relationships and byte matches do not establish semantic identity or ABI.",
+    "No code bytes, routing, authentication, or runtime state were changed."
+  ]
+}
