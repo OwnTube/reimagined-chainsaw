@@ -67,7 +67,8 @@ scales require bounds-aware framing, which is not implemented.
 This project still captures the native 2013 Studio viewport; it does not claim
 to implement RCC's internal ThumbnailGenerator. Before player capture the
 owned fixture's Humanoid is detached, preventing the old engine's automatic
-name and health display. Its anchored geometry, joints, mesh, and face remain.
+name and health display. Its anchored geometry, explicit body meshes, head
+mesh, and face remain.
 
 Two native frames use the same scene, camera, viewport dimensions, and fixed
 lighting, against contrasting solid planar backdrops. The observed backdrop
@@ -99,3 +100,34 @@ old engine's floating-point precision. The 512 × 512 PNG was visually
 inspected: closer, nearly front-facing head framing, transparent background,
 no overhead or other GUI. Its SHA-256 is
 `c8bdf5ece7685b3ff4b1bfa0d74052f56d0ddbbac70cc253ac1b3c453c0d4fb8`.
+
+## Dedicated classic body geometry
+
+The initial fixture used ordinary Parts for the torso and limbs; removing its
+Humanoid to suppress UI left those parts with plain box geometry. The pinned
+Studio deployment contains a native `content/fonts/character3.rbxm` character
+template plus `torso.mesh`, `leftarm.mesh`, `rightarm.mesh`, `leftleg.mesh`, and
+`rightleg.mesh`. Each of these body meshes has 42 vertices and 44 triangles,
+including bevelled edges; the torso spans 2 × 2 × 1 studs and each limb 1 × 2 × 1.
+
+The renderer now loads that local character template, normalizes its anchored
+parts to the existing camera coordinate system, and explicitly assigns those
+five body meshes before removing the Humanoid. The bundled head mesh and face
+are retained. All assets are read from the pinned runtime download, without
+copying proprietary model or mesh bytes into this repository. Each native
+pass records the six asset hashes and five Lua body-mesh assignment markers.
+This remains a static classic R6 appearance, not arbitrary account/body-package
+loading.
+
+[Windows run 39319529320](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39319529320)
+at source commit `7c9317516f872873181d4e4b06449b967854827e` passed eight local
+tests, four actual HTTP render jobs, and the console check. Both player PNGs
+were visually inspected: rounded bevels are visible on the torso and limbs,
+with separated leg edges. The 512 × 512 full-body PNG has 204,963 transparent
+and 57,181 opaque pixels; its SHA-256 is
+`7220f21ea9f70ef9421408ec02b3520b5a749a807c19219eb2a3b235eeac6b16`.
+The headshot retains its source-equivalent camera and no-GUI behavior, with
+SHA-256 `57b8c4364616b2a8462413f5af42637d48ec41b1abd1054ee5f612353e4c5381`.
+All four native player passes reported the same bundled asset hashes and all
+five dedicated body-mesh assignments. The underlying 2013 classic R6 body
+still has a block-shaped silhouette; other body packages are not implemented.

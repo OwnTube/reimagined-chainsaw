@@ -83,7 +83,7 @@ The bundled head mesh and face remain; all parts are anchored and recolored
 for the owned test appearance. These assets are referenced locally, never
 redistributed in this repository. Native evidence records their SHA-256 and
 five body-mesh markers. The earlier manual block fixture is superseded;
-native validation of this geometry change is pending.
+the replacement was validated in native Windows Studio and visually inspected.
 
 Player alpha comes from two matching native frames against contrasting solid
 backdrops, with calibrated backdrop RGB and fixed lighting. The worker rejects
@@ -111,9 +111,24 @@ Eight local test methods cover request validation, type routing, history, HTTP
 delivery, and alpha recovery from known foreground colors and partial edges.
 Their mock engine is separate from actual native evidence.
 `windows_e2e.py` checks actual scene and GUI-removal markers, exact sizes,
-full-body margins, distinct headshot/full-body images, and PNG alpha.
+five dedicated body-mesh markers, asset hashes, full-body margins, distinct
+headshot/full-body images, and PNG alpha.
 `console_capture.py` checks Chrome against a completed native player job.
-Latest [source-framing run 39317404183](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39317404183),
+Latest [dedicated-body run 39319529320](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39319529320),
+source commit `7c9317516f872873181d4e4b06449b967854827e`, passed eight local
+tests, all four native HTTP render jobs, and Chrome console validation.
+Both player outputs were visually inspected: the limbs and torso have their
+dedicated bevelled geometry, including separation between the legs. Each
+native player pass confirmed all five mesh assignments and the six bundled
+asset identities. Both 512 × 512 RGBA outputs contain clear background and
+opaque player pixels, with no overhead GUI. The headshot camera is unchanged.
+
+| Current dedicated-body output | PNG SHA-256 |
+| --- | --- |
+| Full body | `7220f21ea9f70ef9421408ec02b3520b5a749a807c19219eb2a3b235eeac6b16` |
+| Headshot | `57b8c4364616b2a8462413f5af42637d48ec41b1abd1054ee5f612353e4c5381` |
+
+Earlier [source-framing run 39317404183](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39317404183),
 source commit `71c5f1b48e50d707c3e88e6f6ea7217e7f911aa4`, passed eight local tests,
 four native HTTP jobs, and Chrome console validation. The headshot uses the
 BubbaBlox v2 no-hat geometry and was visually inspected. Both native passes
@@ -122,6 +137,7 @@ and FOV approximately 30 degrees. Its 512 × 512 RGBA PNG SHA-256 is
 `c8bdf5ece7685b3ff4b1bfa0d74052f56d0ddbbac70cc253ac1b3c453c0d4fb8`.
 The result records the camera profile and actual engine camera markers. It
 contains transparent background and opaque player pixels, with no GUI.
+Its manually assembled body geometry is superseded by the dedicated-body run.
 
 Earlier transparency checkpoint [native run 39316052306](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39316052306),
 source commit `24aaa4baab49464bdd260b425a2a6fc2331b13a1`, passed all six local
