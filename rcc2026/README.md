@@ -81,3 +81,11 @@ The last row is one shared byte-pattern candidate, not two functions and not a v
 The durable [summary](evidence/offline-adapter-743-summary.json) contains only artifact identities, candidate locations, and limitations. Raw decompiler output and vendor executables are not included.
 
 Three final capture-boundary tests were added after this Windows run, covering omission before QR generation, Quick Sign-In metadata, and preservation of non-authentication error capture. All fifteen tests pass locally. The final capture-omission refinement has not been rerun against a live sign-in surface; its predicates were replayed against the saved native logs. No identical blocked server launch was repeated.
+
+## Adapter reference analysis
+
+`inspect_adapter_references.py` refuses any executable other than the exact pinned SHA-256. It inventories selected RIP-relative references to four error/log anchors, then direct calls/jumps to their containing unwind ranges and the historical candidate. Each reported reference is checked against a linear instruction decode from its unwind-range start. Four synthetic tests cover signed displacements, truncated operands, and an opcode embedded inside another instruction's immediate. All nineteen Python tests pass locally.
+
+The first local analysis of the verified image found five matching literals, nine instruction-boundary-verified anchor references, and fourteen incoming branch candidates (thirteen boundary-verified; one lacks an unwind range). In particular, the range beginning at `0x04e07b20` references the HTTP request untrusted-error literal and contains a verified direct call to historical candidate `0x04ddd610`. This supports investigating their relationship; it does **not** establish the candidate's identity, complete function extent, calling convention, or suitability for a hook. Four other verified direct calls also target that candidate.
+
+The scanner publishes only locations, literal hashes, and boundary metadata, not instruction bytes or decompiled code. Selected encodings and ASCII anchors are not exhaustive; indirect references are omitted, unwind entries can be fragments, and linear instruction boundaries do not prove reachability. Windows CI now reproduces this inventory. No routing, authentication, or vendor code is modified. Rendering, server hosting, and joining remain unvalidated.
