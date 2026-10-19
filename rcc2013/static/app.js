@@ -22,6 +22,7 @@ function showError(message) {
 
 function displayJob(job) {
   const result = job.result || {};
+  el('preview-title').textContent = ({headshot:'Player headshot',full_body:'Player · full body',game_thumbnail:'Game thumbnail'})[result.type] || 'Viewport';
   el('state').textContent = job.state.toUpperCase();
   el('state').dataset.state = job.state;
   el('job-info').textContent = 'Job ' + job.id.slice(0, 8);

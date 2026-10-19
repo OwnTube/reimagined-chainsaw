@@ -31,7 +31,9 @@ def recover_alpha(dark, light):
     for a,b in zip(dark.getdata(),light.getdata()):
         alpha=max(0.0,min(1.0,1-median((b[c]-a[c])/delta[c] for c in range(3))))
         if alpha<0.01:alpha=0.0
-        if alpha>0.99:alpha=1.0
+        # The owned fixture has opaque surfaces. Small inter-launch shading
+        # differences must not turn solid skin/clothing faintly translucent.
+        if alpha>0.96:alpha=1.0
         if alpha==0:
             color=(0,0,0)
         else:
@@ -46,4 +48,5 @@ def recover_alpha(dark, light):
         raise ValueError('Matte passes disagree: camera, geometry, or foreground lighting changed')
     return image,{'method':'two native solid-backdrop passes with calibrated straight-alpha recovery',
                   'background_rgb':[list(low),list(high)],'alpha_counts':dict(counts),
+                  'opaque_snap_threshold':0.96,
                   'registration_residual_p99':round(p99,3)}

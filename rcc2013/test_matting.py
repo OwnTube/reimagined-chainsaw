@@ -25,5 +25,16 @@ class MattingTests(unittest.TestCase):
         with self.assertRaises(ValueError):recover_alpha(Image.new('RGB',(32,32)),Image.new('RGB',(64,64)))
         with self.assertRaises(ValueError):recover_alpha(Image.new('RGB',(32,32)),Image.new('RGB',(32,32)))
 
+    def test_small_native_shading_differences_do_not_make_opaque_skin_translucent(self):
+        dark=Image.new('RGB',(64,64),(11,11,11))
+        light=Image.new('RGB',(64,64),(132,132,132))
+        for y in range(20,44):
+            for x in range(20,44):
+                dark.putpixel((x,y),(130,110,25))
+                light.putpixel((x,y),(133,113,28))
+        image,_=recover_alpha(dark,light)
+        self.assertEqual(image.getpixel((30,30))[3],255)
+        self.assertEqual(image.getpixel((0,0))[3],0)
+
 
 if __name__=='__main__':unittest.main()
