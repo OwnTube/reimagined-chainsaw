@@ -8,10 +8,19 @@ from PIL import Image
 from windows_probe import collect_result, parse_events, validate_png
 from inspect_studio import positions
 from windows_server_probe import classify_startup
-from windows_diagnostics import sanitize_log
+from windows_diagnostics import sanitize_log, omit_desktop_capture
 
 
 class StartupEvidenceTests(unittest.TestCase):
+    def test_signin_capture_is_omitted_before_a_quick_signin_code_is_generated(self):
+        self.assertTrue(omit_desktop_capture('Authenticated : NO\nLoginPageOpenTime : 4 sec'))
+
+    def test_quick_signin_metadata_alone_prevents_a_desktop_capture(self):
+        self.assertTrue(omit_desktop_capture('[FLog::QuickSignInUtil] request completed'))
+
+    def test_non_authentication_startup_errors_remain_capturable(self):
+        self.assertFalse(omit_desktop_capture('This application failed to start because no Qt platform plugin could be initialized.'))
+
     def test_new_signin_page_does_not_need_the_legacy_dialog_message(self):
         text = "Constructing UIThreadNotifier for process '123'\nStudio Launch Intent is StartServer\nAuthenticated : NO\nLoginPageOpenTime : 4 sec\ninTreatment=true"
         result = classify_startup([text], 123)

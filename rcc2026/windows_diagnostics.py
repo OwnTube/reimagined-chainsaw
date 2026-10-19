@@ -18,6 +18,12 @@ def sanitize_log(text):
     return '\n'.join(output) + '\n'
 
 
+def omit_desktop_capture(text):
+    """Avoid capturing a sign-in challenge, including before its QR event is logged."""
+    return ('[FLog::QuickSignInUtil]' in text or
+            bool(re.search(r'Authenticated\s*:\s*NO', text) and 'LoginPageOpenTime' in text))
+
+
 def capture_startup(output, process_id):
     output = Path(output) / 'startup-diagnostics'
     output.mkdir(exist_ok=True)
@@ -55,8 +61,8 @@ def capture_startup(output, process_id):
     except Exception as error:
         report['errors'].append('Window inspection: ' + str(error))
     try:
-        if '[FLog::QuickSignInUtil]' in own_log_text:
-            report['screenshot_omitted'] = 'Quick Sign-In surface can contain a live authentication challenge'
+        if omit_desktop_capture(own_log_text):
+            report['screenshot_omitted'] = 'Unauthenticated sign-in surface can contain a live authentication challenge'
         else:
             from PIL import ImageGrab
             ImageGrab.grab().save(output / 'runner-desktop.png')

@@ -1,0 +1,74 @@
+{
+  "observed_date": "2026-10-19",
+  "workflow_run": 39198802392,
+  "source_commit": "3595631a6f9a9138bde337eeb9d73854c6e72f55",
+  "artifact": {
+    "name": "RobloxStudioBeta.exe",
+    "bytes": 225310672,
+    "sha256": "cc70176d50d5f2c1edc26d40f1fcdc530748fc83dedc63c2fdbb251f766972d2"
+  },
+  "scope": "read-only signature inventory; no hooks installed",
+  "patterns": [
+    {
+      "id": "offline.fromComponents-1",
+      "group": "offline.fromComponents",
+      "match_count": 0,
+      "candidate_rvas": [],
+      "runtime_validated": false
+    },
+    {
+      "id": "offline.fromComponents-2",
+      "group": "offline.fromComponents",
+      "match_count": 0,
+      "candidate_rvas": [],
+      "runtime_validated": false
+    },
+    {
+      "id": "offline.trustCheck-1",
+      "group": "offline.trustCheck",
+      "match_count": 0,
+      "candidate_rvas": [],
+      "runtime_validated": false
+    },
+    {
+      "id": "offline.trustCheck-2",
+      "group": "offline.trustCheck",
+      "match_count": 0,
+      "candidate_rvas": [],
+      "runtime_validated": false
+    },
+    {
+      "id": "offline.httpReqNotTrusted-1",
+      "group": "offline.httpReqNotTrusted",
+      "match_count": 1,
+      "candidate_rvas": [
+        "0x4ddd610"
+      ],
+      "runtime_validated": false
+    },
+    {
+      "id": "offline.httpReqNotTrusted-2",
+      "group": "offline.httpReqNotTrusted",
+      "match_count": 1,
+      "candidate_rvas": [
+        "0x4ddd610"
+      ],
+      "runtime_validated": false
+    }
+  ],
+  "rea": {
+    "tool": "rea-agents@6.7.0",
+    "operation": "inspect_pe_resources",
+    "evidence_id": "ev_42c9ad1cbcaa2a4eca93676e15a5acedecd878ee255c81fd9cc8da5561970403",
+    "artifact_sha256": "cc70176d50d5f2c1edc26d40f1fcdc530748fc83dedc63c2fdbb251f766972d2"
+  },
+  "server_hosting_validated": false,
+  "client_join_validated": false,
+  "render_validated": false,
+  "limitations": [
+    "Two historical httpReqNotTrusted signatures match the same address, not two independent functions.",
+    "A unique byte match does not establish semantic identity or ABI.",
+    "Unwind ranges may describe function fragments.",
+    "The missing URL-construction and trust-check patterns require fresh analysis before any adapter implementation."
+  ]
+}
