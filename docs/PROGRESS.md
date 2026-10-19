@@ -2,7 +2,17 @@
 
 Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, draft PR #1. Do not merge or change repository visibility.
 
-## Current verified native checkpoint: October 19, 2026, 07:01 UTC
+## Current verified native checkpoint: October 19, 2026, 13:25 UTC
+
+### Native composer verified
+
+Implementation commit `df75e25a2d1a2d30d3969a8c8546b3c7bf7d50f0`, run `39259838348`, browser artifact `12189846272` uploaded 13:25:46 UTC, passes native top-level comment creation. The actual editor submits a gzip request to `/youtubei/v1/comment/create_comment` with HTTP 200; the local account's comment is stored, inserted immediately and still rendered after reload. All nativeComments flags (visible, localAuthor, created, liveInsert, persisted) are true. The screenshot was inspected and shows the native composer, two local comments and the new text. Reply/comment voting buttons may still be visually emitted by this client build; no backend action is implemented for those controls.
+
+Official local playback (time 1.343697, duration 8.010998, readyState 4, wrapper 1, matching local ID, playability OK, no error overlay), pause/seek/resume, Like/Unlike persistence, guide/subscription/creator filtering, Subscribe/Unsubscribe and local account handoff remain true. Page errors are empty. The 21 Python methods, all three JS suites, container health and guest capture pass. At artifact inspection REA is still running; this is browser evidence, not a claim that static analysis has completed. Downloaded clients and evidence remain uncommitted.
+
+Next probe: submit a query using the actual masthead search input, require local matching results and exclusion of the unrelated decoy, reload the results and open the local watch page. Native search has not yet been verified. Then improve channel-page contracts and remaining local-account/mutation coverage.
+
+### Earlier read-only evidence
 
 Run `39213121880`, commit `0db7e08`, browser artifact `12168313299` uploaded 07:01:11 UTC, confirms native local comment text and author rendering. Its comment screenshot was inspected: local creator/subscription controls, local title, comment count, author and text render through the actual captured UI. The unrelated-creator decoy is excluded from both native subscription and creator grids. Actual guide clicks, Subscribe/Unsubscribe and reload persistence pass. Playback, official controls, Like/Unlike, local bootstrap/title and guest sign-in return remain true. The channel screenshot establishes a basic filtered grid, not a finished channel banner/header or management UI.
 

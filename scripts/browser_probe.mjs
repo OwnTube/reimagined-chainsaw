@@ -290,6 +290,28 @@ try {
         }catch(error){diagnostics.capturedClient.localAccountHandoff=false;diagnostics.capturedClient.guestSignInError=error.message.replaceAll(password,'[redacted]').split('\n')[0].slice(0,300);}
         finally{await guestPage.close();}
         await checkpoint('official-guest-signin-inspected');
+        try {
+          const search=page.locator('input[name="search_query"]:visible').first();
+          await search.fill('Runner test',{timeout:8000});
+          await search.press('Enter');
+          await page.waitForURL(url=>url.pathname==='/results' && url.searchParams.get('search_query')==='Runner test',{timeout:8000});
+          await page.locator('ytd-app').getByText('Runner test video',{exact:true}).first().waitFor({timeout:10000});
+          assert.equal(await page.locator('ytd-app').getByText('Unsubscribed decoy',{exact:true}).first().isVisible(),false);
+          diagnostics.capturedClient.nativeSearch={submitted:true,localResult:true,excludesNonmatch:true};
+          await page.screenshot({path:'evidence/official-search.png',fullPage:true,timeout:10000});
+          await page.reload();
+          await page.locator('ytd-app').getByText('Runner test video',{exact:true}).first().waitFor({timeout:10000});
+          assert.equal(await page.locator('ytd-app').getByText('Unsubscribed decoy',{exact:true}).first().isVisible(),false);
+          diagnostics.capturedClient.nativeSearch.reload=true;
+          await page.locator('ytd-app').getByText('Runner test video',{exact:true}).first().click({timeout:8000});
+          await page.waitForURL(url=>url.pathname==='/watch' && url.searchParams.get('v')===id,{timeout:8000});
+          await page.locator('ytd-app h1').getByText('Runner test video',{exact:true}).waitFor({timeout:8000});
+          diagnostics.capturedClient.nativeSearch.watchNavigation=true;
+        }catch(error){
+          diagnostics.capturedClient.nativeSearch={...diagnostics.capturedClient.nativeSearch,ok:false,error:error.message.slice(0,300)};
+          await page.screenshot({path:'evidence/official-search.png',fullPage:true,timeout:10000}).catch(()=>{});
+        }
+        await checkpoint('official-search-inspected');
       }
     }
   }else diagnostics.capturedClient.status='capture-unavailable';

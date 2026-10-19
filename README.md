@@ -1,6 +1,6 @@
 # MewTube
 
-A self-hosted video service and an **experimental backend for a locally captured YouTube web client**. Inspired by Xitter and Meowcord's architecture: capture a client per instance, serve assets locally, and answer its APIs from your own database.
+A self-hosted backend for the **actual captured YouTube web client**. Inspired by Xitter and Meowcord's architecture: capture a client per instance, serve its assets locally, and answer its APIs using your own accounts, database, videos and storage. Full client compatibility is the goal; the working coverage below is still experimental.
 
 **Early alpha. A GitHub runner verified local watch rendering/playback, official player controls, native Like/Unlike persistence and local sign-in returning to the captured watch page. The independent interface and HTTP service also pass integration tests. Full YouTube compatibility has not been established.** `/official` serves an adapted guest snapshot with local bootstrap data and a small InnerTube API subset. This is an independent project, not affiliated with YouTube or Google.
 
@@ -57,12 +57,13 @@ The captured client is explicitly adapted, not unmodified: its response-integrit
 - Host-granted operators can inspect reports, remove videos, and inspect unknown client calls.
 - InnerTube-shaped `browse`, `search`, `player`, and `next` responses backed by local videos.
 - Instance-local guest client capture, current main-bundle URL handling, bootstrap replacement, and fetch/XHR transport adapter.
-- Captured watch Like/Unlike backed by local sessions, bounded gzip API decoding, persisted native toggle state, and guest local sign-in returning to the captured watch page (runner 39207845799).
+- Captured watch Like/Unlike and Subscribe/Unsubscribe backed by local sessions, bounded gzip API decoding, persisted native state, and guest local sign-in returning to the captured watch page.
+- Captured Guide/Subscriptions navigation and filtered subscription and creator video grids. Native comment display and top-level posting, immediate insertion and reload persistence pass in the actual client (runner 39259838348).
 - HTTP integration tests and a GitHub Actions browser/REA diagnostic workflow.
 
 ## Known limits
 
-- **Official home/watch rendering, local playback/controls, Like/Unlike persistence and local-account handoff pass runner tests (run 39207845799).** This remains experimental, not parity with Xitter, Meowcord, or YouTube. Sign-in uses MewTube's local auth dialog, not Google account emulation. Native Studio, comments, playlists, channel management and subscriptions are not adapted yet. Use the independent interface for those supported local features.
+- **Official home/watch rendering, local playback/controls, Like/Unlike and subscription persistence, filtered feeds, comment display/posting and local-account handoff pass runner tests (run 39259838348).** Sign-in uses MewTube's local auth dialog. Replies, comment voting, Studio, playlists and full channel management remain unimplemented; the client may still display unsupported comment voting buttons. Basic creator grids do not establish full channel-page compatibility. The independent interface provides the existing local upload and management tools while those native flows are developed.
 - No federation, live streaming, Shorts, adaptive bitrate/HLS/DASH, captions, notifications, email verification, password recovery, or private videos.
 - Uploads become public when processing finishes. View counts currently count authenticated play events and are not unique-view analytics.
 - A single process and one transcoder serve a small instance; not a production-scale video platform. No total storage quota, mature abuse controls, or resumable upload support yet.
