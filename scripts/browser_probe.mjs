@@ -334,6 +334,38 @@ try {
           await page.screenshot({path:'evidence/official-search.png',fullPage:true,timeout:10000}).catch(()=>{});
         }
         await checkpoint('official-search-inspected');
+        try {
+          await page.getByRole('button',{name:'Guide',exact:true}).first().click({timeout:8000});
+          await page.locator('ytd-guide-renderer').getByRole('link',{name:'Liked videos',exact:true}).first().click({timeout:8000});
+          await page.waitForURL(url=>url.pathname==='/playlist' && url.searchParams.get('list')==='LL',{timeout:8000});
+          const likedTitle=()=>page.locator('yt-lockup-view-model').getByText('Runner test video',{exact:true}).first();
+          await likedTitle().waitFor({timeout:10000});
+          assert.equal(await page.locator('yt-lockup-view-model').getByText('Unsubscribed decoy',{exact:true}).first().isVisible(),false);
+          diagnostics.capturedClient.nativeLikedPlaylist={guide:true,localVideo:true,excludesUnliked:true};
+          await page.screenshot({path:'evidence/official-liked-playlist.png',fullPage:true,timeout:10000});
+          await page.reload();
+          await likedTitle().waitFor({timeout:10000});
+          diagnostics.capturedClient.nativeLikedPlaylist.reload=true;
+          await likedTitle().click({timeout:8000});
+          await page.waitForURL(url=>url.pathname==='/watch' && url.searchParams.get('v')===id,{timeout:8000});
+          diagnostics.capturedClient.nativeLikedPlaylist.watchNavigation=true;
+          await page.locator('ytd-app').getByRole('button',{name:'Unlike this video',exact:true}).first().click({timeout:8000});
+          let liked=true;
+          for(let i=0;i<30 && liked;i++) {
+            await page.waitForTimeout(100);
+            liked=(await (await context.get('/api/videos/'+id)).json()).video.liked;
+          }
+          assert.equal(liked,false);
+          await page.goto(origin+'/playlist?list=LL');
+          await page.getByText('Liked videos',{exact:true}).first().waitFor({timeout:8000});
+          assert.equal(await page.locator('yt-lockup-view-model').count(),0);
+          diagnostics.capturedClient.nativeLikedPlaylist.unlikeRemoves=true;
+          await context.post('/youtubei/v1/like/like',{data:{target:{videoId:id}}});
+        }catch(error){
+          diagnostics.capturedClient.nativeLikedPlaylist={...diagnostics.capturedClient.nativeLikedPlaylist,ok:false,error:error.message.slice(0,300)};
+          await page.screenshot({path:'evidence/official-liked-playlist.png',fullPage:true,timeout:10000}).catch(()=>{});
+        }
+        await checkpoint('official-liked-playlist-inspected');
       }
     }
   }else diagnostics.capturedClient.status='capture-unavailable';

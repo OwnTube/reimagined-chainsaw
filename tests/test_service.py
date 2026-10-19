@@ -262,10 +262,13 @@ class ServiceTests(unittest.TestCase):
         self.assertTrue(secondary['subscribeButton']['subscribeButtonRenderer']['subscribed'])
         self.assertEqual(secondary['owner']['videoOwnerRenderer']['title']['runs'][0]['text'], 'subscription_creator')
         guide = self.request('/youtubei/v1/guide', {})[1]
-        self.assertEqual(len(guide['items'][0]['guideSectionRenderer']['items']), 3)
+        entries = {entry['guideEntryRenderer']['formattedTitle']['simpleText']:entry['guideEntryRenderer']
+                   for entry in guide['items'][0]['guideSectionRenderer']['items']}
+        self.assertEqual(entries['Liked videos']['navigationEndpoint']['browseEndpoint']['browseId'], 'VLLL')
+        self.assertEqual(entries['Subscriptions']['navigationEndpoint']['browseEndpoint']['browseId'], 'FEsubscriptions')
         self.assertEqual([row['guideEntryRenderer']['formattedTitle']['simpleText']
                          for row in guide['items'][0]['guideSectionRenderer']['items']],
-                         ['Home', 'Subscriptions', 'Your channel'])
+                         ['Home', 'Subscriptions', 'Your channel', 'Liked videos'])
         for _ in range(2):
             self.assertEqual(self.request('/youtubei/v1/subscription/unsubscribe', body)[0], 200)
         self.assertEqual(feed_ids('FEsubscriptions'), [])
@@ -335,6 +338,33 @@ class ServiceTests(unittest.TestCase):
         self.assertNotIn('google', json.dumps(result).lower())
         self.assertNotIn('password', json.dumps(result).lower())
         self.assertEqual(self.request(path, {}, headers={'Origin':'https://evil.test'})[0], 403)
+
+    def test_13_native_liked_playlist_is_private_and_ready_only(self):
+        first = self.account('liked_first')
+        with sqlite3.connect(self.data / 'mewtube.sqlite3') as c:
+            for identifier, status in [('liked000001','ready'),('liked000002','ready'),('likedfailed','failed')]:
+                c.execute('INSERT INTO videos(id,owner,title,status,duration,created) VALUES(?,?,?,?,1,?)',
+                          (identifier, first['id'], identifier, status, int(time.time())))
+            c.execute('INSERT INTO likes VALUES(?,?)', (first['id'], 'likedfailed'))
+        def liked(client=None, extra=None):
+            result = self.request('/youtubei/v1/browse', {'browseId':'VLLL',**(extra or {})}, client=client)[1]
+            items=result['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents']
+            return [item['lockupViewModel']['contentId'] for item in items], result['header']['playlistHeaderRenderer']
+        self.request('/youtubei/v1/like/like', {'target':{'videoId':'liked000001'}})
+        self.assertEqual(liked()[0], ['liked000001'])
+        self.assertEqual(liked()[1]['numVideosText']['simpleText'], '1 video')
+        self.assertEqual(liked(urllib.request.build_opener())[0], [])
+        first_client = self.client
+        self.client = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+        second = self.account('liked_second')
+        self.assertEqual(liked()[0], [])
+        self.request('/youtubei/v1/like/like', {'target':{'videoId':'liked000002'}})
+        self.assertEqual(liked()[0], ['liked000002'])
+        self.assertEqual(liked(first_client, {'userId':second['id']})[0], ['liked000001'], 'Body user IDs must not select another account')
+        self.request('/youtubei/v1/like/removelike', {'target':{'videoId':'liked000001'}}, client=first_client)
+        self.assertEqual(liked(first_client)[0], [])
+        self.assertEqual(liked(first_client)[1]['numVideosText']['simpleText'], '0 videos')
+        self.assertEqual(self.request('/playlist?list=upstream')[0], 501)
 
     def test_05_reject_nonvideo_and_playlists(self):
         self.account('invalid_upload')

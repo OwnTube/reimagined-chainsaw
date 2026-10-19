@@ -4,7 +4,15 @@ Product requirement clarified: use the actual captured YouTube frontend/player, 
 
 Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, draft PR #1. Do not merge or change repository visibility.
 
-## Current native checkpoint: October 19, 2026, 13:39 UTC
+## Current native checkpoint: October 19, 2026, 13:45 UTC
+
+Run `39262565637`, implementation `148c651`, browser artifact `12191852843` uploaded 13:45:04 UTC, confirms the HAR-derived native account menu opens, displays the local identity and navigates to the own-channel page. Its native menu request is gzip/200. Screenshot inspected; no custom DOM banner remains. Search submission/filtering/reload/watch navigation and modern channel header flags are all true; acceptanceFailures=[] and no page errors. Fresh guest /watch entry and the local sign-in return pass too. The prior candidate/locator caveats below are historical on this commit. The menu omits native sign-out/settings/switching, and registration/sign-in/upload screens are still temporary separate tooling, not finished native client features.
+
+### Candidate: native Liked videos playlist
+
+The HAR guide identifies VLLL, /playlist?list=LL, WEB_PAGE_TYPE_PLAYLIST and the LIKES_PLAYLIST_CAIRO icon. A public signed-out playlist template was inspected separately; current items use lockupViewModel, not the older playlistVideoRenderer. Capture now pins an ignored playlist template and its static dependencies. The authored local response uses native playlistHeaderRenderer, thumbnail/lockup metadata/view models and local watch commands; no replica UI/CSS is introduced.
+
+Liked rows come only from the local session's existing likes and ready videos. Body user IDs are ignored, guests receive an empty list, failed videos are excluded and total counts use the full stored ready count. Rendering is currently bounded to 40 rows; continuation and custom playlist creation/editing remain unimplemented. The browser will click the actual guide entry, check filtering and reload, follow a local watch link, unlike through the actual button, and require removal from the playlist. **24 Python methods and four JS suites pass locally**, including two-user isolation, guest privacy, unlike removal, failed-video exclusion and capture contracts. Browser playlist proof is pending. Acceptance now also gates the verified menu/search/channel flows using boolean-only evidence.
 
 Newest browser evidence: `0b2d076`, run `39261704710`, artifact `12190078436`. Comment posting, native channel name/handle/counts, local playback/controls, likes, subscriptions/filtering and local-account handoff pass; search submission/filtering/reload pass, with the final watch-title locator corrected in the next commit `d5af6e8`. That follow-up also makes the actual captured UI the default and removes custom DOM overlay injection. Inspect its runner before claiming final search watch-navigation/default/overlay proof.
 

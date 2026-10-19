@@ -34,6 +34,43 @@ def search_endpoint(query):
         'webPageType': 'WEB_PAGE_TYPE_SEARCH', 'rootVe': 4724, 'apiUrl': '/youtubei/v1/search'}}}
 
 
+def liked_endpoint():
+    destination = browse_endpoint('VLLL', '/playlist?list=LL')
+    destination['commandMetadata']['webCommandMetadata']['webPageType'] = 'WEB_PAGE_TYPE_PLAYLIST'
+    destination['commandMetadata']['webCommandMetadata']['rootVe'] = 5754
+    return destination
+
+
+def liked_playlist(rows, user, total):
+    items = []
+    for row in rows:
+        source = renderer(row)['videoRenderer']
+        items.append({'lockupViewModel': {
+            'contentId': row['id'], 'contentType': 'LOCKUP_CONTENT_TYPE_VIDEO',
+            'contentImage': {'thumbnailViewModel': {'image': {'sources': source['thumbnail']['thumbnails']},
+                'overlays': [{'thumbnailBottomOverlayViewModel': {'badges': [{'thumbnailBadgeViewModel': {
+                    'text': source['lengthText']['simpleText'], 'badgeStyle': 'THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT'}}]}}]}},
+            'metadata': {'lockupMetadataViewModel': {'title': {'content': row['title']},
+                'metadata': {'contentMetadataViewModel': {'metadataRows': [
+                    {'metadataParts': [{'text': {'content': row['username']}}]},
+                    {'metadataParts': [{'text': {'content': str(row['views']) + ' views'}}]}], 'delimiter': '•'}}}},
+            'rendererContext': {'commandContext': {'onTap': {'innertubeCommand': endpoint(row)}}}}})
+    count = text(str(total) + (' video' if total == 1 else ' videos'))
+    header = {'playlistId': 'LL', 'title': text('Liked videos'), 'numVideosText': count,
+              'isEditable': False, 'editableDetails': {'canDelete': False}, 'stats': [count], 'briefStats': [count]}
+    if user:
+        header['ownerText'] = {'runs': [{'text': user['username'], 'navigationEndpoint': channel_endpoint(user['id'])}]}
+        header['ownerEndpoint'] = channel_endpoint(user['id'])
+    if rows:
+        header['playlistHeaderBanner'] = {'heroPlaylistThumbnailRenderer': {
+            'thumbnail': renderer(rows[0])['videoRenderer']['thumbnail'], 'maxRatio': 1.7777778, 'onTap': endpoint(rows[0])}}
+        header['playButton'] = {'buttonRenderer': {'text': text('Play all'), 'style': 'STYLE_MONO_FILLED',
+            'icon': {'iconType': 'PLAY_ARROW'}, 'navigationEndpoint': endpoint(rows[0])}}
+    return {'header': {'playlistHeaderRenderer': header},
+        'contents': {'twoColumnBrowseResultsRenderer': {'tabs': [{'tabRenderer': {'selected': True,
+            'content': {'sectionListRenderer': {'contents': [{'itemSectionRenderer': {'contents': items}}]}}}}]}}}
+
+
 def renderer(v):
     return {'videoRenderer': {
         'videoId': v['id'], 'title': {'runs': [{'text': v['title']}]},
@@ -162,17 +199,23 @@ def response(c, operation, body, origin, user=None):
         entries.append(('Subscriptions', 'SUBSCRIPTIONS', subscriptions))
         if user:
             entries.append(('Your channel', 'ACCOUNT_BOX', channel_endpoint(user['id'])))
+            entries.append(('Liked videos', 'LIKES_PLAYLIST_CAIRO', liked_endpoint()))
         return {**context, 'items': [{'guideSectionRenderer': {'items': [
             {'guideEntryRenderer': {'formattedTitle': text(title), 'icon': {'iconType': icon},
                 'isPrimary': True, 'navigationEndpoint': destination}} for title, icon, destination in entries]}}]}
     browse_id = body.get('browseId', '') if operation == 'browse' else ''
     channel = c.execute('SELECT id,username FROM users WHERE id=?', (browse_id,)).fetchone() if browse_id else None
     rows = videos(c, body.get('query', '')[:200], channel=channel['id'] if channel else None,
-                  subscriber=user['id'] if user and browse_id == 'FEsubscriptions' else None)
-    if browse_id == 'FEsubscriptions' and not user:
+                  subscriber=user['id'] if user and browse_id == 'FEsubscriptions' else None,
+                  liked_by=user['id'] if user and browse_id == 'VLLL' else None)
+    if browse_id in ('FEsubscriptions', 'VLLL') and not user:
         rows = []
-    elif browse_id and browse_id not in ('FEwhat_to_watch', 'FEsubscriptions') and not channel:
+    elif browse_id and browse_id not in ('FEwhat_to_watch', 'FEsubscriptions', 'VLLL') and not channel:
         return None
+    if operation == 'browse' and browse_id == 'VLLL':
+        total = c.execute("SELECT count(*) FROM likes l JOIN videos v ON v.id=l.video_id WHERE l.user_id=? AND v.status='ready'",
+                          (user['id'],)).fetchone()[0] if user else 0
+        return {**context, **liked_playlist(rows, user, total)}
     items = [renderer(v) for v in rows]
     if operation == 'search':
         return {**context, 'contents': {'twoColumnSearchResultsRenderer': {'primaryContents': {

@@ -163,7 +163,8 @@ def replace_json_assignment(html, name, value):
 
 
 def shell(c, origin, watch_id=None, search_query=None, user=None, browse_id=''):
-    target = DATA / 'client' / ('watch.html' if watch_id else ('search.html' if search_query is not None else 'index.html'))
+    target = DATA / 'client' / ('watch.html' if watch_id else ('search.html' if search_query is not None else
+                              ('playlist.html' if browse_id == 'VLLL' else 'index.html')))
     if not target.is_file():
         return None
     html = target.read_text()
@@ -197,11 +198,14 @@ def shell(c, origin, watch_id=None, search_query=None, user=None, browse_id=''):
             pass
     html = replace_json_assignment(html, 'ytInitialData', initial)
     if operation == 'browse':
-        destination = (innertube.channel_endpoint(browse_id) if browse_id and browse_id not in ('FEsubscriptions', 'FEwhat_to_watch')
+        destination = (innertube.liked_endpoint() if browse_id == 'VLLL' else
+                       innertube.channel_endpoint(browse_id) if browse_id and browse_id not in ('FEsubscriptions', 'FEwhat_to_watch')
                        else innertube.browse_endpoint(browse_id or 'FEwhat_to_watch',
                             '/feed/subscriptions' if browse_id == 'FEsubscriptions' else '/'))
         html = replace_json_assignment(html, 'ytCommand', destination)
         html = replace_json_assignment(html, 'ytUrl', destination['commandMetadata']['webCommandMetadata']['url'])
+        if browse_id == 'VLLL':
+            html = replace_json_assignment(html, 'ytPageType', 'playlist')
     elif operation == 'search':
         destination = innertube.search_endpoint(search_query)
         html = replace_json_assignment(html, 'ytCommand', destination)

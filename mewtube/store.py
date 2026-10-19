@@ -61,7 +61,7 @@ def video(c, video_id):
       FROM videos v JOIN users u ON u.id=v.owner WHERE v.id=?''', (video_id,)).fetchone()
 
 
-def videos(c, query='', channel=None, subscriber=None, limit=40, offset=0):
+def videos(c, query='', channel=None, subscriber=None, limit=40, offset=0, liked_by=None):
     sql = '''SELECT v.*, u.username, (SELECT count(*) FROM likes WHERE video_id=v.id) likes
       FROM videos v JOIN users u ON u.id=v.owner WHERE v.status='ready' '''
     args = []
@@ -75,4 +75,7 @@ def videos(c, query='', channel=None, subscriber=None, limit=40, offset=0):
     if subscriber:
         sql += 'AND v.owner IN (SELECT channel_id FROM subscriptions WHERE user_id=?) '
         args.append(subscriber)
+    if liked_by:
+        sql += 'AND v.id IN (SELECT video_id FROM likes WHERE user_id=?) '
+        args.append(liked_by)
     return c.execute(sql + 'ORDER BY v.created DESC LIMIT ? OFFSET ?', [*args, limit, offset]).fetchall()

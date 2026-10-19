@@ -19,6 +19,7 @@ from mewtube.store import DATA
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36'
 MAX_FILE = 20 * 1024 * 1024
 WATCH_ID = 'jNQXAC9IVRw'  # Public guest HTML only; no video media is fetched.
+PLAYLIST_ID = 'UUBR8-60-B28hp2BmDPdntcQ'  # Public YouTube channel's uploads; guest HTML only.
 
 
 def adapt_local_player(text, origin):
@@ -83,7 +84,7 @@ def allowed(url):
 class Redirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         parsed = urllib.parse.urlsplit(newurl)
-        guest_page = parsed.scheme == 'https' and parsed.netloc == 'www.youtube.com' and parsed.path in ('/', '/watch', '/results')
+        guest_page = parsed.scheme == 'https' and parsed.netloc == 'www.youtube.com' and parsed.path in ('/', '/watch', '/results', '/playlist')
         if not guest_page and not allowed(newurl):
             raise ValueError('Unexpected redirect; capture stopped: ' + urllib.parse.urlsplit(newurl).netloc)
         return super().redirect_request(req, fp, code, msg, headers, newurl)
@@ -144,7 +145,18 @@ def main():
         page_failures.append({'path': '/results', 'error': type(e).__name__})
         search_html = None
         print('Guest search template unavailable:', type(e).__name__, flush=True)
-    pending = sorted(u for u in references(html + (watch_html or '') + (search_html or '')) if allowed(u))
+    playlist_html = None
+    try:
+        playlist_html = fetch('https://www.youtube.com/playlist?list=' + PLAYLIST_ID).decode('utf-8')
+        playlist_data = read_json_assignment(playlist_html, 'ytInitialData')
+        if (not isinstance(playlist_data, dict) or '<ytd-app' not in playlist_html or
+                'playlistHeaderRenderer' not in playlist_data.get('header', {})):
+            raise ValueError('Guest playlist page did not contain a playlist bootstrap')
+    except Exception as e:
+        page_failures.append({'path': '/playlist', 'error': type(e).__name__})
+        playlist_html = None
+        print('Guest playlist template unavailable:', type(e).__name__, flush=True)
+    pending = sorted(u for u in references(html + (watch_html or '') + (search_html or '') + (playlist_html or '')) if allowed(u))
     # Observed dynamic icon requests from the captured client's browser trace.
     pending += ['https://fonts.gstatic.com/s/i/youtube_outline_experimental/search/v15/24px.svg',
                 'https://fonts.gstatic.com/s/i/youtube_outline_experimental/menu/v1/24px.svg']
@@ -200,10 +212,17 @@ def main():
         staged_search.replace(client / 'search.html')
     else:
         (client / 'search.html').unlink(missing_ok=True)
+    if playlist_html:
+        staged_playlist = client / 'playlist.html.tmp'
+        staged_playlist.write_text(rewrite_origins(playlist_html, origin))
+        staged_playlist.replace(client / 'playlist.html')
+    else:
+        (client / 'playlist.html').unlink(missing_ok=True)
     (client / 'manifest.json').write_text(json.dumps({'capturedAt': int(time.time()), 'publicOrigin': origin,
         'assetRouting': 'preserved-build-paths', 'assets': entries,
         'watchTemplate': bool(watch_html), 'watchSourceId': WATCH_ID,
         'searchTemplate': bool(search_html),
+        'playlistTemplate': bool(playlist_html),
         'failures': failures, 'remaining': len(pending), 'status': 'experimental-unverified'}, indent=2))
     print(f'Pinned {len(entries)} assets; {len(failures)} failures, {len(pending)} remaining. Experimental client: /official')
 

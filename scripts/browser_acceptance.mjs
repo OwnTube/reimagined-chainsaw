@@ -13,7 +13,12 @@ export function browserFailures(diagnostics) {
     'capturedClient.nativeSubscriptions.feed', 'capturedClient.nativeSubscriptions.guide',
     'capturedClient.nativeSubscriptions.excludesUnfollowed', 'capturedClient.nativeSubscriptions.channel',
     'capturedClient.nativeSubscriptions.excludesOtherCreator', 'capturedClient.nativeSubscriptions.unsubscribe',
-    'capturedClient.guestLocalSignIn', 'capturedClient.localAccountHandoff'
+    'capturedClient.guestLocalSignIn', 'capturedClient.localAccountHandoff',
+    'capturedClient.nativeAccountMenu.opened', 'capturedClient.nativeAccountMenu.localIdentity', 'capturedClient.nativeAccountMenu.ownChannel',
+    'capturedClient.nativeSearch.submitted', 'capturedClient.nativeSearch.localResult', 'capturedClient.nativeSearch.excludesNonmatch',
+    'capturedClient.nativeSearch.reload', 'capturedClient.nativeSearch.watchNavigation',
+    'capturedClient.nativeChannelHeader.title', 'capturedClient.nativeChannelHeader.handle',
+    'capturedClient.nativeChannelHeader.subscriberCount', 'capturedClient.nativeChannelHeader.readyVideoCount'
   ];
   return paths.filter(path => path.split('.').reduce((value, key) => value?.[key], diagnostics) !== true);
 }

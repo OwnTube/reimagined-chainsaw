@@ -215,7 +215,7 @@ class Handler(BaseHTTPRequestHandler):
             cookie = http.cookies.SimpleCookie()
         channel_path = re.fullmatch(r'/channel/(' + ID + ')', path)
         official = path == '/official' or (not (cookie.get('mewtube_client') and cookie['mewtube_client'].value == 'independent')
-                    and (path in ('/', '/watch', '/results', '/feed/subscriptions') or channel_path)
+                    and (path in ('/', '/watch', '/results', '/feed/subscriptions', '/playlist') or channel_path)
                     and query.get('native') != ['1'] and query.get('signin') != ['1'])
         if official and self.command in ('GET', 'HEAD'):
             from .snapshot import shell
@@ -223,7 +223,10 @@ class Handler(BaseHTTPRequestHandler):
             if watch_id and not re.fullmatch(ID, watch_id):
                 raise Error(400, 'Invalid video ID')
             with db() as c:
-                browse_id = channel_path[1] if channel_path else ('FEsubscriptions' if path == '/feed/subscriptions' else '')
+                if path == '/playlist' and query.get('list') != ['LL']:
+                    raise Error(501, 'Only the local liked-videos playlist is currently supported')
+                browse_id = channel_path[1] if channel_path else ('FEsubscriptions' if path == '/feed/subscriptions' else
+                                                                 ('VLLL' if path == '/playlist' else ''))
                 content = shell(c, ORIGIN, watch_id, query.get('search_query', [None])[0] if path == '/results' else None,
                                 self.user(c), browse_id)
             if content is None:

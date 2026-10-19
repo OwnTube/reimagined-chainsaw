@@ -9,11 +9,12 @@ A self-hosted backend for the **actual captured YouTube web client**. Inspired b
 Requires Python 3.12+ and FFmpeg/FFprobe. No Python packages, API keys, or Google account are needed.
 
 ```sh
+python scripts/fetch_client.py
 python -m mewtube.server
 # open http://localhost:3000
 ```
 
-Create an account in the web interface, open **Your studio**, and upload a video. To make that account an instance operator:
+Fresh visitors use the actual captured client. A missing capture returns setup instructions. Local sign-in and uploads currently use temporary development tools at `/?native=1`; their separate interface does not satisfy native client compatibility. Use those tools to register an account and upload fixtures, then return through `/official`. To make an account an instance operator:
 
 ```sh
 python scripts/manage_operator.py grant YOUR_USERNAME
@@ -41,7 +42,9 @@ docker compose exec mewtube python scripts/fetch_client.py
 # open http://localhost:3000/official
 ```
 
-This downloads guest home/watch HTML and allowlisted static assets from YouTube; it does not download any upstream video media. It does not use your Google login, proxy YouTube videos, or import YouTube accounts. Captures stay in ignored `data/client/` and must not be committed. Capture uses `PUBLIC_ORIGIN` to rewrite hardcoded API origins for workers as well as the window transport; recapture after changing that origin. `--latest` replaces the pin. Recapture after upgrading from hashed build URLs: the native module loader needs its original `/s/_/.../_/js/k=...` path, which the server now resolves locally through the manifest. A manifest records original and served SHA-256 hashes and failed downloads. Use the banner’s independent-UI link (or `/?native=1`) to leave captured-client mode. The site CSP blocks external browser connections. Lazy chunks may be fetched by the server only from fixed public YouTube build paths and the two observed Google icon path families, with 20 MB per-file, 500-file and 384 MB cache limits; arbitrary hosts, API URLs and traversal paths are rejected.
+This downloads guest home/watch/search/playlist HTML and allowlisted static assets from YouTube. It does not download upstream video media, use a Google login or import YouTube accounts. Captures stay in ignored `data/client/` and must not be committed. Capture uses `PUBLIC_ORIGIN` to rewrite API origins for workers and the window transport; recapture after changing it. `--latest` replaces the pin. The native module loader retains its original `/s/_/.../_/js/k=...` path, resolved locally through the manifest. Source/served SHA-256 hashes and failed downloads are recorded.
+
+The captured UI has no injected development banner. Explicit `/?native=1` selects the temporary utility; `/official` returns to the captured client. CSP blocks external browser connections. Lazy chunks may be fetched only from fixed public YouTube build paths and observed icon families, with 20 MB per-file, 500-file and 384 MB cache limits. Arbitrary hosts, API URLs and traversal paths are rejected.
 
 The observed guest build used desktop `5d669aa8`, player `0229cd64`, and newer `/s/_/ytmainappweb/` main bundles. The latest local guest pin obtained **33 assets with zero reported download failures**. That count does not prove that every dynamically loaded module was discovered, or that the UI works.
 
@@ -61,6 +64,7 @@ New captures also pin a guest search-page template for native search reloads. Up
 - Instance-local guest client capture, current main-bundle URL handling, bootstrap replacement, and fetch/XHR transport adapter.
 - Captured watch Like/Unlike and Subscribe/Unsubscribe backed by local sessions, bounded gzip API decoding, persisted native state, and guest local sign-in returning to the captured watch page.
 - Captured Guide/Subscriptions navigation and filtered subscription and creator video grids. Native comment display and top-level posting, immediate insertion and reload persistence pass in the actual client (runner 39259838348).
+- Native account menu with local identity and own-channel navigation; native search submission/filtering/reload/watch navigation; modern channel name/handle/counts (runner 39262565637).
 - HTTP integration tests and a GitHub Actions browser/REA diagnostic workflow.
 
 ## Known limits

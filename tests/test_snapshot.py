@@ -83,6 +83,8 @@ class SnapshotTests(unittest.TestCase):
                 return html.encode()
             if '/results?' in url:
                 return html.replace('var ytInitialData={};', 'var ytInitialData={"contents":{"twoColumnSearchResultsRenderer":{}}};').encode()
+            if '/playlist?' in url:
+                return html.replace('var ytInitialData={};', 'var ytInitialData={"header":{"playlistHeaderRenderer":{}}};').encode()
             return b'var loaded=true;' if '/_/js/' in url else b'<svg/>'
         with tempfile.TemporaryDirectory() as tmp:
             with patch.object(capture, 'DATA', Path(tmp)), patch.object(capture, 'fetch', side_effect=download), \
@@ -97,6 +99,8 @@ class SnapshotTests(unittest.TestCase):
             manifest = json.loads((Path(tmp) / 'client' / 'manifest.json').read_text())
             self.assertTrue(manifest['searchTemplate'])
             self.assertTrue((Path(tmp) / 'client' / 'search.html').is_file())
+            self.assertTrue(manifest['playlistTemplate'])
+            self.assertTrue((Path(tmp) / 'client' / 'playlist.html').is_file())
             entry = next(a for a in manifest['assets'] if a['url'] == modern)
             self.assertRegex(entry['file'], r'^[0-9a-f]{64}\.js$')
             self.assertTrue((Path(tmp) / 'client' / 'assets' / entry['file']).is_file())
