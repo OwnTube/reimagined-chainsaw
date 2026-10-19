@@ -1,0 +1,38 @@
+name: Requested RCC startup screenshot
+on:
+  push:
+    branches: [rcc2026-ci]
+    paths: ["tools/rcc_startup_screenshot.py", ".github/workflows/rcc2026-screenshot.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  screenshot:
+    runs-on: windows-2022
+    timeout-minutes: 8
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: rcc2026
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Install screen capture dependency
+        run: python -m pip install Pillow
+      - name: Restore verified Studio deployment
+        run: python fetch_pinned_studio.py --destination ci-studio
+      - name: Capture the current owned server launch
+        run: python ../tools/rcc_startup_screenshot.py --studio ci-studio/RobloxStudioBeta.exe --output ci-screenshot
+      - name: Preserve the requested screenshot
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: rcc-current-startup-screenshot
+          path: |
+            rcc2026/ci-screenshot/rcc-current-startup.png
+            rcc2026/ci-screenshot/capture.json
+          retention-days: 7
