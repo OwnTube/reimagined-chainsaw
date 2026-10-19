@@ -52,12 +52,16 @@ jobs:
         continue-on-error: true
         run: python dump_windows_api.py --studio ci-studio/RobloxStudioBeta.exe --output ci-output/api
       - name: Attempt native Studio RunScript
+        if: github.event_name == 'workflow_dispatch'
         env:
           REQUEST_RENDER: ${{ github.event_name == 'push' || inputs.render }}
         run: |
           $probeArgs = @('windows_probe.py', '--studio', 'ci-studio/RobloxStudioBeta.exe', '--output', 'ci-output/runtime')
           if ($env:REQUEST_RENDER -eq 'true') { $probeArgs += '--render' }
           python @probeArgs
+      - name: Attempt an owned local Studio server place
+        if: success() || failure()
+        run: python windows_server_probe.py --studio ci-studio/RobloxStudioBeta.exe --output ci-output/local-server
       - name: Preserve results and failures
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
