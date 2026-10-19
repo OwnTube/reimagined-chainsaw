@@ -18,6 +18,18 @@ The probe captures the desktop, owned process window metadata, and redacted nati
 
 ## Verified checkpoint — 2026-10-19
 
+Latest: [native player and console run 39308899770](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39308899770), source commit `e47a5db974d5b1cdc7046c1dba71a0478d81426f`, passed all three control-plane tests, three actual engine jobs, and the Chrome console integration check. The avatar PNG was visually inspected: it shows the yellow rounded head and smiling face, yellow arms, blue torso, green legs, and the old Humanoid name/health display. The console screenshot visibly includes the owner's supplied logo and this same avatar image. The avatar is a static owned R6 fixture, not a joined live player or a fetched account appearance.
+
+| Latest native job | PNG dimensions | PNG SHA-256 |
+| --- | --- | --- |
+| Blocks | 512 × 512 | `bb51910a504dcde1dd7aabb42bf3d0f155cfb41080688379509a2450ec325ac3` |
+| Uploaded place, custom camera | 640 × 360 | `d3f67dabe9c5fc14b5c8ed4ed9f8710389c8b23daeed8b86b0e55ccea883746f` |
+| Classic R6 player | 512 × 512 | `d56fa8c6ab70c72fd68b16705e0088fa0110f79bbd8380b40bee22aa9af52672` |
+
+`api-validation.json` records the independent scene markers, native viewport dimensions, and image hashes; `console-validation.json` identifies the exact avatar job and PNG shown by the browser. The images are `default-render.png`, `uploaded-render.png`, `avatar-render.png`, and `console-preview.png` in the Actions evidence artifact. The native portrait currently includes the old Humanoid name and health bar; suppression of that overlay is not implemented.
+
+Earlier checkpoint:
+
 [Native HTTP validation run 39268119152](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39268119152), source commit `5f3eae203a729c6113eeb176e6bc5d02ee78e463`, passed the two control-plane tests and two actual Studio render jobs. Both jobs emitted their own random scene-ready marker, captured the foreground process's `QOgreWidget`, and returned PNG bytes through the HTTP image endpoint. The downloaded images were also visually inspected: the first shows the studded floor with red/green/blue blocks; the second shows the uploaded orange/yellow blocks.
 
 | Actual engine job | PNG dimensions | PNG SHA-256 |
@@ -25,7 +37,7 @@ The probe captures the desktop, owned process window metadata, and redacted nati
 | Default owned scene | 870 × 578 | `c19036540b6dd7fe0e58f0782cf8bf82f1a56e8abdee47101303753a0cb505d6` |
 | Uploaded local place | 1024 × 578 | `924af79b47fc482045283183eefb37603691628778dddad71589d5f7ff676750` |
 
-The native evidence artifact includes `api-validation.json`, both returned images, per-job results, startup screenshots, and redacted engine logs. Its retention is seven days. The differing widths reflect Studio's current dock layout; output sizing is not implemented. Uploaded-place success checks the engine marker and native viewport capture; it does not automatically prove that every object or asset in an arbitrary place loaded correctly. These tests establish these two scenes only. Player was downloaded and identified but has not been launched or tested for joining.
+The native evidence artifact includes `api-validation.json`, both returned images, per-job results, startup screenshots, and redacted engine logs. Its retention is seven days. The differing widths in that initial checkpoint reflect Studio's dock layout. Uploaded-place success checks the engine marker and native viewport capture; it does not automatically prove that every object or asset in an arbitrary place loaded correctly. These tests establish these two scenes only. Player was downloaded and identified but has not been launched or tested for joining.
 
 The first API attempt failed before starting Studio because SQLite context managers commit transactions without closing their connections. Connections now close explicitly, and the Windows tests pass with normal temporary-directory cleanup.
 
@@ -50,16 +62,27 @@ The service listens on `127.0.0.1:64313` and serializes render jobs through one 
 | `GET /health` | Service identity and deployment presence |
 | `GET /v1/renders` | Twenty most recent persisted render jobs |
 | `POST /v1/renders` with `{}` | Queue the owned three-block scene; returns job `id` |
+| `POST /v1/renders` with `{"scene":"avatar"}` | Queue the owned classic R6 player fixture |
 | `POST /v1/places` with raw `.rbxl`/`.rbxlx` bytes | Store a place by SHA-256; returns `place_id` |
-| `POST /v1/renders` with `place_id`, optional `camera` and `size` | Queue an uploaded local place |
+| `POST /v1/renders` with `place_id`, optional `camera` and `size` | Queue an uploaded local place; cannot be combined with a built-in `scene` |
 | `GET /v1/renders/{id}` | Queued/running/succeeded/failed state and native evidence |
 | `GET /v1/renders/{id}/image` | PNG after success; HTTP 409 while unavailable |
 
-Camera input accepts `position`, `target`, and `fov`, for example `{"position":[19,15,23],"target":[0,2,0],"fov":50}`. Optional `size` is `{"width":512,"height":512}`. The worker restores and resizes only its owned Studio window until the native viewport matches the requested dimensions; it does not stretch, crop, or resample the PNG. Both dimensions must be integers between 128 and 2048. The worker fails explicitly if the requested viewport cannot fit its desktop or Studio's minimum window layout. Omit `size` for the existing viewport. Exact-size native tests are pending for this revision.
+Camera input accepts `position`, `target`, and `fov`, for example `{"position":[19,15,23],"target":[0,2,0],"fov":50}`. Optional `size` is `{"width":512,"height":512}`. The worker restores and resizes only its owned Studio window until the native viewport matches the requested dimensions; it does not stretch, crop, or resample the PNG. Both dimensions must be integers between 128 and 2048. The worker fails explicitly if the requested viewport cannot fit its desktop or Studio's minimum window layout. Omit `size` for the existing viewport. [Sizing run 39308295354](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39308295354) passed actual native 512 × 512 and 640 × 360 image checks, including a custom camera on the uploaded scene.
 
-Inputs are validated numeric data, not Lua source. Uploads are limited to 8 MiB; the pending queue is limited to sixteen jobs. Three control-plane tests exercise invalid camera/size input, path rejection, HTTP status handling, console assets, history, and image delivery with an explicitly mocked engine. `windows_e2e.py` separately tests the actual engine through HTTP with both the default scene and an uploaded place, now requesting 512 × 512 and 640 × 360 and a custom camera for the second job.
+Inputs are validated numeric data, not Lua source. Uploads are limited to 8 MiB; the pending queue is limited to sixteen jobs. Three control-plane tests exercise invalid camera/size input, scene selection, path rejection, HTTP status handling, console assets, history, and image delivery with an explicitly mocked engine. `windows_e2e.py` separately tests the actual engine through HTTP with the default blocks, an uploaded place, and the R6 player fixture. `console_capture.py` uses a fresh Chrome profile to check that console JavaScript selects a completed native avatar job and displays its actual image endpoint.
 
-This is a new JSON render-job API around the 2013 engine. It does not implement legacy RCCService SOAP methods or game joining. Rendering currently captures the visible native viewport, so a desktop session and foreground Studio window are required; it is not a headless GPU renderer or transparent-background thumbnail service. Avatar-specific setup is not implemented yet.
+## Classic R6 player
+
+Select **Classic R6 player** in the console, or submit:
+
+```json
+{"scene":"avatar","size":{"width":512,"height":512}}
+```
+
+The owned [avatar fixture](rcc2013/avatar.lua) builds a six-part character with a Humanoid, invisible root, and Motor6D joints. It uses the 2013 engine's Head mesh and the verified archive's bundled `content/textures/face.png`, referenced locally with `rbxasset://`. It does not fetch a modern account's appearance. All parts are anchored for a static portrait. The default avatar camera faces its front at `[7,5,-10]` toward `[0,2.6,0]`, with a 35-degree field of view. The native validator requires the random R6-construction marker, exact requested dimensions, and visible yellow/blue/green regions. Visual inspection is still required to confirm the face and appearance.
+
+This is a new JSON render-job API around the 2013 engine. It does not implement legacy RCCService SOAP methods or game joining. Rendering currently captures the visible native viewport, so a desktop session and foreground Studio window are required; it is not a headless GPU renderer or transparent-background thumbnail service. Account-specific avatars, clothing/accessory loading, and animation are not implemented yet.
 
 ## References
 
