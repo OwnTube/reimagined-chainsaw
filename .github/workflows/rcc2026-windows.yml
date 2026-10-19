@@ -33,7 +33,7 @@ jobs:
       - name: Install research dependencies
         run: python -m pip install -r requirements.txt Pillow
       - name: Run evidence-processing tests
-        run: python -m unittest -v test_probe.py test_adapter_references.py
+        run: python -m unittest -v test_probe.py test_adapter_references.py test_unwind_groups.py
       - name: Assemble the pinned official Studio release
         run: |
           New-Item -ItemType Directory -Path ci-output
@@ -46,6 +46,9 @@ jobs:
         run: python inspect_studio.py ci-studio/RobloxStudioBeta.exe --patterns offline-patterns.json --output ci-output/offline-adapter-static.json
       - name: Inventory adapter string references and instruction boundaries
         run: python inspect_adapter_references.py ci-studio/RobloxStudioBeta.exe --output ci-output/adapter-references.json
+      - name: Resolve chained unwind fragments without modifying Studio
+        timeout-minutes: 2
+        run: python inspect_unwind_groups.py ci-studio/RobloxStudioBeta.exe --output ci-output/unwind-groups.json
       - name: Record independent REA resource metadata
         timeout-minutes: 2
         continue-on-error: true
