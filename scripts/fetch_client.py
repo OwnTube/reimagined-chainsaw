@@ -118,36 +118,30 @@ def main():
                              'error': type(e).__name__, 'status': getattr(e, 'code', None)})
     if not any(asset_name(u).endswith('.js') for u in raw_assets):
         raise SystemExit('No entry scripts captured; old pin left intact.')
-    mapping = {u: '/client-assets/' + asset_name(u) for u in raw_assets}
-
-    def rewrite(text):
-        # Longer URLs first so path prefixes cannot consume another entry.
-        for url, local in sorted(mapping.items(), key=lambda item: len(item[0]), reverse=True):
-            text = text.replace(url, local)
-            if url.startswith('https://www.youtube.com'):
-                text = text.replace(url.removeprefix('https://www.youtube.com'), local)
-        return rewrite_origins(text, origin)
-
     directory = client / 'assets'
     directory.mkdir(parents=True, exist_ok=True)
     entries = []
     for url, raw in raw_assets.items():
         name = asset_name(url)
-        served = rewrite(raw.decode('utf-8')).encode() if name.endswith(('.js', '.css')) else raw
+        # The module loader parses its own script URL for /_/js/, /k= and
+        # module parameters. Keep public build paths intact; hashes are only
+        # storage filenames resolved through the manifest by dynamic_asset().
+        served = rewrite_origins(raw.decode('utf-8'), origin).encode() if name.endswith(('.js', '.css')) else raw
         (directory / name).write_bytes(served)
         entries.append({'url': url, 'file': name, 'sha256': hashlib.sha256(raw).hexdigest(),
                         'served_sha256': hashlib.sha256(served).hexdigest()})
     # Retained only on this machine. It may contain anonymous visitor identifiers.
     staged = client / 'index.html.tmp'
-    staged.write_text(rewrite(html))
+    staged.write_text(rewrite_origins(html, origin))
     staged.replace(client / 'index.html')
     if watch_html:
         staged_watch = client / 'watch.html.tmp'
-        staged_watch.write_text(rewrite(watch_html))
+        staged_watch.write_text(rewrite_origins(watch_html, origin))
         staged_watch.replace(client / 'watch.html')
     else:
         (client / 'watch.html').unlink(missing_ok=True)
-    (client / 'manifest.json').write_text(json.dumps({'capturedAt': int(time.time()), 'publicOrigin': origin, 'assets': entries,
+    (client / 'manifest.json').write_text(json.dumps({'capturedAt': int(time.time()), 'publicOrigin': origin,
+        'assetRouting': 'preserved-build-paths', 'assets': entries,
         'watchTemplate': bool(watch_html), 'watchSourceId': WATCH_ID,
         'failures': failures, 'remaining': len(pending), 'status': 'experimental-unverified'}, indent=2))
     print(f'Pinned {len(entries)} assets; {len(failures)} failures, {len(pending)} remaining. Experimental client: /official')

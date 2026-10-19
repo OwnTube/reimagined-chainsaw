@@ -3,10 +3,25 @@ import { chromium, request } from 'playwright';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { randomBytes } from 'node:crypto';
 import assert from 'node:assert/strict';
+import {probePlayback} from './playback_probe.mjs';
 
 const origin = process.env.PUBLIC_ORIGIN || 'http://localhost:3000';
 await mkdir('evidence', {recursive:true});
 const diagnostics = {independentClient:{}, capturedClient:{status:'not-tested',errors:[],failedPaths:[],failedRequests:[]}};
+async function checkpoint(stage) {
+  diagnostics.lastStage=stage;
+  await writeFile('evidence/browser.json',JSON.stringify(diagnostics,null,2));
+}
+async function bounded(promise,ms,label) {
+  let timer;
+  try {return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(label+' timed out')),ms);})]);}
+  finally {clearTimeout(timer);}
+}
+await checkpoint('starting');
+const watchdog=setTimeout(()=>{
+  diagnostics.error='Browser probe exceeded its 180-second deadline';
+  checkpoint(diagnostics.lastStage).finally(()=>process.exit(1));
+},180000);
 const context = await request.newContext({baseURL:origin,extraHTTPHeaders:{'X-MewTube':'1',Origin:origin}});
 const username = 'probe_' + randomBytes(4).toString('hex');
 const password = randomBytes(18).toString('hex');
@@ -27,6 +42,8 @@ try {
   assert.equal(video.status,'ready');
   browser=await chromium.launch({headless:true});
   const page=await browser.newPage({viewport:{width:1440,height:1000}});
+  page.setDefaultTimeout(15000);
+  page.setDefaultNavigationTimeout(20000);
   const state=await context.storageState();
   await page.context().addCookies(state.cookies);
   await page.goto(origin);
@@ -34,9 +51,10 @@ try {
   await page.screenshot({path:'evidence/home.png',fullPage:true});
   await page.getByRole('link',{name:'Runner test video',exact:true}).click();
   await page.locator('video').waitFor();
-  await page.locator('video').evaluate(async video=>{video.muted=true;await video.play();});
-  await page.waitForFunction(()=>document.querySelector('video')?.currentTime>0.1);
+  const nativePlayback=await bounded(page.locator('video').evaluate(probePlayback,{timeoutMs:8000}),10000,'Independent playback probe');
+  assert.equal(nativePlayback.ok,true,JSON.stringify(nativePlayback));
   diagnostics.independentClient.playback=true;
+  await checkpoint('independent-playback-passed');
   await page.locator('#like').click();
   await page.waitForFunction(()=>document.querySelector('#like')?.textContent.includes('♥'));
   await page.getByRole('textbox',{name:'Add a comment'}).fill('A real browser comment');
@@ -49,10 +67,11 @@ try {
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   await page.screenshot({path:'evidence/mobile.png',fullPage:true});
   diagnostics.independentClient.interactions=true;
+  await checkpoint('independent-interactions-passed');
   await page.setViewportSize({width:1440,height:1000});
   page.on('pageerror', error=>{if(diagnostics.capturedClient.errors.length<30)diagnostics.capturedClient.errors.push((error.stack||error.message).slice(0,1200));});
   page.on('requestfailed', req=>{try{const url=new URL(req.url());diagnostics.capturedClient.failedPaths.push(url.pathname.slice(0,250));if(diagnostics.capturedClient.failedRequests.length<100)diagnostics.capturedClient.failedRequests.push({method:req.method(),origin:url.origin,path:url.pathname.slice(0,250),error:req.failure()?.errorText});}catch{}});
-  page.on('response',response=>{if(response.status()>=400){try{diagnostics.capturedClient.failedPaths.push(`${response.status()} ${new URL(response.url()).pathname.slice(0,200)}`);}catch{}}});
+  page.on('response',response=>{try{const path=new URL(response.url()).pathname;if(path===`/media/${id}/video.mp4` && [200,206].includes(response.status()))diagnostics.capturedClient.localMediaResponse=true;if(response.status()>=400)diagnostics.capturedClient.failedPaths.push(`${response.status()} ${path.slice(0,200)}`);}catch{}});
   const captured=await page.goto(origin+'/official');
   if(captured.status()===200){
     await page.waitForTimeout(15000);
@@ -61,23 +80,31 @@ try {
     diagnostics.capturedClient.localTitleVisible=await page.getByText('Runner test video',{exact:true}).first().isVisible().catch(()=>false);
     diagnostics.capturedClient.sameOrigin=new URL(page.url()).origin===origin;
     diagnostics.capturedClient.status=diagnostics.capturedClient.localTitleVisible && diagnostics.capturedClient.customElementDefined && diagnostics.capturedClient.sameOrigin?'home-rendered':'boot-incomplete';
-    await page.screenshot({path:'evidence/official-experimental.png',fullPage:true});
+    await checkpoint('official-home-inspected');
+    await page.screenshot({path:'evidence/official-experimental.png',fullPage:true,timeout:10000});
     if(diagnostics.capturedClient.status==='home-rendered'){
       try{
         await page.getByText('Runner test video',{exact:true}).first().click({timeout:10000});
         const officialVideo=page.locator('ytd-app #movie_player video').first();
         await officialVideo.waitFor({state:'attached',timeout:15000});
-        await officialVideo.evaluate(async v=>{v.muted=true;await v.play();});
-        await page.waitForFunction(()=>Array.from(document.querySelectorAll('ytd-app #movie_player video')).some(v=>v.currentTime>0.1),{},{timeout:15000});
-        diagnostics.capturedClient.playback=new URL(page.url()).origin===origin;
+        await checkpoint('official-player-attached');
+        diagnostics.capturedClient.media=await bounded(officialVideo.evaluate(probePlayback,{timeoutMs:8000}),10000,'Official playback probe');
+        const watchUrl=new URL(page.url());
+        diagnostics.capturedClient.watchPath=watchUrl.pathname;
+        diagnostics.capturedClient.playback=diagnostics.capturedClient.media.ok && watchUrl.origin===origin &&
+          watchUrl.pathname==='/watch' && watchUrl.searchParams.get('v')===id && !!diagnostics.capturedClient.localMediaResponse;
+        if(!diagnostics.capturedClient.playback)diagnostics.capturedClient.watchError=diagnostics.capturedClient.media.reason || 'Watch identity or local media response missing';
       }catch(error){diagnostics.capturedClient.playback=false;diagnostics.capturedClient.watchError=error.message.slice(0,500);}
-      await page.screenshot({path:'evidence/official-watch-experimental.png',fullPage:true});
+      await checkpoint('official-watch-inspected');
+      await page.screenshot({path:'evidence/official-watch-experimental.png',fullPage:true,timeout:10000});
     }
   }else diagnostics.capturedClient.status='capture-unavailable';
 }catch(error){diagnostics.error=error.message;process.exitCode=1;}
 finally{
   diagnostics.capturedClient.failedPaths=[...new Set(diagnostics.capturedClient.failedPaths)].slice(0,100);
-  await writeFile('evidence/browser.json',JSON.stringify(diagnostics,null,2));
+  await checkpoint('finished');
   console.log(JSON.stringify(diagnostics,null,2));
-  await browser?.close();await context.dispose();
+  try {await bounded(browser?.close() || Promise.resolve(),5000,'Browser cleanup');await bounded(context.dispose(),5000,'API cleanup');}
+  catch(error){console.error(error.message);process.exitCode=1;}
+  clearTimeout(watchdog);
 }

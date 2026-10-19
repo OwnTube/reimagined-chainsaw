@@ -5,6 +5,8 @@ import unittest
 import subprocess
 import sys
 import tempfile
+import contextlib
+import io
 from unittest.mock import patch
 import mewtube.snapshot as snapshot
 from mewtube.snapshot import asset_name, replace_json_assignment, asset_path
@@ -15,6 +17,28 @@ spec.loader.exec_module(capture)
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_capture_keeps_module_loader_url_contract(self):
+        modern = 'https://www.youtube.com/s/_/ytmainappweb/_/js/k=build/m=base'
+        html = '<html><head><script id="base-js" src="'+modern+'"></script></head><script>var ytInitialData={};var ytInitialPlayerResponse={};window._F_jsUrl="'+modern+'";</script><ytd-app></ytd-app></html>'
+        def download(url):
+            if url == 'https://www.youtube.com/' or '/watch?' in url:
+                return html.encode()
+            return b'var loaded=true;' if '/_/js/' in url else b'<svg/>'
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.object(capture, 'DATA', Path(tmp)), patch.object(capture, 'fetch', side_effect=download), \
+                 patch.dict('os.environ', {'PUBLIC_ORIGIN':'http://localhost:3000'}), \
+                 patch.object(sys, 'argv', ['fetch_client.py']), contextlib.redirect_stdout(io.StringIO()):
+                capture.main()
+            shell = (Path(tmp) / 'client' / 'index.html').read_text()
+            expected = 'http://localhost:3000/s/_/ytmainappweb/_/js/k=build/m=base'
+            self.assertEqual(shell.count(expected), 2)
+            self.assertNotIn('/client-assets/', shell)
+            self.assertNotIn('www.youtube.com', shell)
+            manifest = json.loads((Path(tmp) / 'client' / 'manifest.json').read_text())
+            entry = next(a for a in manifest['assets'] if a['url'] == modern)
+            self.assertRegex(entry['file'], r'^[0-9a-f]{64}\.js$')
+            self.assertTrue((Path(tmp) / 'client' / 'assets' / entry['file']).is_file())
+
     def test_lazy_chunks_are_fixed_host_bounded_and_cached(self):
         import scripts.fetch_client as downloader
         with tempfile.TemporaryDirectory() as tmp:

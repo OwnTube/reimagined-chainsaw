@@ -1,50 +1,43 @@
 # Continuation checkpoint
 
-Project: MewTube. Repository: `vibecodeforever/reimagined-chainsaw`, branch `feat/mewtube`. Work exclusively on this feature branch. Main must remain unchanged unless the user requests a merge.
+Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, draft PR #1. Do not merge or change repository visibility.
 
-## Completed and locally verified
+## Current status
 
-- Studied Xitter/Meowcord README, capture scripts, server API routing, and deployment patterns.
-- Read REA guidance and invoked REA 6.7.0. Environment's broken `ps` prevents completed static analysis; do not report it as successful.
-- Captured a live guest YouTube page and 23 static files, including current modern main bundle URLs, with zero capture failures. Files are ignored and instance-local; fresh workers need to recapture.
-- Implemented independent interface, auth, uploads/transcoding/playback, search, channels, subscriptions, likes, comments, reports and host-granted operator role.
-- Implemented candidate InnerTube browse/search/player/next renderers, capture bootstrap replacement and fetch/XHR transport bridge.
-- Twelve local test methods pass, including actual FFmpeg transcoding and byte-range reads. A send-before-commit race found by the tests was corrected in mutation response paths.
-- First GitHub Actions run (39180980209) completed: HTTP tests and independent browser playback, likes, comments and mobile width checks passed. Screenshots inspected. Official client capture failed because scripts/operator.py shadowed Python stdlib operator in a fresh interpreter. Renamed it to scripts/manage_operator.py and added fresh-interpreter CLI startup regression coverage. REA in that run had no capture to analyze; it was not a successful analysis. Docker Compose build/start and HTTP/FFmpeg health were subsequently verified in run 39181455425 (container job).
+The independent service works: local accounts, streaming uploads, FFmpeg MP4 conversion/thumbnails, range playback, search, channels, subscriptions, likes, comments, reports and host-granted operator controls. Docker Compose build/start and HTTP/FFmpeg health passed on GitHub Actions. Actual YouTube home components display a local uploaded title, thumbnail, creator and view count. The latest inspected screenshot also shows the real masthead and local MewTube account button.
 
-- Restart integration test now confirms session/video durability, queued-job recovery, and cleanup of partial HTTP uploads.
-- Six hourly continuation runs are scheduled for 01:29–06:29 UTC on October 19, 2026.
+**Official YouTube watch playback is not verified.** Never substitute independent-interface playback, an attached video element, or API tests for that claim.
 
-- Run 39181319724 captured successfully, completed REA with partial coverage (12 parsed files, 1,371 findings; heap limitations on large bundles), and registered real ytd-app components displaying the local uploaded title. Screenshot inspected: header remained a skeleton. The next changes retain the guest masthead structure with a local account link, pin observed icon paths, and rewrite hardcoded API origins (including workers). These improvements still need CI verification.
-- The browser probe now requires actual `ytd-app #movie_player video` playback, preventing a full navigation into the independent interface from being counted as official-client success. Do not trust older generic-video watch probes for that claim.
+## Latest investigation and fixes (October 19, 2026)
 
-## Next work, in priority order
+Read the branch afresh at `d404d1a1095c13e9285a252cf63ca92d4895705b`. Its latest workflow run `39182748691` was cancelled after the browser step ran from 00:53:51 to 01:13:08 UTC. Artifact `12157262164` contained screenshots and server.log but no browser.json: the probe awaited HTMLMediaElement.play() indefinitely. The official-home screenshot confirms the masthead fix worked; it does not prove watch playback.
 
-1. Read the latest GitHub Actions results for this branch/PR. If the workflow ran, inspect browser.json and screenshots, fix concrete failures, rerun tests. Never treat API tests as proof of official UI success.
-2. Refine the official-client home bootstrap until a local uploaded title renders through the actual YouTube components. Preserve necessary guest shell configuration, omit upstream account state, keep all connections local. Then trace a watch click and the player request. Capture sanitized failed paths/errors.
-3. Match actual request/response schemas from captured JavaScript or a local guest network capture; do not invent claims of client parity. Use REA if supported; record blockers honestly. Do not globally change agent setup.
-4. Improve global disk quotas and transcoder isolation. Interrupted uploading rows now fail cleanly on restart, pending upload slots are reserved atomically, and HTTP threads are bounded. Keep the service self-contained.
-5. Add official local-account login and mutation adapters only after the rendering/player foundation is evidenced. Use the independent interface for supported local features meanwhile.
+Two concrete problems were corrected:
 
-## Operational constraints
+1. **Module loader URL contract.** The downloaded current main bundle's loader validates that its script URL contains `/_/js/` (or `/_/ss/`) and `/k=`. It throws `Uc` for the hashed `/client-assets/<hash>.js` path previously emitted by capture. New captures retain original build paths on the local origin. Hashes remain internal storage filenames, resolved by the fixed-host manifest cache. Existing instances must recapture with `python scripts/fetch_client.py --latest`.
+2. **Unbounded browser probe.** A new self-contained playback probe times out both a pending play() promise and a video that never advances. It records media ready/network states, source path, error code and timing without URL queries. The browser script checkpoints browser.json through each phase, has per-call bounds and a process watchdog, and uploads browser diagnostics before REA. Official playback additionally requires the actual `ytd-app #movie_player video`, correct local watch ID, progressing time and a local media response.
 
-- User asked for autonomous overnight progress. Scheduled continuation runs should produce concrete commits and update this checkpoint; they cannot guarantee uninterrupted computation between runs.
-- Use connected GitHub tools for repository access. Do not merge PRs or change repository visibility.
-- No need to request permission for routine work within this branch.
-- Do not commit downloaded proprietary clients, cookies, raw HAR captures, secrets, user uploads, SQLite files, node_modules, or data/client.
-- No YouTube/Google account or personal credentials are needed or authorized for this project.
-- Keep clear separation in reporting: working independent service, experimental captured official client, and unexecuted checks.
+Captured watch links now force a full local navigation into the pinned watch template. This deliberately avoids the unimplemented SPA POST /watch envelope. Modified clicks retain normal browser behavior. This does not introduce a replacement player or claim SPA parity.
 
-## Latest watch-path work
+Local verification after the fixes: **13 Python test methods pass**, including real FFmpeg conversion, byte ranges, sessions, ownership, interactions/moderation, interrupted-upload recovery and captured/native mode transitions. `node tests/bridge.test.mjs` and `node tests/playback_probe.test.mjs` pass. The new capture regression checks actual output URLs, and the media tests include never-settling, stalled, rejected and progressing play promises. Browser syntax check passes. Fresh CI evidence is the next source of truth.
 
-- Screenshot from run 39181670534 proved the older generic-video watch probe was a false positive: the click had fully navigated into the independent interface. Official watch playback is NOT verified.
-- Added a guest watch HTML capture (public page metadata only, never upstream video media), local `ytInitialData`/`ytInitialPlayerResponse` injection, replacement of the sample source video ID, and a view-preference cookie so `/watch` remains in the captured client. `/?native=1` and local sign-in explicitly exit that mode. HTTP regression coverage confirms the routing switch without pretending that fixture HTML proves browser compatibility.
-- Watch-page capture exposed a separate base-module loader. Added bounded on-demand static-chunk caching: fixed www.youtube.com static paths only, no query URLs/traversal or forwarded cookies, 20 MB/file, 500 entries and 384 MB total cache. Tests verify host restriction, origin rewriting and cache reuse.
-- Local home+watch capture obtained 26 assets and a valid watch template. Seven icon requests returned HTTP errors; do not describe that pin as zero-failure. Earlier home-only pin had 23 assets/zero failures.
-- Next priority: inspect the latest strict `ytd-app #movie_player video` probe, its failure stack and sanitized request origins; fix real official-player boot/API failures. Masthead and worker-origin changes also need the latest browser evidence.
+## Earlier evidence and caveats
 
-## Transport and static-host findings
+- Reference study: Xittered/xitter and meowcorded/meowcord pin official clients per instance, preserve native renderer/API contracts and implement their own local backends. See docs/research.md.
+- Initial home-only guest capture obtained 23 assets with zero failures. A later home+watch pin obtained 26 assets with seven icon failures; do not call that pin zero-failure. Icon sources were subsequently corrected to fixed fonts.gstatic.com /s/i/ and www.gstatic.com /youtube/img/icons/ families.
+- REA 6.7.0 failed locally because this container's ps cannot inspect itself. Run 39181319724 completed a partial runner analysis: 12 parsed JS files, 1,371 findings, heap limitations on large main/player bundles. It is not a complete static analysis.
+- Run 39181670534 exposed an older false-positive watch test: the click had loaded the independent player. Screenshots, not the old generic-video flag, establish that fact.
+- A streaming RequestInit bug caused local POSTs to fail with ERR_ALPN_NEGOTIATION_FAILED. The bridge now buffers API bodies and strips upstream auth/visitor headers. Binary log_event telemetry is acknowledged and discarded.
+- Lazy static cache permits fixed public build/icon hosts and path families only, with 20 MB per-file, 500-file and 384 MB cache limits; no forwarded credentials or arbitrary proxy URLs.
+- Full client authentication, Studio and mutation compatibility remain unimplemented. Use local independent-interface features meanwhile.
 
-- Run 39182040711's sanitized request trace showed local player/guide POST requests failing with Chromium `ERR_ALPN_NEGOTIATION_FAILED`. The bridge incorrectly passed a Request's ReadableStream body into RequestInit, triggering streaming uploads that need HTTP/2. The bridge now buffers API bodies and forwards bytes. `node tests/bridge.test.mjs` covers streaming Request input, ordinary URL/body input, GET, sensitive-header stripping and external-origin rejection; it passes locally.
-- Binary `log_event` telemetry is now explicitly acknowledged and discarded rather than parsed as JSON.
-- Actual icon hosts were `fonts.gstatic.com/s/i/` and `www.gstatic.com/youtube/img/icons/`, not www.youtube.com. Those fixed icon-only paths are now rewritten to local namespaces and use the bounded cache. No general Google proxy, font-CSS proxy, ad/analytics fetch, or forwarded credentials were added.
+## Next priority
+
+1. Inspect the newest CI browser artifact and `browser.json`, especially the strict official-player result and saved media state. Fix the next concrete loader, bootstrap or player-response failure. Do not wait for REA before reading the browser artifact.
+2. If a pinned watch page still cannot boot, use its loader stack/failed static paths and local bootstrap state. Preserve native build URL metadata, keep all traffic local, and never import upstream user accounts or video media.
+3. After actual official-player proof, implement local account/mutation adapters using observed contracts. Add search/guide/channel coverage as evidence warrants it.
+4. Improve global upload disk quotas and transcoder isolation without breaking the self-contained service.
+
+## Boundaries
+
+No Google account or personal credentials are needed or authorized. Never commit downloaded clients, cookies, raw HARs, secrets, user uploads, SQLite data, node_modules or evidence artifacts. Do not globally alter agent configuration. Use connected GitHub tools and expected-head checks for writes; avoid conflicting changes if another worker has advanced this branch. Update this checkpoint with concrete commits/checks and honest limits.
