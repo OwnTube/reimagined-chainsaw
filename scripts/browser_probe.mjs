@@ -66,5 +66,6 @@ try {
 finally{
   diagnostics.capturedClient.failedPaths=[...new Set(diagnostics.capturedClient.failedPaths)].slice(0,100);
   await writeFile('evidence/browser.json',JSON.stringify(diagnostics,null,2));
+  console.log(JSON.stringify(diagnostics,null,2));
   await browser?.close();await context.dispose();
 }

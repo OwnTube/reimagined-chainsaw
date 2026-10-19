@@ -25,7 +25,7 @@ async function feed(path, query) {
   if (path === '/channel') {title = 'Channel videos'; detail = 'Everything this creator has shared.'; endpoint += '?channel='+encodeURIComponent(query.get('id') || '');}
   const {videos} = await api(endpoint);
   if (path === '/channel' && videos.length) title = '@' + videos[0].username;
-  $('#main').innerHTML = heading(title, detail) + `<div class="section-title"><h2>${path === '/' ? 'Fresh from the community' : 'Videos'}</h2><span>${videos.length} videos</span></div>` + (videos.length ? `<div class="grid">${videos.map(card).join('')}</div>` : empty(path === '/' ? 'Your story starts here.' : 'Nothing here yet.',path === '/' ? 'This instance is ready for its first upload. Make it yours.' : 'New videos will appear here as they are shared.', path === '/'));
+  $('#main').innerHTML = heading(title, detail) + `<div class="section-title"><h2>${path === '/' ? 'Fresh from the community' : 'Videos'}</h2><span>${videos.length} ${videos.length === 1 ? 'video' : 'videos'}</span></div>` + (videos.length ? `<div class="grid">${videos.map(card).join('')}</div>` : empty(path === '/' ? 'Your story starts here.' : 'Nothing here yet.',path === '/' ? 'This instance is ready for its first upload. Make it yours.' : 'New videos will appear here as they are shared.', path === '/'));
 }
 async function watch(query) {
   const id = query.get('v');

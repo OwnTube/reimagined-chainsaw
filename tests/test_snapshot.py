@@ -2,6 +2,8 @@ import importlib.util
 import json
 from pathlib import Path
 import unittest
+import subprocess
+import sys
 from mewtube.snapshot import asset_name, replace_json_assignment, asset_path
 
 spec = importlib.util.spec_from_file_location('fetch_client', Path(__file__).resolve().parents[1] / 'scripts' / 'fetch_client.py')
@@ -10,6 +12,14 @@ spec.loader.exec_module(capture)
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_console_scripts_start_in_fresh_interpreters(self):
+        root = Path(__file__).resolve().parents[1]
+        for script in ('fetch_client.py', 'manage_operator.py'):
+            result = subprocess.run([sys.executable, str(root / 'scripts' / script), '--help'],
+                                    cwd=root, capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn('usage:', result.stdout)
+
     def test_modern_bundle_and_restricted_hosts(self):
         url = 'https://www.youtube.com/s/_/ytmainappweb/_/js/k=build/m=kevlar_base_module,kevlar_main_module'
         self.assertTrue(capture.allowed(url))

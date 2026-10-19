@@ -16,7 +16,7 @@ python -m mewtube.server
 Create an account in the web interface, open **Your studio**, and upload a video. To make that account an instance operator:
 
 ```sh
-python scripts/operator.py grant YOUR_USERNAME
+python scripts/manage_operator.py grant YOUR_USERNAME
 ```
 
 The first registration does **not** become an operator. Only someone with host-console access can grant that role.
@@ -27,7 +27,7 @@ The first registration does **not** become an operator. Only someone with host-c
 cp .env.example .env
 docker compose up -d --build
 # Register in the web interface, then:
-docker compose exec mewtube python scripts/operator.py grant YOUR_USERNAME
+docker compose exec mewtube python scripts/manage_operator.py grant YOUR_USERNAME
 ```
 
 The default Docker port is bound to the host's loopback interface. Put an HTTPS reverse proxy in front of it for remote access; set `PUBLIC_ORIGIN` to the exact browser-facing origin. Configure its request-size limit and upload timeout. The container runs as an unprivileged user. This stack has not been built in the development container because Docker is unavailable there.
@@ -63,7 +63,7 @@ The observed guest build used desktop `5d669aa8`, player `0229cd64`, and newer `
 - No federation, live streaming, Shorts, adaptive bitrate/HLS/DASH, captions, notifications, email verification, password recovery, or private videos.
 - Uploads become public when processing finishes. View counts currently count authenticated play events and are not unique-view analytics.
 - A single process and one transcoder serve a small instance; not a production-scale video platform. No total storage quota, mature abuse controls, or resumable upload support yet.
-- Native browser QA was unavailable in the development environment. CI is configured to check real browser playback and collect captured-client diagnostics; inspect the run before treating those checks as passed.
+- The first GitHub Actions run verified real browser playback, likes, comments and mobile layout in the independent interface. Its official-client capture failed because of a Python launcher-name collision; the launcher is renamed and a fresh-process regression test added. A new CI run must verify that capture and actual official UI.
 - REA 6.7.0 was invoked locally, but aborted when process ownership inspection hit this container's broken `ps` implementation (`fatal library error, lookup self`). The CI workflow retries on Ubuntu; local partial observations do not establish a completed analysis.
 
 ## Configuration
