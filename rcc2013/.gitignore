@@ -1,5 +1,6 @@
 vendor/
 cache/
 output/
+data/
 __pycache__/
 *.pyc

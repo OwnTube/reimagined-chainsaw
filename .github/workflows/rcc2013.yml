@@ -23,10 +23,12 @@ jobs:
           python-version: '3.12'
       - name: Install capture dependency
         run: python -m pip install Pillow
+      - name: Check camera validation and HTTP control plane
+        run: python -m unittest -v test_server.py
       - name: Restore both complete 2013 deployments
         run: python download.py
-      - name: Observe the owned scene in native Studio
-        run: python windows_probe.py --studio vendor/studio/RobloxStudioBeta.exe
+      - name: Render two scenes through the local API and native Studio
+        run: python windows_e2e.py --studio vendor/studio/RobloxStudioBeta.exe
       - name: Preserve native evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
