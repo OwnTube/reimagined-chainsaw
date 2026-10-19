@@ -160,7 +160,7 @@ def replace_json_assignment(html, name, value):
     return html
 
 
-def shell(c, origin, watch_id=None, search_query=None, user=None):
+def shell(c, origin, watch_id=None, search_query=None, user=None, browse_id=''):
     target = DATA / 'client' / ('watch.html' if watch_id else 'index.html')
     if not target.is_file():
         return None
@@ -171,7 +171,9 @@ def shell(c, origin, watch_id=None, search_query=None, user=None):
         # actions or account destinations alongside our local media response.
         return None
     operation = 'next' if watch_id else ('search' if search_query is not None else 'browse')
-    initial = innertube.response(c, operation, {'videoId': watch_id, 'query': search_query or ''}, origin, user)
+    initial = innertube.response(c, operation, {'videoId': watch_id, 'query': search_query or '', 'browseId': browse_id}, origin, user)
+    if initial is None:
+        return None
     initial['mewtubeLocalBootstrap'] = True
     # Keep the guest masthead's renderer structure; replacing it with only feed
     # contents leaves the actual client's header as a permanent loading skeleton.

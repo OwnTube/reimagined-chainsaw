@@ -222,6 +222,46 @@ class ServiceTests(unittest.TestCase):
         self.assertTrue(self.request('/api/admin')[1]['unknown'])
         self.assertEqual(self.request(prefix + '/delete', {})[0], 200)
 
+    def test_09_native_subscriptions_guide_and_channel_feed(self):
+        owner, video_id = 'subowner001', 'subvideo001'
+        with sqlite3.connect(self.data / 'mewtube.sqlite3') as c:
+            c.execute('INSERT INTO users(id,username,password) VALUES(?,?,?)', (owner, 'subscription_creator', 'unused'))
+            c.execute("INSERT INTO videos(id,owner,title,status,duration,created) VALUES(?,?,?,'ready',1,?)",
+                      (video_id, owner, 'Subscription feed fixture', int(time.time())))
+        self.account('native_subscriber')
+        body = {'channelIds': [owner]}
+        guest = urllib.request.build_opener()
+        self.assertEqual(self.request('/youtubei/v1/subscription/subscribe', body, client=guest)[0], 401)
+        self.assertEqual(self.request('/youtubei/v1/subscription/subscribe', body, headers={'Origin':'https://evil.test'})[0], 403)
+        for invalid in ({}, {'channelIds': []}, {'channelIds': [1]}, {'channelIds': [owner, owner]}, {'channelIds': ['../secret']}):
+            self.assertEqual(self.request('/youtubei/v1/subscription/subscribe', invalid)[0], 400)
+        self.assertEqual(self.request('/youtubei/v1/subscription/subscribe', {'channelIds': [owner, 'missing0001']})[0], 404)
+        def feed_ids(browse_id, client=None):
+            result = self.request('/youtubei/v1/browse', {'browseId':browse_id}, client=client)[1]
+            contents = result['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['richGridRenderer']['contents']
+            return [item['richItemRenderer']['content']['videoRenderer']['videoId'] for item in contents]
+        self.assertEqual(feed_ids('FEsubscriptions'), [], 'Invalid bulk requests must not partially subscribe')
+        for _ in range(2):
+            self.assertEqual(self.request('/youtubei/v1/subscription/subscribe', raw=gzip.compress(json.dumps(body).encode()),
+                headers={'Content-Encoding':'gzip'})[0], 200)
+        self.assertEqual(feed_ids('FEsubscriptions'), [video_id])
+        self.assertEqual(feed_ids('FEsubscriptions', guest), [])
+        self.assertEqual(feed_ids(owner), [video_id])
+        self.assertEqual(self.request('/youtubei/v1/browse', {'browseId':'missing0001'})[0], 501)
+        next_data = self.request('/youtubei/v1/next', {'videoId':video_id})[1]
+        secondary = next_data['contents']['twoColumnWatchNextResults']['results']['results']['contents'][1]['videoSecondaryInfoRenderer']
+        self.assertTrue(secondary['subscribeButton']['subscribeButtonRenderer']['subscribed'])
+        self.assertEqual(secondary['owner']['videoOwnerRenderer']['title']['runs'][0]['text'], 'subscription_creator')
+        guide = self.request('/youtubei/v1/guide', {})[1]
+        self.assertEqual(len(guide['items'][0]['guideSectionRenderer']['items']), 3)
+        for _ in range(2):
+            self.assertEqual(self.request('/youtubei/v1/subscription/unsubscribe', body)[0], 200)
+        self.assertEqual(feed_ids('FEsubscriptions'), [])
+        # Captured full navigations retain the native shell and local feed data.
+        self.request('/official')
+        self.assertIn(b'/bridge.js', self.request('/feed/subscriptions')[1])
+        self.assertIn(b'Subscription feed fixture', self.request('/channel/'+owner)[1])
+
     def test_05_reject_nonvideo_and_playlists(self):
         self.account('invalid_upload')
         for raw in (b'not a video', b'#EXTM3U\n#EXTINF:1\nfile:///etc/passwd\n'):

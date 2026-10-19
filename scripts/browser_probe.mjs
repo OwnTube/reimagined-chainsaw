@@ -19,15 +19,15 @@ async function bounded(promise,ms,label) {
 }
 await checkpoint('starting');
 const watchdog=setTimeout(()=>{
-  diagnostics.error='Browser probe exceeded its 180-second deadline';
+  diagnostics.error='Browser probe exceeded its 240-second deadline';
   checkpoint(diagnostics.lastStage).finally(()=>process.exit(1));
-},180000);
+},240000);
 const context = await request.newContext({baseURL:origin,extraHTTPHeaders:{'X-MewTube':'1',Origin:origin}});
 const username = 'probe_' + randomBytes(4).toString('hex');
 const password = randomBytes(18).toString('hex');
 let browser;
 try {
-  let result = await context.post('/api/register', {data:{username,password}});
+  let result = await context.post('/api/register', {data:{username:'creator_'+randomBytes(4).toString('hex'),password:randomBytes(18).toString('hex')}});
   assert.equal(result.status(),200);
   result = await context.post('/api/upload', {data:await readFile('evidence/sample.mp4'), headers:{
     'Content-Type':'application/octet-stream','X-Video-Title':'Runner%20test%20video','X-Video-Description':'Generated%20test%20pattern'}});
@@ -40,6 +40,8 @@ try {
     await new Promise(resolve=>setTimeout(resolve,1000));
   }
   assert.equal(video.status,'ready');
+  result = await context.post('/api/register', {data:{username,password}});
+  assert.equal(result.status(),200);
   browser=await chromium.launch({headless:true});
   const page=await browser.newPage({viewport:{width:1440,height:1000}});
   page.setDefaultTimeout(15000);
@@ -75,7 +77,7 @@ try {
   diagnostics.capturedClient.nativeApi=[];
   page.on('response',async response=>{
     const path=new URL(response.url()).pathname;
-    if(!['/youtubei/v1/like/like','/youtubei/v1/like/removelike'].includes(path))return;
+    if(!['/youtubei/v1/like/like','/youtubei/v1/like/removelike','/youtubei/v1/subscription/subscribe','/youtubei/v1/subscription/unsubscribe'].includes(path))return;
     const entry={path,status:response.status(),gzip:response.request().headers()['content-encoding']==='gzip'};
     diagnostics.capturedClient.nativeApi.push(entry);
     if(response.status()>=400)try{const data=await response.json();entry.error=typeof data.error==='string'?data.error.slice(0,120):null;}catch{}
@@ -187,6 +189,36 @@ try {
           await page.screenshot({path:'evidence/official-mutations.png',fullPage:true,timeout:10000});
         }catch(error){diagnostics.capturedClient.nativeLikes={ok:false,error:error.message.slice(0,300)};}
         await checkpoint('official-mutations-inspected');
+        try {
+          const subscribeButton=()=>page.locator('ytd-app').getByRole('button',{name:'Subscribe',exact:true}).first();
+          await subscribeButton().click({timeout:8000});
+          let subscribed=false;
+          for(let i=0;i<30 && !subscribed;i++) {
+            await page.waitForTimeout(100);
+            subscribed=(await (await context.get('/api/videos/'+id)).json()).video.subscribed;
+          }
+          assert.equal(subscribed,true,'Native Subscribe must reach the authenticated local API');
+          await page.reload();
+          await page.locator('ytd-app').getByRole('button',{name:'Unsubscribe',exact:true}).first().waitFor({timeout:8000});
+          diagnostics.capturedClient.nativeSubscriptions={subscribe:true,persisted:true};
+          await page.goto(origin+'/feed/subscriptions');
+          await page.getByText('Runner test video',{exact:true}).first().waitFor({timeout:10000});
+          assert.equal(await page.evaluate(()=>!!document.querySelector('ytd-app')),true);
+          diagnostics.capturedClient.nativeSubscriptions.feed=true;
+          await page.screenshot({path:'evidence/official-subscriptions.png',fullPage:true,timeout:10000});
+          await page.goto(origin+'/channel/'+video.owner);
+          await page.getByText('Runner test video',{exact:true}).first().waitFor({timeout:10000});
+          diagnostics.capturedClient.nativeSubscriptions.channel=true;
+          await page.goto(origin+'/watch?v='+id);
+          await page.locator('ytd-app').getByRole('button',{name:'Unsubscribe',exact:true}).first().click({timeout:8000});
+          for(let i=0;i<30 && subscribed;i++) {
+            await page.waitForTimeout(100);
+            subscribed=(await (await context.get('/api/videos/'+id)).json()).video.subscribed;
+          }
+          assert.equal(subscribed,false,'Native Unsubscribe must remove the local relation');
+          diagnostics.capturedClient.nativeSubscriptions.unsubscribe=true;
+        }catch(error){diagnostics.capturedClient.nativeSubscriptions={...diagnostics.capturedClient.nativeSubscriptions,ok:false,error:error.message.slice(0,300)};}
+        await checkpoint('official-subscriptions-inspected');
         const guestPage=await browser.newPage({viewport:{width:1440,height:1000}});
         diagnostics.capturedClient.guestFailedPaths=[];
         guestPage.on('response',response=>{if(response.status()>=400 && diagnostics.capturedClient.guestFailedPaths.length<30)

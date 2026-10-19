@@ -2,6 +2,20 @@
 
 Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, draft PR #1. Do not merge or change repository visibility.
 
+## New implementation checkpoint: October 19, 2026, 06:37 UTC
+
+Started from fresh branch head `aeb99fd` with no active Actions runs or newer writes. Latest run `39208139279` completed successfully: browser artifact `12166049664` again confirms official playback/controls, native Like/Unlike persistence and local-account handoff, with no page errors.
+
+Native guide, creator metadata, subscription controls, subscription feeds and channel grids are now implemented as candidate contracts. The subscribeButtonRenderer fields and subscribeEndpoint/unsubscribeEndpoint channelIds were checked against the captured guest schema and main-bundle handlers. Mutations authorize only the existing local session, validate 1–20 distinct channel IDs, reject an invalid bulk request before any write, commit before success and are idempotent. Gzip transport and existing Origin/header protections remain in effect. Guests are sent only to local sign-in. Owner thumbnails currently use a local video-frame placeholder, not a separate avatar feature.
+
+Guide entries point to local home, subscriptions and the user's channel. FEsubscriptions is filtered by the signed-in local user's stored subscriptions; guests see an empty API feed. Unknown channel IDs produce an explicit unsupported response rather than falling back to the whole home feed. Captured full navigations to /feed/subscriptions and /channel/<local ID> retain pinned shells. Channel pages currently use a basic native header/grid, not full channel management.
+
+Local verification: **18 Python test methods and all three JS suites pass**, including gzip/idempotent subscriptions, invalid-bulk atomicity, guest/CSRF rejection, filtered feeds, owner/subscriber bootstrap and captured channel/feed routing. Browser checks use separate creator/viewer accounts and will click native Subscribe/Unsubscribe, verify persistence, render feeds/channels, and preserve the prior playback/account regressions. The process watchdog is bounded at 240 seconds inside the workflow's five-minute browser step. **Native subscription/feed/channel success is not yet verified in the actual browser.** Inspect the next artifact before claiming it.
+
+Latest runner REA evidence is now available: run `39208139279`, artifact `12166568423`, evidence ID `ev_b21b396c21188065cd5f0508372e476f1b089fd1a78ef0847fa13ef2b62d089a`. It reports 20 parsed JS files, two skipped, 1,389 findings and no parse failures. Three large-bundle analyses hit worker heap limits; graph coverage remains explicitly incomplete. This improves on the older local ps failure/partial runner result but is not full analysis or runtime proof. No downloaded source or raw analysis artifact is committed.
+
+Next: inspect the new native subscription/guide/channel browser diagnostics, fix concrete renderer/command mismatches, then implement native comments. Preserve local metadata, media, controller, Like/Unlike and guest-auth assertions.
+
 ## Current verified checkpoint: October 19, 2026, 06:06 UTC
 
 **The actual captured client now passes local watch playback, controller, native Like/Unlike and local-account handoff tests.** The authoritative tested implementation commit is `6d1597d945c6e5308d400c3d6d35536af676f4b9`, run `39207845799`, browser artifact `12166318202`, uploaded at 06:06:08 UTC. Read this section before the investigation history below. The subsequent checkpoint/diagnostic-only update does not change successful playback or mutation behavior.

@@ -198,16 +198,19 @@ class Handler(BaseHTTPRequestHandler):
             cookie.load(self.headers.get('Cookie', ''))
         except http.cookies.CookieError:
             cookie = http.cookies.SimpleCookie()
+        channel_path = re.fullmatch(r'/channel/(' + ID + ')', path)
         official = path == '/official' or (cookie.get('mewtube_client') and cookie['mewtube_client'].value == 'official'
-                    and path in ('/', '/watch', '/results') and query.get('native') != ['1'] and query.get('signin') != ['1'])
+                    and (path in ('/', '/watch', '/results', '/feed/subscriptions') or channel_path)
+                    and query.get('native') != ['1'] and query.get('signin') != ['1'])
         if official and self.command in ('GET', 'HEAD'):
             from .snapshot import shell
             watch_id = query.get('v', [None])[0] if path in ('/watch', '/official') else None
             if watch_id and not re.fullmatch(ID, watch_id):
                 raise Error(400, 'Invalid video ID')
             with db() as c:
+                browse_id = channel_path[1] if channel_path else ('FEsubscriptions' if path == '/feed/subscriptions' else '')
                 content = shell(c, ORIGIN, watch_id, query.get('search_query', [None])[0] if path == '/results' else None,
-                                self.user(c))
+                                self.user(c), browse_id)
             if content is None:
                 raise Error(503, 'Captured client page unavailable. Run python scripts/fetch_client.py --latest. Independent UI: /?native=1')
             return self.send(content, headers={'Set-Cookie':'mewtube_client=official; Path=/; SameSite=Lax; HttpOnly'}, content_type='text/html; charset=utf-8')
@@ -220,6 +223,23 @@ class Handler(BaseHTTPRequestHandler):
             body = self.json_body()
             operation = path.removeprefix('/youtubei/v1/')
             with db() as c:
+                if operation in ('subscription/subscribe', 'subscription/unsubscribe'):
+                    user = self.user(c, True)
+                    channels = body.get('channelIds')
+                    if (not isinstance(channels, list) or not 1 <= len(channels) <= 20 or
+                            any(not isinstance(value, str) or not re.fullmatch(ID, value) for value in channels) or
+                            len(set(channels)) != len(channels)):
+                        raise Error(400, 'Expected 1–20 distinct local channel IDs')
+                    for channel in channels:
+                        if not c.execute('SELECT 1 FROM users WHERE id=?', (channel,)).fetchone():
+                            raise Error(404, 'Channel not found')
+                    for channel in channels:
+                        if operation == 'subscription/subscribe':
+                            c.execute('INSERT OR IGNORE INTO subscriptions VALUES(?,?)', (user['id'], channel))
+                        else:
+                            c.execute('DELETE FROM subscriptions WHERE user_id=? AND channel_id=?', (user['id'], channel))
+                    c.commit()
+                    return self.send({'responseContext': {}})
                 if operation in ('like/like', 'like/removelike'):
                     user = self.user(c, True)
                     target = body.get('target')
