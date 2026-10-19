@@ -76,13 +76,18 @@ def classify_startup(log_texts, process_id):
     if not relevant:
         return {'native_log_identified': False, 'launch_arguments_rejected': None,
                 'launch_values_rejected': None, 'login_dialog_observed': None,
+                'login_page_observed': None, 'login_surface_observed': None,
                 'start_server_intent_observed': None}
     text = '\n'.join(relevant)
+    unauthenticated = bool(re.search(r'Authenticated\s*:\s*NO', text))
+    dialog = unauthenticated and 'show login dialog [end]' in text
+    page = unauthenticated and 'LoginPageOpenTime' in text and (
+        'inTreatment=true' in text or '[FLog::QuickSignInUtil]' in text)
     return {'native_log_identified': True,
             'launch_arguments_rejected': 'Invalid Launch Intent! Too many arguments provided' in text,
             'launch_values_rejected': 'Invalid Launch Intent! Validation failed' in text,
-            'login_dialog_observed': bool(re.search(r'Authenticated\s*:\s*NO', text))
-                and 'show login dialog [end]' in text,
+            'login_dialog_observed': dialog, 'login_page_observed': page,
+            'login_surface_observed': dialog or page,
             'start_server_intent_observed': 'Studio Launch Intent is StartServer' in text}
 
 
@@ -157,8 +162,8 @@ def main():
                 if observations['launch_values_rejected']:
                     result['startup_blocker'] = 'invalid_launch_values'
                     break
-                if observations['login_dialog_observed']:
-                    result['startup_blocker'] = 'unauthenticated_login_dialog'
+                if observations['login_surface_observed']:
+                    result['startup_blocker'] = 'unauthenticated_login_surface'
                     break
                 events = read_marked_events(marker)
                 records = [e['data'] for e in events if e['kind'] == 'server_probe']

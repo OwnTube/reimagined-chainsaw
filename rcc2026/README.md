@@ -53,3 +53,15 @@ Read-only analysis of the exact verified build identifies an unconsumed-argument
 The next probe follows that server argument set, removes the old `Console` and `instanceId` additions, and uses zero place/universe/creator metadata with the owned local fixture. It also records process-attributed startup observations: argument rejection, value rejection, the observed server intent, and an unauthenticated login dialog. Another session's API/editor logs cannot establish these facts for the server process. Three new evidence-boundary tests cover those distinctions; all nine Python tests pass locally.
 
 Private decompiler output is retained locally and is not committed. Only the probe implementation and summarized observations are published.
+
+## Accepted server intent and current blocker
+
+[Run 39184899151](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39184899151) accepted the revised `StartServer` argument set: the process-attributed log records the server intent with neither argument rejection nor value rejection. Native API dumping again succeeded (943 classes). The owned game script did not run, and the desktop capture shows Studio's newer Quick Sign-In page. Therefore the launch-argument failure is resolved, but this unmodified launch still stops at sign-in. No place-format support, server socket, rendering, or client join has been validated.
+
+The newer login page lacks the older `show login dialog` message. Diagnostics now recognize both surfaces, tested against the captured native logs as well as synthetic boundary cases. All twelve Python tests pass locally. Collected text logs strip authentication metadata and URL queries; desktop capture is omitted when the owned process's log identifies Quick Sign-In, which can display a live challenge.
+
+The next read-only experiment compares six upstream offline URL-adapter signatures against the exact pinned image. This checks whether those historical patterns can even locate candidates for a local adapter; it does not install hooks, change URL routing, disable authentication, or establish function signatures. Pattern attribution is pinned to the same noobwarrior revision and covered by its included license.
+
+The workflow also invokes the requested REA tool (`rea-agents` pinned to 6.7.0) to record independent PE resource identities, ranges, and hashes. This metadata-only operation does not need a native provider or execute Studio. Its file budget explicitly accommodates the 225 MB executable. The step is bounded and non-blocking so a package/provider failure cannot hide the other test evidence.
+
+Normal pushes run these static/component/API checks. The known sign-in-blocked server command is now opt-in via the manual `server` input rather than repeated on every push. RunScript remains opt-in through manual dispatch. A clean static-only CI run is not evidence of server hosting.

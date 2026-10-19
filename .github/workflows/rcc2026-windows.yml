@@ -9,6 +9,10 @@ on:
         description: Attempt viewport capture; may fail if Studio needs interactive permission
         type: boolean
         default: false
+      server:
+        description: Retry the account-blocked local server task only for a new launch hypothesis
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -38,6 +42,12 @@ jobs:
           Copy-Item ci-studio/assembly-report.json ci-output/assembly-report.json
       - name: Record static Windows executable evidence
         run: python inspect_studio.py ci-studio/RobloxStudioBeta.exe --output ci-output/studio-static.json
+      - name: Inspect historical offline adapter signatures without applying hooks
+        run: python inspect_studio.py ci-studio/RobloxStudioBeta.exe --patterns offline-patterns.json --output ci-output/offline-adapter-static.json
+      - name: Record independent REA resource metadata
+        timeout-minutes: 2
+        continue-on-error: true
+        run: npx -y rea-agents@6.7.0 inspect-pe-resources ci-studio/RobloxStudioBeta.exe --max-file-bytes 268435456 --format json > ci-output/rea-pe-resources.json
       - name: Build pinned compiler component on Windows
         run: |
           git clone --depth 1 --branch 0.743 https://github.com/luau-lang/luau.git ci-luau
@@ -60,7 +70,7 @@ jobs:
           if ($env:REQUEST_RENDER -eq 'true') { $probeArgs += '--render' }
           python @probeArgs
       - name: Attempt an owned local Studio server place
-        if: success() || failure()
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.server && !cancelled() }}
         run: python windows_server_probe.py --studio ci-studio/RobloxStudioBeta.exe --output ci-output/local-server
       - name: Preserve results and failures
         if: always()
