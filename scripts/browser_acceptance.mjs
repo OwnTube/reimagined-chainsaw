@@ -21,7 +21,9 @@ export function browserFailures(diagnostics) {
     'capturedClient.nativeChannelHeader.subscriberCount', 'capturedClient.nativeChannelHeader.readyVideoCount',
     'capturedClient.nativeLikedPlaylist.guide', 'capturedClient.nativeLikedPlaylist.localVideo',
     'capturedClient.nativeLikedPlaylist.excludesUnliked', 'capturedClient.nativeLikedPlaylist.reload',
-    'capturedClient.nativeLikedPlaylist.watchNavigation', 'capturedClient.nativeLikedPlaylist.unlikeRemoves'
+    'capturedClient.nativeLikedPlaylist.watchNavigation', 'capturedClient.nativeLikedPlaylist.unlikeRemoves',
+    'capturedClient.nativeLikedPlaylist.pagination', 'capturedClient.nativeLikedPlaylist.compactLayout',
+    'capturedClient.nativeCommentAuthor.navigation', 'capturedClient.nativeCommentAuthor.localChannel'
   ];
   return paths.filter(path => path.split('.').reduce((value, key) => value?.[key], diagnostics) !== true);
 }

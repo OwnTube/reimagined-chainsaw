@@ -79,7 +79,13 @@
       "excludesUnliked": true,
       "reload": true,
       "watchNavigation": true,
-      "unlikeRemoves": true
+      "unlikeRemoves": true,
+      "pagination": true,
+      "compactLayout": true
+    },
+    "nativeCommentAuthor": {
+      "navigation": true,
+      "localChannel": true
     }
   }
 }

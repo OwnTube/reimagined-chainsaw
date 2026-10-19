@@ -20,13 +20,18 @@ def main():
     parser.add_argument('action', choices=['seed', 'clean'])
     parser.add_argument('--source')
     parser.add_argument('--user')
-    parser.add_argument('--ids', nargs='*', default=[])
+    parser.add_argument('--ids-json', default='[]')
     args = parser.parse_args()
     with db() as c:
         if args.action == 'clean':
-            for identifier in args.ids:
-                if not ID.fullmatch(identifier):
-                    raise SystemExit('Invalid fixture identifier')
+            try:
+                identifiers = json.loads(args.ids_json)
+            except ValueError:
+                raise SystemExit('Invalid fixture identifiers')
+            if (not isinstance(identifiers, list) or len(identifiers) > 80 or
+                    any(not isinstance(identifier, str) or not ID.fullmatch(identifier) for identifier in identifiers)):
+                raise SystemExit('Invalid fixture identifiers')
+            for identifier in identifiers:
                 row = c.execute('SELECT description FROM videos WHERE id=?', (identifier,)).fetchone()
                 if row and row['description'] == MARKER:
                     c.execute('DELETE FROM videos WHERE id=?', (identifier,))

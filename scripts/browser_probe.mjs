@@ -396,7 +396,7 @@ try {
           await likedTitle().click({timeout:8000});
           await page.waitForURL(url=>url.pathname==='/watch' && url.searchParams.get('v')===id,{timeout:8000});
           diagnostics.capturedClient.nativeLikedPlaylist.watchNavigation=true;
-          await runFile('python',['scripts/seed_browser_library.py','clean','--ids',...libraryFixture.ids],{timeout:15000});
+          await runFile('python',['scripts/seed_browser_library.py','clean','--ids-json',JSON.stringify(libraryFixture.ids)],{timeout:15000});
           libraryFixture=null;
           await page.locator('ytd-app').getByRole('button',{name:'Unlike this video',exact:true}).first().click({timeout:8000});
           let liked=true;
@@ -411,10 +411,11 @@ try {
           diagnostics.capturedClient.nativeLikedPlaylist.unlikeRemoves=true;
           await context.post('/youtubei/v1/like/like',{data:{target:{videoId:id}}});
         }catch(error){
-          diagnostics.capturedClient.nativeLikedPlaylist={...diagnostics.capturedClient.nativeLikedPlaylist,ok:false,error:error.message.slice(0,300)};
+          const reason=error.stderr?'Fixture helper: '+error.stderr.trim().split('\n').at(-1):error.message;
+          diagnostics.capturedClient.nativeLikedPlaylist={...diagnostics.capturedClient.nativeLikedPlaylist,ok:false,error:reason.slice(0,300)};
           await page.screenshot({path:'evidence/official-liked-playlist.png',fullPage:true,timeout:10000}).catch(()=>{});
         }finally{
-          if(libraryFixture)await runFile('python',['scripts/seed_browser_library.py','clean','--ids',...libraryFixture.ids],{timeout:15000}).catch(()=>{});
+          if(libraryFixture)await runFile('python',['scripts/seed_browser_library.py','clean','--ids-json',JSON.stringify(libraryFixture.ids)],{timeout:15000}).catch(()=>{});
         }
         await checkpoint('official-liked-playlist-inspected');
       }

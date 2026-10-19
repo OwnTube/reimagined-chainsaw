@@ -4,7 +4,11 @@ Product requirement clarified: use the actual captured YouTube frontend/player, 
 
 Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, draft PR #1. Do not merge or change repository visibility.
 
-## Current native checkpoint: October 19, 2026, 14:02 UTC
+## Current native checkpoint: October 19, 2026, 14:07 UTC
+
+Latest diagnostic `337ed77`, run `39265841721`, artifact `12192607457` uploaded 14:07:42 UTC, confirms compact playlist layout, 41 native cards with continuation, and native comment-author navigation to the local channel. Both milestone screenshots were inspected and shared. **This run is not fully passing:** acceptanceFailures contains nativeLikedPlaylist.unlikeRemoves because fixture cleanup failed before that check. The last complete green native-flow evidence remains `5a81d4f` at 14:02 below.
+
+The cleanup helper passed randomly generated IDs as CLI options; IDs may begin with '-', which argparse can treat as an option. The fix passes the validated bounded ID list as one JSON argument. A regression seeds/copies/cleans 40 local records plus a leading-dash ID and verifies unrelated user media/rows survive. It passes locally. Fixture failures now report the short stderr reason rather than a truncated command containing all IDs. The previously proven pagination/layout/author checks are explicitly CI-gated. Runner validation of cleanup plus the entire flow is pending. New local comment-vote work is separate and not part of this cleanup commit.
 
 **Native liked-pagination is functionally verified:** `5a81d4f`, run `39265083104`, artifact `12192836635` uploaded 14:02:37 UTC. The actual client makes a local continuation request (200), appends 41 cards, and passes reload, watch navigation and unlike removal. acceptanceFailures=[] and pageErrors=[]. The pagination screenshot was inspected and shared at the milestone. It also exposes oversized cards after opting into the shared section-list component: the response omitted its responsive layout configuration. The follow-up supplies the observed native compact-list metadata, asserts thumbnail bounds and scrolls the final fixture title into the screenshot viewport. No custom CSS/UI is added. The unsupported Play all action is omitted until queue sequencing is implemented.
 
