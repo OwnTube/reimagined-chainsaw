@@ -16,6 +16,12 @@ Latest runner REA evidence is now available: run `39208139279`, artifact `121665
 
 Next: inspect the new native subscription/guide/channel browser diagnostics, fix concrete renderer/command mismatches, then implement native comments. Preserve local metadata, media, controller, Like/Unlike and guest-auth assertions.
 
+### Fresh native subscription result and follow-up fixes
+
+Run `39211527599` at `ec3a871`, browser artifact `12167787047` uploaded 06:45:10 UTC, proves native Subscribe and Unsubscribe both reach the local endpoints as gzip and receive 200. The native subscribed state survives reload, and local subscription/channel grids render the fixture. Playback, official controls and Like/Unlike still pass. The inspected subscription screenshot confirms local content and creator identity, but guide icons lacked labels. The actual captured template reads formattedTitle, not title; this is corrected, and the next browser test clicks the native Guide/Subscriptions entry rather than only navigating directly. Browse bootstrap ytCommand now follows the local feed/channel endpoint, preserving native selected-route state instead of the captured home command.
+
+The same run exposed a real regression: extra captured-client analytics calls exhausted the shared 100/minute write budget, producing 429 on local login and failing the guest account round trip. Known telemetry paths are now acknowledged/discarded under a separate 600/minute budget, with a 1 MB POST limit and the same Origin/custom-header checks. Queries/bodies are not stored or forwarded; real mutations retain the 100/minute quota and auth keeps its tighter budget. A regression sends 220 telemetry requests then verifies local login/logout remain usable. Local verification now passes **19 Python methods and all three JS suites**. Browser validation of the quota/guide fixes is pending; do not dismiss the auth failure or claim guide clicks yet.
+
 ## Current verified checkpoint: October 19, 2026, 06:06 UTC
 
 **The actual captured client now passes local watch playback, controller, native Like/Unlike and local-account handoff tests.** The authoritative tested implementation commit is `6d1597d945c6e5308d400c3d6d35536af676f4b9`, run `39207845799`, browser artifact `12166318202`, uploaded at 06:06:08 UTC. Read this section before the investigation history below. The subsequent checkpoint/diagnostic-only update does not change successful playback or mutation behavior.

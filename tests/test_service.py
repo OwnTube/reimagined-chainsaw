@@ -254,13 +254,31 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(secondary['owner']['videoOwnerRenderer']['title']['runs'][0]['text'], 'subscription_creator')
         guide = self.request('/youtubei/v1/guide', {})[1]
         self.assertEqual(len(guide['items'][0]['guideSectionRenderer']['items']), 3)
+        self.assertEqual([row['guideEntryRenderer']['formattedTitle']['simpleText']
+                         for row in guide['items'][0]['guideSectionRenderer']['items']],
+                         ['Home', 'Subscriptions', 'Your channel'])
         for _ in range(2):
             self.assertEqual(self.request('/youtubei/v1/subscription/unsubscribe', body)[0], 200)
         self.assertEqual(feed_ids('FEsubscriptions'), [])
         # Captured full navigations retain the native shell and local feed data.
         self.request('/official')
-        self.assertIn(b'/bridge.js', self.request('/feed/subscriptions')[1])
-        self.assertIn(b'Subscription feed fixture', self.request('/channel/'+owner)[1])
+        feed_shell = self.request('/feed/subscriptions')[1]
+        self.assertIn(b'/bridge.js', feed_shell)
+        self.assertIn(b'"browseId":"FEsubscriptions"', feed_shell)
+        channel_shell = self.request('/channel/'+owner)[1]
+        self.assertIn(b'Subscription feed fixture', channel_shell)
+        self.assertIn(b'"webPageType":"WEB_PAGE_TYPE_CHANNEL"', channel_shell)
+
+    def test_10_discarded_telemetry_does_not_exhaust_mutations(self):
+        self.account('telemetry_viewer')
+        for _ in range(110):
+            self.assertEqual(self.request('/youtubei/v1/log_event', raw=b'\x00\xffdiscarded')[0], 200)
+            self.assertEqual(self.request('/api/stats/qoe?private=not-retained')[0], 204)
+        self.assertEqual(self.request('/generate_204')[1], b'')
+        self.assertEqual(self.request('/api/stats/atr', raw=b'binary')[0], 204)
+        self.assertEqual(self.request('/api/stats/atr', raw=b'binary', headers={'X-MewTube':''})[0], 403)
+        self.assertEqual(self.request('/api/login', {'username':'telemetry_viewer', 'password':'long-test-password'})[0], 200)
+        self.assertEqual(self.request('/api/logout', {})[0], 200)
 
     def test_05_reject_nonvideo_and_playlists(self):
         self.account('invalid_upload')
@@ -321,7 +339,7 @@ class ServiceTests(unittest.TestCase):
                       (video_id, owner_id, 'Pinned watch entry', int(time.time())))
         client = self.data / 'client'
         client.mkdir(exist_ok=True)
-        markup = '<html><head></head><script>var ytInitialData={};var ytInitialPlayerResponse={};var original="jNQXAC9IVRw";</script><ytd-app></ytd-app></html>'
+        markup = '<html><head></head><script>var ytInitialData={};var ytInitialPlayerResponse={};var ytCommand={"browseEndpoint":{"browseId":"FEwhat_to_watch"}};var original="jNQXAC9IVRw";</script><ytd-app></ytd-app></html>'
         (client / 'index.html').write_text(markup)
         (client / 'watch.html').write_text(markup)
         (client / 'manifest.json').write_text('{"assets":[],"watchSourceId":"jNQXAC9IVRw"}')

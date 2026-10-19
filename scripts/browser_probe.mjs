@@ -201,10 +201,13 @@ try {
           await page.reload();
           await page.locator('ytd-app').getByRole('button',{name:'Unsubscribe',exact:true}).first().waitFor({timeout:8000});
           diagnostics.capturedClient.nativeSubscriptions={subscribe:true,persisted:true};
-          await page.goto(origin+'/feed/subscriptions');
+          await page.getByRole('button',{name:'Guide',exact:true}).first().click({timeout:8000});
+          await page.locator('ytd-guide-renderer').getByRole('link',{name:'Subscriptions',exact:true}).first().click({timeout:8000});
+          await page.waitForURL(url=>url.pathname==='/feed/subscriptions',{timeout:8000});
           await page.getByText('Runner test video',{exact:true}).first().waitFor({timeout:10000});
           assert.equal(await page.evaluate(()=>!!document.querySelector('ytd-app')),true);
           diagnostics.capturedClient.nativeSubscriptions.feed=true;
+          diagnostics.capturedClient.nativeSubscriptions.guide=true;
           await page.screenshot({path:'evidence/official-subscriptions.png',fullPage:true,timeout:10000});
           await page.goto(origin+'/channel/'+video.owner);
           await page.getByText('Runner test video',{exact:true}).first().waitFor({timeout:10000});

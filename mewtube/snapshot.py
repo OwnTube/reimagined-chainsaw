@@ -190,6 +190,11 @@ def shell(c, origin, watch_id=None, search_query=None, user=None, browse_id=''):
         except (ValueError, AttributeError, TypeError):
             pass
     html = replace_json_assignment(html, 'ytInitialData', initial)
+    if operation == 'browse':
+        destination = (innertube.channel_endpoint(browse_id) if browse_id and browse_id not in ('FEsubscriptions', 'FEwhat_to_watch')
+                       else innertube.browse_endpoint(browse_id or 'FEwhat_to_watch',
+                            '/feed/subscriptions' if browse_id == 'FEsubscriptions' else '/'))
+        html = replace_json_assignment(html, 'ytCommand', destination)
     player = innertube.response(c, 'player', {'videoId': watch_id}, origin) if watch_id else {}
     html = replace_json_assignment(html, 'ytInitialPlayerResponse', player)
     if watch_id:

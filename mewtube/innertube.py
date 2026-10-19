@@ -22,7 +22,9 @@ def browse_endpoint(browse_id, url):
 
 
 def channel_endpoint(channel):
-    return browse_endpoint(channel, '/channel/' + channel)
+    destination = browse_endpoint(channel, '/channel/' + channel)
+    destination['commandMetadata']['webCommandMetadata']['webPageType'] = 'WEB_PAGE_TYPE_CHANNEL'
+    return destination
 
 
 def renderer(v):
@@ -119,7 +121,7 @@ def response(c, operation, body, origin, user=None):
         if user:
             entries.append(('Your channel', 'ACCOUNT_BOX', channel_endpoint(user['id'])))
         return {**context, 'items': [{'guideSectionRenderer': {'items': [
-            {'guideEntryRenderer': {'title': text(title), 'icon': {'iconType': icon},
+            {'guideEntryRenderer': {'formattedTitle': text(title), 'icon': {'iconType': icon},
                 'isPrimary': True, 'navigationEndpoint': destination}} for title, icon, destination in entries]}}]}
     browse_id = body.get('browseId', '') if operation == 'browse' else ''
     channel = c.execute('SELECT id,username FROM users WHERE id=?', (browse_id,)).fetchone() if browse_id else None

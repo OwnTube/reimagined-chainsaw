@@ -28,6 +28,8 @@ ID = r'[A-Za-z0-9_-]{11}'
 RATE = OrderedDict()
 import threading
 RATE_LOCK = threading.Lock()
+TELEMETRY_PATHS = frozenset(('/api/stats/qoe', '/api/stats/playback', '/api/stats/atr',
+                             '/api/stats/watchtime', '/generate_204'))
 
 
 class Error(Exception):
@@ -170,11 +172,24 @@ class Handler(BaseHTTPRequestHandler):
         if len(self.path) > 4096:
             raise Error(414, 'URL too long')
         if self.command == 'POST':
-            self.limit('write', 100)
             if self.headers.get('Origin') not in (None, ORIGIN):
                 raise Error(403, 'Origin rejected')
             if self.headers.get('X-MewTube') != '1':
                 raise Error(403, 'X-MewTube header is required')
+            if path not in TELEMETRY_PATHS and path != '/youtubei/v1/log_event':
+                self.limit('write', 100)
+        if path in TELEMETRY_PATHS or (path == '/youtubei/v1/log_event' and self.command == 'POST'):
+            if self.command not in ('GET', 'HEAD', 'POST'):
+                raise Error(405, 'Method not allowed')
+            # Guest clients emit many analytics calls on every navigation.
+            # Discard them without retaining queries/bodies or consuming the
+            # local account/mutation budget. No upstream request is made.
+            self.limit('telemetry', 600)
+            if self.command == 'POST':
+                self.rfile.read(self.length(1024 * 1024))
+            if path == '/youtubei/v1/log_event':
+                return self.send({'responseContext': {}})
+            return self.send(b'', status=204, content_type='text/plain')
         if path == '/healthz':
             return self.send({'ok': True, 'ffmpeg': bool(shutil.which('ffmpeg'))})
         if path.startswith('/media/') and self.command in ('GET', 'HEAD'):
@@ -215,11 +230,6 @@ class Handler(BaseHTTPRequestHandler):
                 raise Error(503, 'Captured client page unavailable. Run python scripts/fetch_client.py --latest. Independent UI: /?native=1')
             return self.send(content, headers={'Set-Cookie':'mewtube_client=official; Path=/; SameSite=Lax; HttpOnly'}, content_type='text/html; charset=utf-8')
         if path.startswith('/youtubei/v1/') and self.command == 'POST':
-            if path == '/youtubei/v1/log_event':
-                # The upstream client sends binary telemetry. Acknowledge and
-                # discard it; this instance does not need Google analytics data.
-                self.rfile.read(self.length(1024 * 1024))
-                return self.send({'responseContext': {}})
             body = self.json_body()
             operation = path.removeprefix('/youtubei/v1/')
             with db() as c:
