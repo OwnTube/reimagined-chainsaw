@@ -28,9 +28,7 @@ def plugin_source(marker):
     return '''
 local marker = MARKER
 print(marker .. "|PLUGIN_LOADED")
-spawn(function()
-    wait(5)
-    local ok, problem = pcall(function()
+local ok, problem = pcall(function()
         local world = game:GetService("Workspace")
         local model = Instance.new("Model")
         model.Name = "RCC2013_OwnedScene"
@@ -60,10 +58,9 @@ spawn(function()
         camera.CoordinateFrame = CFrame.new(Vector3.new(19,15,23), Vector3.new(0,2,0))
         camera.Focus = CFrame.new(0,2,0)
         camera.FieldOfView = 50
-        print(marker .. "|SCENE_READY|" .. version())
-    end)
-    if not ok then print(marker .. "|SCENE_ERROR|" .. tostring(problem)) end
+        print(marker .. "|SCENE_READY")
 end)
+if not ok then print(marker .. "|SCENE_ERROR|" .. tostring(problem)) end
 '''.replace('MARKER', json.dumps(marker))
 
 
@@ -94,6 +91,7 @@ def windows_for_pid(pid):
     user32.GetWindowRect.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.RECT)]
     user32.IsWindowVisible.argtypes = [wintypes.HWND]
     records = []
+    child_handles = []
     def inspect(handle, _):
         owner = wintypes.DWORD()
         user32.GetWindowThreadProcessId(handle, ctypes.byref(owner))
@@ -104,9 +102,12 @@ def windows_for_pid(pid):
             user32.GetWindowRect(handle, ctypes.byref(rect))
             records.append({'title':title.value,'class':name.value,'visible':bool(user32.IsWindowVisible(handle)),
                             'rect':[rect.left,rect.top,rect.right,rect.bottom]})
+            child_handles.append(handle)
         return True
     callback = callback_type(inspect)
     user32.EnumWindows(callback, 0)
+    for handle in list(child_handles):
+        user32.EnumChildWindows(handle, callback, 0)
     return records
 
 
@@ -144,7 +145,7 @@ def main():
             start = time.monotonic()
             while process.poll() is None and time.monotonic()-start < 60:
                 text = collect_logs(out)+(out/'process.log').read_text(errors='replace')
-                if marker+'|SCENE_READY|' in text:
+                if marker+'|SCENE_READY' in text:
                     report['scene_script_executed'] = True
                     report['engine_marker_lines'] = [line for line in text.splitlines() if marker in line]
                     time.sleep(4)
