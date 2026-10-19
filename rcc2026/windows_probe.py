@@ -14,6 +14,20 @@ import zlib
 STUDIO_SHA256 = 'cc70176d50d5f2c1edc26d40f1fcdc530748fc83dedc63c2fdbb251f766972d2'
 
 
+def studio_environment(studio):
+    # CI images contain unrelated Qt installations. Use only this verified
+    # deployment's bundled plugins; keep diagnostics for dependency failures.
+    plugin_root = studio.parent / 'Qt5'
+    if not (plugin_root / 'platforms' / 'qwindows.dll').is_file():
+        raise ValueError('Studio Windows platform plugin is missing')
+    env = os.environ.copy()
+    env['QT_PLUGIN_PATH'] = str(plugin_root)
+    env['QT_QPA_PLATFORM_PLUGIN_PATH'] = str(plugin_root / 'platforms')
+    env['QT_QPA_PLATFORM'] = 'windows'
+    env['QT_DEBUG_PLUGINS'] = '1'
+    return env
+
+
 def parse_events(text, marker):
     events = []
     decoder = json.JSONDecoder()
@@ -118,7 +132,8 @@ def main():
     if place:
         command += ['--localPlaceFile', str(place)]
     with (out/'process.log').open('wb') as log:
-        process = subprocess.Popen(command, cwd=studio.parent, stdout=log, stderr=subprocess.STDOUT)
+        process = subprocess.Popen(command, cwd=studio.parent, env=studio_environment(studio),
+                                   stdout=log, stderr=subprocess.STDOUT)
         try:
             code = process.wait(timeout=args.timeout)
         except subprocess.TimeoutExpired:

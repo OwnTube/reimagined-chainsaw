@@ -25,3 +25,9 @@ The API dump step uses `continue-on-error`, so its displayed step conclusion can
 The failure evidence is available in the run's `studio-743-windows-evidence` artifact until 2026-10-26. Desktop screenshots and additional native Studio logs were not collected in the first run.
 
 The user subsequently approved collecting and publishing startup screenshots and Studio logs from the disposable Windows runner. The next probe captures the desktop, titles of windows owned by its Studio process, and the ten most recent native Studio logs before terminating a timed-out process. Desktop diagnostics are labeled separately and never count as engine-render evidence. No account sign-in is performed.
+
+## Startup diagnosis: second Windows run
+
+[Run 39179760987](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39179760987) captured the same modal error for API dumping and RunScript: "This application failed to start because no Qt platform plugin could be initialized." No native Studio log files were found in the normal log directory. Studio therefore failed before reaching either engine probe.
+
+The verified deployment includes `Qt5/platforms/qwindows.dll`, but the assembler did not configure Qt's plugin search path. The next revision generates `qt.conf` with `Plugins=Qt5`, sets per-process Qt plugin paths to the bundled directory, and enables Qt plugin diagnostics. This follows [Qt's deployment configuration](https://doc.qt.io/qt-5/qt-conf.html). Whether this clears startup is pending native validation. It does not change the Studio executable or its verified assets.

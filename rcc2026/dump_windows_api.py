@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
-from windows_probe import STUDIO_SHA256
+from windows_probe import STUDIO_SHA256, studio_environment
 from windows_diagnostics import capture_startup
 
 parser=argparse.ArgumentParser(description=__doc__)
@@ -23,7 +23,8 @@ api=out/'full-api.json'
 result={'studio_sha256':STUDIO_SHA256,'engine_api_dump_validated':False,
         'render_validated':False,'join_validated':False}
 with (out/'process.log').open('wb') as log:
-    p=subprocess.Popen([str(studio),'--fullApi',str(api)],cwd=studio.parent,stdout=log,stderr=subprocess.STDOUT)
+    p=subprocess.Popen([str(studio),'--fullApi',str(api)],cwd=studio.parent,
+                       env=studio_environment(studio),stdout=log,stderr=subprocess.STDOUT)
     try:result['exit_code']=p.wait(timeout=120)
     except subprocess.TimeoutExpired:
         capture_startup(out, p.pid)

@@ -92,9 +92,12 @@ def main():
         '<?xml version="1.0" encoding="UTF-8"?>\n<Settings>\n'
         '  <ContentFolder>content</ContentFolder>\n'
         '  <BaseUrl>http://www.roblox.com</BaseUrl>\n</Settings>\n', encoding='utf-8')
+    # Qt otherwise searches its compiled-in build-machine plugin paths. The
+    # platform DLL is already verified above, under Qt5/platforms/qwindows.dll.
+    (destination/'qt.conf').write_text('[Paths]\nPlugins=Qt5\n', encoding='utf-8')
     report = {'version':'0.743.0.7431133','files_verified':checked,'studio_sha256':digest,
               'packages_verified':len(packages),'source':'official Roblox setup CDN',
-              'generated_configuration_files':['AppSettings.xml'],
+              'generated_configuration_files':['AppSettings.xml','qt.conf'],
               'engine_executed':False}
     (destination/'assembly-report.json').write_text(json.dumps(report,indent=2))
     print(json.dumps(report,indent=2))
