@@ -24,7 +24,7 @@ jobs:
       - name: Install capture dependency
         run: python -m pip install Pillow
       - name: Check camera validation and HTTP control plane
-        run: python -m unittest -v test_server.py test_matting.py
+        run: python -m unittest -v test_server.py test_matting.py test_framing.py
       - name: Restore both complete 2013 deployments
         run: python download.py
       - name: Render game thumbnails, transparent full body, and transparent headshot in native Studio

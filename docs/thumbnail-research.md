@@ -21,7 +21,33 @@ Roblox RCC camera coordinates. The guide's final Click argument is documented
 as hideSky; that signature alone is not proof of the alpha behavior of every
 Studio/RCC build.
 
-## Current custom fixture framing
+## Revival source findings — 2026-10-19
+
+The subsequent source-code search did find a headshot positioning algorithm
+outside the wiki. Sources were read as text; their servers and setup scripts
+were not executed.
+
+| Source and revision | Headshot positioning | Full-body positioning |
+| --- | --- | --- |
+| [BubbaBlox v2 headshot](https://github.com/harryzawg/bubbablox-v2/blob/6e355d803dd332797ae714b65e72f71c5bd08c2e/renderer/scripts/player/headshot.lua), revision `6e355d803dd332797ae714b65e72f71c5bd08c2e` | Eye at head height, 3 studs away, 11.25-degree side angle; target offset 0.1 stud toward positive local Z. No-hat FOV 30 degrees. Accessories can raise target up to 0.5 stud and widen FOV toward 130. | [thumbnail.lua](https://github.com/harryzawg/bubbablox-v2/blob/6e355d803dd332797ae714b65e72f71c5bd08c2e/renderer/scripts/player/thumbnail.lua) optionally selects an existing ThumbnailCamera, then delegates to ThumbnailGenerator; no numeric full-body transform in that file. |
+| [Economy Simulator headshot](https://github.com/ccr0/economy-simulator/blob/b96fda81a4814ee8ae93bb7d4002a725d029c013/services/game-server/scripts/player/headshot.lua), revision `b96fda81a4814ee8ae93bb7d4002a725d029c013` | Same head-level distance, angle, and target formula; no-hat FOV 40, expanding toward 60. | [thumbnail.lua](https://github.com/ccr0/economy-simulator/blob/b96fda81a4814ee8ae93bb7d4002a725d029c013/services/game-server/scripts/player/thumbnail.lua) delegates full-body framing to ThumbnailGenerator. |
+| [Economy Simulator Fixed headshot](https://github.com/SrCookie450/economy-simulator-fixed/blob/56e79049f210388ad046f115bd7a1ee30e343f7c/services/game-server/scripts/player/headshot.lua), revision `56e79049f210388ad046f115bd7a1ee30e343f7c` | Same position formula; no-hat FOV 30, expanding toward 100. | Only the headshot script was used for this comparison. |
+
+The source headshot eye formula uses a yaw of negative pi/16 and a forward
+look vector multiplied by 3, added to the head's transform. For our upright
+identity-rotation head at [0,4.5,0], that becomes eye
+[0.585270966,4.5,-2.942355841] and target [0,4.5,0.1]. The new independent
+geometry helper derives these coordinates numerically. It does not import
+the revival's asset-loading, networking, or server code.
+
+The headshot default now follows BubbaBlox's **no-hat R6 case**. This is not a
+claim that those later RCC scripts establish original 2013 Roblox defaults.
+Their FOV differences are retained in this comparison instead of silently
+treating all revival versions as identical. Accessory-aware zoom and rotated
+or resized heads are not implemented. Full-body framing remains custom
+because the inspected full-body scripts do not expose RCC's internal framing.
+
+## Current fixture framing
 
 The static R6 fixture has its feet at y=0, torso center at y=3, and head center
 at y=4.5. Its face points toward negative Z. Camera setup uses 2013's
@@ -30,9 +56,10 @@ CoordinateFrame, Focus, and FieldOfView properties.
 | Type | Eye | Look-at target | Vertical FOV |
 | --- | --- | --- | --- |
 | full_body | [7, 5, -10] | [0, 2.6, 0] | 35° |
-| headshot | [2.8, 4.8, -5.2] | [0, 4.4, 0] | 24° |
+| headshot | [0.585270966, 4.5, -2.942355841] | [0, 4.5, 0.1] | 30° |
 
-These are tuned for this owned fixture. Arbitrary avatar accessories and body
+The full-body preset is custom; the headshot is the source-equivalent no-hat
+case described above. Arbitrary avatar accessories and body
 scales require bounds-aware framing, which is not implemented.
 
 ## Alpha and UI removal in the Studio wrapper

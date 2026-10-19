@@ -95,7 +95,7 @@ el('type').addEventListener('change', () => {
   el('scene').disabled = player;
   el('scene').value = player ? 'avatar' : 'default';
   el('scene').querySelector('option[value="avatar"]').disabled = !player;
-  el('fov').value = el('type').value === 'headshot' ? 24 : player ? 35 : 50;
+  el('fov').value = el('type').value === 'headshot' ? 30 : player ? 35 : 50;
   el('angle').value = 'classic';
   el('output-help').textContent = player ? 'Transparent PNG · player only' : 'PNG image · game scene';
   sourceChanged();
@@ -115,9 +115,9 @@ el('render-form').addEventListener('submit', async event => {
         overhead:{position:[7,12,-10],target:[0,2.6,0]}
       };
       if (request.type === 'headshot') {
-        views.classic = {position:[2.8,4.8,-5.2],target:[0,4.4,0]};
-        views.front = {position:[0,4.6,-6],target:[0,4.4,0]};
-        views.overhead = {position:[2.8,7,-5.2],target:[0,4.4,0]};
+        views.classic = {position:[3*Math.sin(Math.PI/16),4.5,-3*Math.cos(Math.PI/16)],target:[0,4.5,0.1]};
+        views.front = {position:[0,4.5,-3],target:[0,4.5,0.1]};
+        views.overhead = {position:[3*Math.sin(Math.PI/16),6,-3*Math.cos(Math.PI/16)],target:[0,4.5,0.1]};
       }
       request.camera = {...views[el('angle').value], fov:Number(el('fov').value)};
     }

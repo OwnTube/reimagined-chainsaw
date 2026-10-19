@@ -93,13 +93,17 @@ The supplied wiki was searched at revision
 `a7a6802ed56263dfb8c97e199b2c65bce1db33a6`. Its RCC examples invoke
 ThumbnailGenerator with sky hiding enabled; its web API reference separates
 avatar, headshot, and game types. **No exact headshot/full-body camera-positioning
-Lua script was found in that revision.** Our camera transforms are custom
-presets for this fixture, not claimed original Roblox framing.
+Lua script was found in that revision.** A subsequent revival-source search
+found headshot geometry in BubbaBlox v2 and Economy Simulator. The headshot now
+uses BubbaBlox's no-hat R6 case: head-level camera, 3-stud distance, 11.25-degree
+side angle, 0.1-stud target offset, and 30-degree FOV. The inspected full-body
+scripts delegate framing to RCC; our full-body camera remains custom. Neither
+preset is claimed to establish original 2013 Roblox defaults.
 See [source-by-source findings and positioning](docs/thumbnail-research.md).
 
 ## Validation
 
-Six local test methods cover request validation, type routing, history, HTTP
+Eight local test methods cover request validation, type routing, history, HTTP
 delivery, and alpha recovery from known foreground colors and partial edges.
 Their mock engine is separate from actual native evidence.
 `windows_e2e.py` checks actual scene and GUI-removal markers, exact sizes,

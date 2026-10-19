@@ -85,6 +85,13 @@ def main():
                 if name=='full-body':
                     x,y,r,b=decoded.getchannel('A').getbbox()
                     if min(x,y,512-r,512-b)<8:raise RuntimeError('Full body must fit inside the frame')
+                if name=='headshot':
+                    camera=result['result']['camera']
+                    if camera['fov']!=30 or camera['position'][1]!=4.5 or camera['target']!=[0,4.5,0.1]:
+                        raise RuntimeError('Headshot did not use the source-referenced head-level camera')
+                    for native_pass in result['result']['passes']:
+                        if not any('|CAMERA_READY|' in line and '|fov=30' in line for line in native_pass['engine_marker_lines']):
+                            raise RuntimeError('Native headshot camera marker did not confirm the preset')
         report['two_distinct_images']=report['jobs'][0]['result']['png_sha256']!=report['jobs'][1]['result']['png_sha256']
         if not report['two_distinct_images']:raise RuntimeError('Distinct scenes produced the same image')
         if report['jobs'][2]['result']['png_sha256']==report['jobs'][3]['result']['png_sha256']:

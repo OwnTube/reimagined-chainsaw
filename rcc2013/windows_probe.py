@@ -12,6 +12,7 @@ import secrets
 import subprocess
 import time
 import xml.etree.ElementTree as ET
+from framing import HEADSHOT_CAMERA
 
 
 def write_scene(path):
@@ -26,7 +27,6 @@ def write_scene(path):
 
 DEFAULT_CAMERA = {'position': [19,15,23], 'target': [0,2,0], 'fov': 50}
 AVATAR_CAMERA = {'position':[7,5,-10], 'target':[0,2.6,0], 'fov':35}
-HEADSHOT_CAMERA = {'position':[2.8,4.8,-5.2], 'target':[0,4.4,0], 'fov':24}
 
 
 def plugin_source(marker, camera=None, default_blocks=True, scene='blocks', matte=None):
@@ -68,6 +68,7 @@ local ok, problem = pcall(function()
         camera.CoordinateFrame = CFrame.new(Vector3.new(EYE), Vector3.new(TARGET))
         camera.Focus = CFrame.new(TARGET)
         camera.FieldOfView = FOV
+        print(marker .. "|CAMERA_READY|eye=" .. tostring(camera.CoordinateFrame.p) .. "|target=" .. tostring(camera.Focus.p) .. "|fov=" .. tostring(camera.FieldOfView))
         BACKDROP_SETUP
         print(marker .. "|SCENE_READY")
 end)
@@ -200,6 +201,7 @@ def render_pass(studio, output, place=None, camera=None, size=None, scene='block
     if os.name != 'nt':
         raise RuntimeError('Native Windows with a desktop session is required')
     specs = json.loads(Path(__file__).with_name('packages.json').read_text())
+    camera = camera or (AVATAR_CAMERA if scene=='avatar' else DEFAULT_CAMERA)
     studio = Path(studio).resolve(strict=True)
     if hashlib.sha256(studio.read_bytes()).hexdigest() != specs['studio']['executable_sha256']:
         raise ValueError('Executable identity mismatch')
@@ -223,7 +225,7 @@ def render_pass(studio, output, place=None, camera=None, size=None, scene='block
               'owned_addition':'BuiltInPlugins/Rcc2013Probe/bootstrap.lua',
               'launch_profile':'-ide -fileLocation owned.rbxlx', 'default_scene':default_blocks,
               'requested_size':size,'scene':scene if default_blocks else 'uploaded',
-              'type':render_type,'matte_pass':matte}
+              'type':render_type,'matte_pass':matte,'camera':camera}
     if default_blocks and scene=='avatar':
         face = studio.parent/'content'/'textures'/'face.png'
         report['bundled_face_sha256'] = hashlib.sha256(face.read_bytes()).hexdigest()
@@ -314,7 +316,8 @@ def render_scene(studio, output, place=None, camera=None, size=None, scene='bloc
     out=Path(output).resolve();out.mkdir(parents=True,exist_ok=False)
     camera=camera or (HEADSHOT_CAMERA if render_type=='headshot' else AVATAR_CAMERA)
     size=size or {'width':512,'height':512}
-    report={'type':render_type,'scene':'avatar','engine_render_validated':False,'passes':[]}
+    report={'type':render_type,'scene':'avatar','engine_render_validated':False,'passes':[],
+            'camera':camera,'camera_profile':'BubbaBlox v2 no-hat R6 equivalent' if render_type=='headshot' and camera==HEADSHOT_CAMERA else 'custom'}
     try:
         for matte in ('dark','light'):
             result=render_pass(studio,out/matte,None,camera,size,'avatar',matte,render_type)
