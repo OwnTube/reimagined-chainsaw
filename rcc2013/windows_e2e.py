@@ -1,12 +1,14 @@
 """Exercise the actual HTTP API and two real native 2013 rendering jobs."""
 import argparse
 import hashlib
+import io
 import json
 from pathlib import Path
 import threading
 import time
 import urllib.request
 import xml.etree.ElementTree as ET
+from PIL import Image
 
 from server import Renderer, handler, ThreadingHTTPServer
 
@@ -52,7 +54,9 @@ def main():
         with urllib.request.urlopen(urllib.request.Request(base+'/v1/places',place,method='POST'),timeout=10) as response:
             place_id=json.load(response)['place_id']
         if place_id!=hashlib.sha256(place).hexdigest():raise RuntimeError('Upload digest differs')
-        for name,config in [('default',{}),('uploaded',{'place_id':place_id})]:
+        for name,config in [('default',{'size':{'width':512,'height':512}}),
+                            ('uploaded',{'place_id':place_id,'size':{'width':640,'height':360},
+                                         'camera':{'position':[16,12,22],'target':[0,3,0],'fov':45}})]:
             job=request('/v1/renders',config)['id']
             deadline=time.monotonic()+100
             while time.monotonic()<deadline:
@@ -66,6 +70,8 @@ def main():
                 if response.headers.get_content_type()!='image/png' or not image.startswith(b'\x89PNG\r\n\x1a\n'):
                     raise RuntimeError('Render API did not return a PNG')
             (out/(name+'-render.png')).write_bytes(image)
+            if list(Image.open(io.BytesIO(image)).size)!=[config['size']['width'],config['size']['height']]:
+                raise RuntimeError('Returned PNG does not match requested native image size')
         report['two_distinct_images']=report['jobs'][0]['result']['png_sha256']!=report['jobs'][1]['result']['png_sha256']
         if not report['two_distinct_images']:raise RuntimeError('Distinct scenes produced the same image')
         report['passed']=True

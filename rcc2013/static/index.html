@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RCC2013 · Render console</title>
+  <link rel="icon" href="/logo.png" type="image/png">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="RCC2013 home"><img src="/logo.png" width="54" height="54" alt="RCC logo"><span>RCC<span class="year">2013</span><small>RENDER SERVICE</small></span></a>
+    <div class="nav-label">WORKSPACE</div>
+    <div class="nav-active"><span aria-hidden="true">▧</span> Render console <span class="nav-dot"></span></div>
+    <section class="recent"><div class="nav-label">RECENT RENDERS <span id="job-count">0</span></div><div id="history"><p class="history-empty">Your render history will appear here.</p></div></section>
+    <div class="sidebar-foot"><span class="engine-dot"></span><span>November 2013 engine<small>Local Studio worker</small></span></div>
+  </aside>
+  <main>
+    <header class="topbar"><div>WORKSPACE <span>/</span> RENDER CONSOLE</div><div class="connection"><i id="connection-dot"></i><span id="connection">Connecting</span></div></header>
+    <div class="workspace">
+      <div class="page-heading"><div><p class="eyebrow">THE ORIGINAL LOOK, FRAME BY FRAME</p><h1>Render console</h1><p>Create a frame with the November 2013 Roblox engine.</p></div><span class="edition">2013 <span>ENGINE</span></span></div>
+      <div class="layout">
+        <form id="render-form" class="settings">
+          <section><div class="section-title"><span>01</span><h2>Scene</h2></div>
+            <label class="field-label" for="scene">Source</label><select id="scene"><option value="default">Classic blocks · built-in scene</option><option value="upload">Upload a local place</option></select>
+            <label id="upload-box" class="upload-box" hidden><span>Choose a .rbxl or .rbxlx file</span><small>Local place · up to 8 MB</small><input id="place" type="file" accept=".rbxl,.rbxlx"></label>
+          </section>
+          <section><div class="section-title"><span>02</span><h2>Camera</h2></div>
+            <label class="field-label" for="angle">View</label><select id="angle"><option value="classic">Classic perspective</option><option value="front">Front view</option><option value="overhead">High angle</option></select>
+            <div class="field-row"><label class="field-label" for="fov">Field of view</label><span>degrees</span></div><input id="fov" type="number" min="10" max="100" value="50" required>
+          </section>
+          <section><div class="section-title"><span>03</span><h2>Output</h2></div>
+            <label class="field-label" for="size">Image dimensions</label><select id="size"><option value="512,512">512 × 512 · square</option><option value="640,360">640 × 360 · widescreen</option><option value="800,450">800 × 450 · widescreen</option><option value="native">Current viewport</option></select>
+            <p class="help">PNG image · native engine pixels</p>
+          </section>
+          <div class="form-footer"><p id="error" role="alert" hidden></p><button id="render-button" type="submit">Render image <span aria-hidden="true">↗</span></button><p>One scene at a time. Every frame, the real engine.</p></div>
+        </form>
+        <section class="preview-card" aria-label="Render preview">
+          <div class="preview-top"><h2>Viewport</h2><span id="state" class="state">READY</span></div>
+          <div id="preview" class="preview">
+            <div id="placeholder"><div class="frame-icon" aria-hidden="true">▧</div><h3>Your next frame starts here.</h3><p>Choose a scene, set your camera, and hit render.</p></div>
+            <img id="render-image" alt="Rendered scene from the 2013 Roblox engine" hidden>
+          </div>
+          <div class="preview-bottom"><div><strong id="image-info">No image yet</strong><span id="job-info">PNG output</span></div><a id="download" class="download" hidden download="rcc2013-render.png">Download PNG ↓</a></div>
+          <details id="details" hidden><summary>Render details</summary><pre id="evidence"></pre></details>
+        </section>
+      </div>
+      <footer class="workspace-footer"><span><i></i> RCC2013</span><span>A little piece of 2013, rendered again.</span></footer>
+    </div>
+  </main>
+</body>
+</html>

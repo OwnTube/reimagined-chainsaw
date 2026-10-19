@@ -1,0 +1,126 @@
+'use strict';
+const el = id => document.getElementById(id);
+const cameras = {
+  classic:{position:[19,15,23],target:[0,2,0]},
+  front:{position:[0,9,30],target:[0,2,0]},
+  overhead:{position:[16,27,18],target:[0,0,0]}
+};
+let activeJob = null;
+let pollTimer = null;
+
+async function api(path, options) {
+  const response = await fetch(path, options);
+  const value = await response.json();
+  if (!response.ok) throw new Error(value.error || 'The service could not complete this request.');
+  return value;
+}
+
+function showError(message) {
+  el('error').textContent = message;
+  el('error').hidden = !message;
+}
+
+function displayJob(job) {
+  const result = job.result || {};
+  el('state').textContent = job.state.toUpperCase();
+  el('state').dataset.state = job.state;
+  el('job-info').textContent = 'Job ' + job.id.slice(0, 8);
+  const ready = job.state === 'succeeded';
+  el('render-image').hidden = !ready;
+  el('placeholder').hidden = ready;
+  el('download').hidden = !ready;
+  el('details').hidden = false;
+  el('evidence').textContent = JSON.stringify(result, null, 2);
+  if (ready) {
+    const source = '/v1/renders/' + job.id + '/image';
+    if (el('render-image').getAttribute('src') !== source) el('render-image').src = source;
+    el('download').href = source;
+    el('download').download = 'rcc2013-' + job.id.slice(0, 8) + '.png';
+    el('image-info').textContent = result.image_size ? result.image_size.join(' × ') + ' · PNG' : 'PNG image';
+  } else {
+    el('image-info').textContent = job.state === 'failed' ? 'Render failed' : 'Rendering your scene';
+    el('placeholder').querySelector('h3').textContent = job.state === 'failed' ? 'This frame needs another try.' : 'A little 2013 is loading.';
+    el('placeholder').querySelector('p').textContent = job.state === 'failed' ? (result.error || 'The worker could not verify this render.') : 'The engine is preparing your scene. This can take a minute.';
+  }
+}
+
+async function refreshHistory() {
+  const {jobs} = await api('/v1/renders');
+  el('job-count').textContent = jobs.length;
+  const container = el('history');
+  container.replaceChildren();
+  if (!jobs.length) {
+    const empty = document.createElement('p');
+    empty.className = 'history-empty';
+    empty.textContent = 'Your render history will appear here.';
+    container.append(empty);
+  }
+  for (const job of jobs) {
+    const button = document.createElement('button');
+    button.className = 'history-job ' + job.state + (activeJob === job.id ? ' active' : '');
+    const dot = document.createElement('span'); dot.className = 'dot';
+    const label = document.createElement('span'); label.textContent = 'Render ' + job.id.slice(0, 8);
+    const state = document.createElement('small'); state.textContent = job.state;
+    label.append(state); button.append(dot, label);
+    button.addEventListener('click', () => watch(job.id));
+    container.append(button);
+  }
+}
+
+async function watch(id) {
+  activeJob = id;
+  clearTimeout(pollTimer);
+  showError('');
+  try {
+    const job = await api('/v1/renders/' + id);
+    if (activeJob !== id) return;
+    displayJob(job);
+    await refreshHistory();
+    if (activeJob === id && (job.state === 'queued' || job.state === 'running')) {
+      pollTimer = setTimeout(() => watch(id), 1500);
+    }
+  } catch (error) { if (activeJob === id) showError(error.message); }
+}
+
+el('scene').addEventListener('change', () => {
+  el('upload-box').hidden = el('scene').value !== 'upload';
+  el('place').required = el('scene').value === 'upload';
+});
+
+el('render-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  showError('');
+  el('render-button').disabled = true;
+  try {
+    const request = {camera:{...cameras[el('angle').value], fov:Number(el('fov').value)}};
+    if (el('size').value !== 'native') {
+      const [width,height] = el('size').value.split(',').map(Number);
+      request.size = {width,height};
+    }
+    if (el('scene').value === 'upload') {
+      const file = el('place').files[0];
+      if (!file) throw new Error('Choose a local place file first.');
+      if (file.size > 8 * 1024 * 1024) throw new Error('Choose a place file smaller than 8 MB.');
+      const place = await api('/v1/places', {method:'POST', body:file});
+      request.place_id = place.place_id;
+    }
+    const job = await api('/v1/renders', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(request)});
+    await watch(job.id);
+  } catch (error) { showError(error.message); }
+  finally { el('render-button').disabled = false; }
+});
+
+async function connect() {
+  try {
+    const health = await api('/health');
+    el('connection').textContent = health.studio_present ? 'Worker available' : 'Studio deployment missing';
+    el('connection-dot').className = health.studio_present ? 'online' : '';
+    if (!health.studio_present) showError('Install the pinned Studio deployment with download.py before rendering.');
+    await refreshHistory();
+  } catch (error) {
+    el('connection').textContent = 'Service unavailable';
+    el('connection-dot').className = '';
+    showError(error.message);
+  }
+}
+connect();

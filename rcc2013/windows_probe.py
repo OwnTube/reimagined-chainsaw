@@ -101,6 +101,7 @@ def windows_for_pid(pid):
     user32.IsWindowVisible.argtypes = [wintypes.HWND]
     records = []
     child_handles = []
+    top_level = True
     def inspect(handle, _):
         owner = wintypes.DWORD()
         user32.GetWindowThreadProcessId(handle, ctypes.byref(owner))
@@ -110,19 +111,61 @@ def windows_for_pid(pid):
             user32.GetClassNameW(handle, name, len(name))
             user32.GetWindowRect(handle, ctypes.byref(rect))
             records.append({'title':title.value,'class':name.value,'visible':bool(user32.IsWindowVisible(handle)),
-                            'rect':[rect.left,rect.top,rect.right,rect.bottom]})
+                            'rect':[rect.left,rect.top,rect.right,rect.bottom],
+                            'handle':int(handle),'top_level':top_level})
             child_handles.append(handle)
         return True
     callback = callback_type(inspect)
     user32.EnumWindows.argtypes = [callback_type, wintypes.LPARAM]
     user32.EnumChildWindows.argtypes = [wintypes.HWND, callback_type, wintypes.LPARAM]
     user32.EnumWindows(callback, 0)
+    top_level = False
     for handle in list(child_handles):
         user32.EnumChildWindows(handle, callback, 0)
     return records
 
 
-def render_scene(studio, output, place=None, camera=None):
+def resize_viewport(pid, size):
+    """Resize only the owned Studio window; capture at native pixel resolution."""
+    if size is None:
+        return windows_for_pid(pid)
+    user32 = ctypes.windll.user32
+    records = windows_for_pid(pid)
+    roots = [w for w in records if w['top_level'] and w['visible'] and
+             w['title'].startswith('ROBLOX Studio')]
+    if len(roots)!=1:
+        raise RuntimeError('Cannot identify one owned Studio window for resizing')
+    handle = roots[0]['handle']
+    user32.ShowWindow.argtypes = [wintypes.HWND,ctypes.c_int]
+    user32.SetForegroundWindow.argtypes = [wintypes.HWND]
+    user32.SetWindowPos.argtypes = [wintypes.HWND,wintypes.HWND,ctypes.c_int,ctypes.c_int,
+                                    ctypes.c_int,ctypes.c_int,wintypes.UINT]
+    user32.ShowWindow(handle,9)  # SW_RESTORE, before changing a maximized window.
+    user32.SetForegroundWindow(handle)
+    time.sleep(0.5)
+    for _ in range(4):
+        records = windows_for_pid(pid)
+        root = next(w for w in records if w['handle']==handle)
+        views = [w for w in records if w['visible'] and w['title']=='QOgreWidget']
+        if len(views)!=1:
+            raise RuntimeError('Cannot identify one native render viewport for resizing')
+        left,top,right,bottom = views[0]['rect']
+        if right-left==size['width'] and bottom-top==size['height']:
+            if left<0 or top<0 or right>user32.GetSystemMetrics(0) or bottom>user32.GetSystemMetrics(1):
+                raise RuntimeError('Native viewport falls outside the visible desktop')
+            return records
+        x,y,r,b = root['rect']
+        width = r-x + size['width']-(right-left)
+        height = b-y + size['height']-(bottom-top)
+        if width>user32.GetSystemMetrics(0) or height>user32.GetSystemMetrics(1):
+            raise RuntimeError('Requested native image size does not fit this desktop with Studio window borders')
+        if not user32.SetWindowPos(handle,None,0,0,width,height,0x0044):
+            raise RuntimeError('Windows could not resize the owned Studio window')
+        time.sleep(1)
+    raise RuntimeError('Studio layout did not accept the requested native viewport size')
+
+
+def render_scene(studio, output, place=None, camera=None, size=None):
     if os.name != 'nt':
         raise RuntimeError('Native Windows with a desktop session is required')
     specs = json.loads(Path(__file__).with_name('packages.json').read_text())
@@ -147,7 +190,8 @@ def render_scene(studio, output, place=None, camera=None):
               'scene_script_executed':False,'engine_render_validated':False,
               'screenshot_kind':'startup diagnostic, pending scene verification',
               'owned_addition':'BuiltInPlugins/Rcc2013Probe/bootstrap.lua',
-              'launch_profile':'-ide -fileLocation owned.rbxlx', 'default_scene':default_blocks}
+              'launch_profile':'-ide -fileLocation owned.rbxlx', 'default_scene':default_blocks,
+              'requested_size':size}
     env = os.environ.copy()
     env.pop('QT_PLUGIN_PATH', None)
     env.pop('QT_QPA_PLATFORM_PLUGIN_PATH', None)
@@ -169,6 +213,10 @@ def render_scene(studio, output, place=None, camera=None):
                 time.sleep(1)
             collect_logs(out)
             report['windows'] = windows_for_pid(process.pid)
+            if report['scene_script_executed']:
+                report['windows'] = resize_viewport(process.pid,size)
+                if size is not None:
+                    time.sleep(2)
             report['exit_code_before_cleanup'] = process.poll()
             from PIL import ImageGrab
             ImageGrab.grab().save(out/'runner-desktop.png')
@@ -187,13 +235,15 @@ def render_scene(studio, output, place=None, camera=None):
                 image.save(out/'render.png')
                 report['viewport_rect'] = list(bounds)
                 report['image_size'] = list(image.size)
+                report['native_size_matched'] = size is None or list(image.size)==[size['width'],size['height']]
                 colors = {'red':0,'green':0,'blue':0}
                 for r,g,b in image.convert('RGB').getdata():
                     colors['red'] += r>80 and r>g*1.4 and r>b*1.4
                     colors['green'] += g>50 and g>r*1.2 and g>b*1.1
                     colors['blue'] += b>50 and b>r*1.2 and b>g*1.1
                 report['dominant_color_pixels'] = colors
-                report['engine_render_validated'] = not default_blocks or all(v>100 for v in colors.values())
+                report['engine_render_validated'] = report['native_size_matched'] and (
+                    not default_blocks or all(v>100 for v in colors.values()))
                 report['render_method'] = 'native QOgreWidget framebuffer screen capture'
                 report['png_sha256'] = hashlib.sha256((out/'render.png').read_bytes()).hexdigest()
             report['captured_at_utc'] = datetime.now(timezone.utc).isoformat()

@@ -16,6 +16,17 @@ import uuid
 
 from windows_probe import DEFAULT_CAMERA, render_scene
 
+STATIC = Path(__file__).with_name('static')
+
+
+def size_spec(value):
+    if value is None:
+        return None
+    if (not isinstance(value,dict) or set(value)!={'width','height'} or
+        any(type(v) is not int or not 128<=v<=2048 for v in value.values())):
+        raise ValueError('size requires integer width and height between 128 and 2048')
+    return dict(value)
+
 
 def camera_spec(value):
     if not isinstance(value, dict) or set(value)-set(DEFAULT_CAMERA):
@@ -65,10 +76,11 @@ class Renderer:
         return identity
 
     def submit(self, request):
-        if not isinstance(request,dict) or set(request)-{'place_id','camera'}:
-            raise ValueError('Render request supports place_id and camera only')
+        if not isinstance(request,dict) or set(request)-{'place_id','camera','size'}:
+            raise ValueError('Render request supports place_id, camera, and size only')
         request = dict(request)
         request['camera'] = camera_spec(request.get('camera',{}))
+        request['size'] = size_spec(request.get('size'))
         identity = request.get('place_id')
         if identity is not None and (not isinstance(identity,str) or not re.fullmatch('[a-f0-9]{64}',identity)
                                     or not (self.root/'places'/(identity+'.rbxl')).is_file()):
@@ -86,7 +98,7 @@ class Renderer:
             db.execute("UPDATE jobs SET state='running' WHERE id=?",(job,))
         try:
             place = self.root/'places'/(request['place_id']+'.rbxl') if request.get('place_id') else None
-            report = self.engine(self.studio,self.root/'jobs'/job,place,request['camera'])
+            report = self.engine(self.studio,self.root/'jobs'/job,place,request['camera'],request['size'])
             state = 'succeeded' if report.get('engine_render_validated') else 'failed'
         except Exception as error:
             report,state = {'error':str(error),'engine_render_validated':False},'failed'
@@ -102,6 +114,11 @@ class Renderer:
 
     def close(self):
         self.worker.shutdown(wait=True)
+
+    def recent(self):
+        with self.connect() as db:
+            rows = db.execute('SELECT id,state,result FROM jobs ORDER BY rowid DESC LIMIT 20').fetchall()
+        return [{'id':r[0],'state':r[1],'result':json.loads(r[2])} for r in rows]
 
 
 def handler(renderer):
@@ -121,9 +138,18 @@ def handler(renderer):
 
         def do_GET(self):
             path=urlsplit(self.path).path
+            assets = {'/':('index.html','text/html; charset=utf-8'),
+                      '/app.js':('app.js','text/javascript; charset=utf-8'),
+                      '/style.css':('style.css','text/css; charset=utf-8'),
+                      '/logo.png':('logo.png','image/png')}
+            if path in assets:
+                name,content_type = assets[path]
+                return self.send(200,(STATIC/name).read_bytes(),content_type)
             if path=='/health':
                 return self.send(200,{'service':'RCC2013','engine':'Studio 2013.11.25.2',
                     'render_method':'native viewport capture','studio_present':renderer.studio.is_file()})
+            if path=='/v1/renders':
+                return self.send(200,{'jobs':renderer.recent()})
             match=re.fullmatch('/v1/renders/([a-f0-9]{32})(/image)?',path)
             if not match:
                 return self.send(404,{'error':'Not found'})

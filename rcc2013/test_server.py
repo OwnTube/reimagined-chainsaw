@@ -8,10 +8,15 @@ import urllib.error
 import urllib.request
 
 from PIL import Image
-from server import camera_spec, Renderer, handler, ThreadingHTTPServer
+from server import camera_spec, size_spec, Renderer, handler, ThreadingHTTPServer
 
 
 class ControlPlaneTests(unittest.TestCase):
+    def test_size_rejects_noninteger_oversized_and_incomplete_requests(self):
+        for size in ({'width':True,'height':512},{'width':512.0,'height':512},
+                     {'width':512},{'width':4096,'height':512},[],{}):
+            with self.subTest(size=size),self.assertRaises(ValueError):size_spec(size)
+
     def test_camera_rejects_executable_text_nonfinite_values_and_degenerate_view(self):
         for value in ({'position':['os.execute(1)',0,0]}, {'position':[float('nan'),0,0]},
                       {'position':[1,1,1],'target':[1,1,1]}, {'fov':True}, {'script':'anything'}):
@@ -20,10 +25,10 @@ class ControlPlaneTests(unittest.TestCase):
 
     def test_http_job_lifecycle_and_asset_path_boundary_with_a_mock_engine(self):
         calls=[]
-        def mock_engine(studio,output,place,camera):
+        def mock_engine(studio,output,place,camera,size):
             output.mkdir(parents=True)
             Image.new('RGB',(2,2),(20,40,60)).save(output/'render.png')
-            calls.append((place,camera))
+            calls.append((place,camera,size))
             return {'engine_render_validated':True,'test_mock':True}
         with tempfile.TemporaryDirectory() as temporary:
             renderer=Renderer(Path(temporary)/'test.exe',Path(temporary)/'data',mock_engine)
@@ -31,11 +36,15 @@ class ControlPlaneTests(unittest.TestCase):
             thread=threading.Thread(target=http.serve_forever,daemon=True);thread.start()
             base='http://127.0.0.1:'+str(http.server_port)
             try:
+                for route,mime in (('/','text/html'),('/logo.png','image/png'),('/app.js','text/javascript')):
+                    with urllib.request.urlopen(base+route,timeout=3) as response:
+                        self.assertEqual(response.headers.get_content_type(),mime)
+                        self.assertTrue(response.read())
                 bad=urllib.request.Request(base+'/v1/renders',json.dumps({'place_id':'../../secret'}).encode(),method='POST')
                 with self.assertRaises(urllib.error.HTTPError) as error:
                     urllib.request.urlopen(bad,timeout=3)
                 self.assertEqual(error.exception.code,400)
-                request=urllib.request.Request(base+'/v1/renders',b'{}',method='POST')
+                request=urllib.request.Request(base+'/v1/renders',b'{"size":{"width":512,"height":512}}',method='POST')
                 with urllib.request.urlopen(request,timeout=3) as response:
                     self.assertEqual(response.status,202);job=json.load(response)['id']
                 deadline=time.monotonic()+3
@@ -49,6 +58,9 @@ class ControlPlaneTests(unittest.TestCase):
                     self.assertEqual(response.headers.get_content_type(),'image/png')
                     self.assertTrue(response.read().startswith(b'\x89PNG\r\n\x1a\n'))
                 self.assertEqual(len(calls),1)
+                self.assertEqual(calls[0][2],{'width':512,'height':512})
+                with urllib.request.urlopen(base+'/v1/renders',timeout=3) as response:
+                    self.assertEqual(json.load(response)['jobs'][0]['id'],job)
             finally:
                 http.shutdown();http.server_close();renderer.close();thread.join(timeout=3)
 
