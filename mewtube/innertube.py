@@ -1,9 +1,14 @@
 """Experimental WEB renderer subset, not a claim of YouTube client parity."""
 from .store import videos, video
+from urllib.parse import urlencode
 
 
 def text(value):
     return {'simpleText': str(value)}
+
+
+def sign_in_url(watch_id=None):
+    return '/?' + urlencode({'signin': '1', 'return_to': '/official' + ('?v=' + watch_id if watch_id else '')})
 
 
 def endpoint(v):
@@ -39,8 +44,9 @@ def like_button(c, v, user):
     if user:
         button.update(defaultServiceEndpoint=command(True), toggledServiceEndpoint=command(False))
     else:
-        button['defaultNavigationEndpoint'] = {'urlEndpoint': {'url': '/?signin=1'},
-            'commandMetadata': {'webCommandMetadata': {'url': '/?signin=1'}}}
+        destination = sign_in_url(v['id'])
+        button['defaultNavigationEndpoint'] = {'urlEndpoint': {'url': destination},
+            'commandMetadata': {'webCommandMetadata': {'url': destination}}}
     return {'toggleButtonRenderer': button}
 
 

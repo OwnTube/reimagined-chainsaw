@@ -90,6 +90,7 @@ node --check web/app.js
 node --check web/bridge.js
 node tests/bridge.test.mjs
 node tests/playback_probe.test.mjs
+node tests/auth_return.test.mjs
 ```
 
 The tests start a disposable service, generate an audiovisual test pattern, upload and transcode it, read its MP4/thumbnails/ranges, verify auth and ownership, exercise interactions/moderation and InnerTube responses, reject nonvideo/playlist uploads, and test safe bootstrap replacement.

@@ -72,6 +72,14 @@ try {
   page.on('pageerror', error=>{if(diagnostics.capturedClient.errors.length<30)diagnostics.capturedClient.errors.push((error.stack||error.message).slice(0,1200));});
   page.on('requestfailed', req=>{try{const url=new URL(req.url());diagnostics.capturedClient.failedPaths.push(url.pathname.slice(0,250));if(diagnostics.capturedClient.failedRequests.length<100)diagnostics.capturedClient.failedRequests.push({method:req.method(),origin:url.origin,path:url.pathname.slice(0,250),error:req.failure()?.errorText});}catch{}});
   page.on('response',response=>{try{const path=new URL(response.url()).pathname;if(path===`/media/${id}/video.mp4` && [200,206].includes(response.status()))diagnostics.capturedClient.localMediaResponse=true;if(response.status()>=400)diagnostics.capturedClient.failedPaths.push(`${response.status()} ${path.slice(0,200)}`);}catch{}});
+  diagnostics.capturedClient.nativeApi=[];
+  page.on('response',async response=>{
+    const path=new URL(response.url()).pathname;
+    if(!['/youtubei/v1/like/like','/youtubei/v1/like/removelike'].includes(path))return;
+    const entry={path,status:response.status(),gzip:response.request().headers()['content-encoding']==='gzip'};
+    diagnostics.capturedClient.nativeApi.push(entry);
+    if(response.status()>=400)try{const data=await response.json();entry.error=typeof data.error==='string'?data.error.slice(0,120):null;}catch{}
+  });
   const captured=await page.goto(origin+'/official');
   if(captured.status()===200){
     await page.waitForTimeout(15000);
@@ -161,13 +169,27 @@ try {
         }catch(error){diagnostics.capturedClient.nativeLikes={ok:false,error:error.message.slice(0,300)};}
         await checkpoint('official-mutations-inspected');
         const guestPage=await browser.newPage();
+        diagnostics.capturedClient.guestFailedPaths=[];
+        guestPage.on('response',response=>{if(response.status()>=400 && diagnostics.capturedClient.guestFailedPaths.length<30)
+          diagnostics.capturedClient.guestFailedPaths.push(response.status()+' '+new URL(response.url()).pathname.slice(0,160));});
         try {
           await guestPage.goto(origin+'/official?v='+id);
-          await guestPage.locator('ytd-app').getByRole('button',{name:/^(Like|Unlike) this video$/}).first().click({timeout:10000});
+          const guestApp=guestPage.locator('ytd-app');
+          const guestLike=guestApp.getByRole('button',{name:/^(Like|Unlike) this video$/})
+            .or(guestApp.getByRole('link',{name:/^(Like|Unlike) this video$/})).first();
+          await guestLike.waitFor({timeout:10000});
+          await guestPage.screenshot({path:'evidence/official-guest-watch.png',fullPage:true,timeout:10000});
+          await guestLike.click({timeout:10000});
           await guestPage.waitForURL(url=>url.origin===origin && url.searchParams.get('signin')==='1',{timeout:8000});
           await guestPage.locator('#auth[open]').waitFor({timeout:5000});
           diagnostics.capturedClient.guestLocalSignIn=true;
-        }catch(error){diagnostics.capturedClient.guestLocalSignIn=false;diagnostics.capturedClient.guestSignInError=error.message.slice(0,300);}
+          await guestPage.locator('#auth-form [name=username]').fill(username);
+          await guestPage.locator('#auth-form [name=password]').fill(password);
+          await guestPage.locator('#auth-form .primary').click();
+          await guestPage.waitForURL(url=>url.origin===origin && url.pathname==='/official' && url.searchParams.get('v')===id,{timeout:10000});
+          await guestPage.getByText('MewTube @'+username,{exact:true}).waitFor({timeout:10000});
+          diagnostics.capturedClient.localAccountHandoff=true;
+        }catch(error){diagnostics.capturedClient.localAccountHandoff=false;diagnostics.capturedClient.guestSignInError=error.message.slice(0,300);}
         finally{await guestPage.close();}
         await checkpoint('official-guest-signin-inspected');
       }

@@ -1,5 +1,6 @@
 """Exercise the HTTP service with real FFmpeg uploads, SQLite, and sessions."""
 import http.cookiejar
+import gzip
 import json
 import os
 from pathlib import Path
@@ -92,6 +93,7 @@ class ServiceTests(unittest.TestCase):
 
     def test_01_guest_and_csrf(self):
         self.assertEqual(self.request('/api/me')[1], {'user': None})
+        self.assertEqual(self.request('/auth-return.js')[0], 200)
         self.assertEqual(self.request('/api/studio')[0], 401)
         self.assertEqual(self.request('/api/videos?feed=subscriptions')[0], 401)
         self.assertEqual(self.request('/youtubei/v1/player', {'videoId':123})[0], 400)
@@ -153,6 +155,15 @@ class ServiceTests(unittest.TestCase):
         self.account('native_liker')
         v = self.upload('Native mutation fixture')
         body = {'target': {'videoId': v['id']}}
+        compressed = gzip.compress(json.dumps(body).encode())
+        encoding_headers = {'Content-Type':'application/json', 'Content-Encoding':'gzip'}
+        self.assertEqual(self.request('/youtubei/v1/like/like', raw=compressed, headers=encoding_headers)[0], 200)
+        self.assertEqual(self.request('/youtubei/v1/like/removelike', raw=compressed, headers=encoding_headers)[0], 200)
+        self.assertEqual(self.request('/youtubei/v1/like/like', raw=b'not gzip', headers=encoding_headers)[0], 400)
+        self.assertEqual(self.request('/youtubei/v1/like/like', raw=compressed[:-4], headers=encoding_headers)[0], 400)
+        oversized = gzip.compress(b' ' * (1024 * 1024 + 1))
+        self.assertEqual(self.request('/youtubei/v1/like/like', raw=oversized, headers=encoding_headers)[0], 413)
+        self.assertEqual(self.request('/youtubei/v1/like/like', body, headers={'Content-Encoding':'br'})[0], 415)
         guest = urllib.request.build_opener()
         self.assertEqual(self.request('/youtubei/v1/like/like', body, client=guest)[0], 401)
         self.assertEqual(self.request('/youtubei/v1/like/like', body,
@@ -165,7 +176,10 @@ class ServiceTests(unittest.TestCase):
             primary = result['contents']['twoColumnWatchNextResults']['results']['results']['contents'][0]['videoPrimaryInfoRenderer']
             return primary['videoActions']['menuRenderer']['topLevelButtons'][0]['toggleButtonRenderer']
         self.assertFalse(native_button()['isToggled'])
-        self.assertIn('defaultNavigationEndpoint', native_button(guest))
+        guest_button = native_button(guest)
+        guest_url = guest_button['defaultNavigationEndpoint']['urlEndpoint']['url']
+        self.assertEqual(urllib.parse.parse_qs(urllib.parse.urlsplit(guest_url).query)['return_to'],
+                         ['/official?v=' + v['id']])
         for _ in range(2):
             self.assertEqual(self.request('/youtubei/v1/like/like', body)[0], 200)
         self.assertEqual(self.request('/api/videos/'+v['id'])[1]['video']['likes'], 1)

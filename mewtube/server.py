@@ -1,6 +1,8 @@
 import hashlib
+import gzip
 import hmac
 import http.cookies
+import io
 import json
 import mimetypes
 import os
@@ -9,6 +11,7 @@ import secrets
 import shutil
 import sqlite3
 import time
+import zlib
 from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -77,9 +80,21 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(raw)
 
     def json_body(self):
-        length = self.length(1024 * 1024)
+        maximum = 1024 * 1024
+        length = self.length(maximum)
+        raw = self.rfile.read(length)
+        encoding = self.headers.get('Content-Encoding', 'identity').strip().lower()
+        if encoding not in ('identity', 'gzip'):
+            raise Error(415, 'Unsupported content encoding')
         try:
-            value = json.loads(self.rfile.read(length))
+            if encoding == 'gzip':
+                # The current official transport compresses InnerTube JSON.
+                # Bound decoded bytes too; gzip.decompress() is unbounded.
+                with gzip.GzipFile(fileobj=io.BytesIO(raw)) as stream:
+                    raw = stream.read(maximum + 1)
+                if len(raw) > maximum:
+                    raise Error(413, 'Decoded request is too large')
+            value = json.loads(raw)
             if not isinstance(value, dict):
                 raise ValueError()
             for key in ('username', 'password', 'title', 'description', 'text', 'reason', 'channelId', 'videoId', 'query', 'browseId'):
@@ -88,7 +103,7 @@ class Handler(BaseHTTPRequestHandler):
             if 'enabled' in value and not isinstance(value['enabled'], bool):
                 raise ValueError()
             return value
-        except (ValueError, RecursionError):
+        except (ValueError, RecursionError, OSError, EOFError, zlib.error):
             raise Error(400, 'Expected a JSON object')
 
     def length(self, maximum):
@@ -230,7 +245,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.api(path, query)
         if self.command not in ('GET', 'HEAD'):
             raise Error(405, 'Method not allowed')
-        assets = {'/app.js': 'app.js', '/style.css': 'style.css', '/bridge.js': 'bridge.js',
+        assets = {'/app.js': 'app.js', '/auth-return.js': 'auth-return.js', '/style.css': 'style.css', '/bridge.js': 'bridge.js',
                   '/': 'index.html', '/watch': 'index.html', '/results': 'index.html', '/studio': 'index.html',
                   '/subscriptions': 'index.html', '/channel': 'index.html', '/admin': 'index.html'}
         if path not in assets:

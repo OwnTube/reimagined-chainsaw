@@ -53,7 +53,7 @@
       if (!anchor) return;
       const url = new URL(anchor.href, location.href);
       if (url.origin === location.origin && url.searchParams.get('signin') === '1') {
-        event.preventDefault();event.stopImmediatePropagation();location.assign('/?signin=1');
+        event.preventDefault();event.stopImmediatePropagation();location.assign(url.pathname+url.search);
       } else if(url.origin===location.origin && url.pathname==='/watch' && /^[A-Za-z0-9_-]{11}$/.test(url.searchParams.get('v') || '')) {
         // The captured SPA's POST /watch envelope is not implemented. A full
         // local navigation loads the pinned watch shell and its local bootstrap,

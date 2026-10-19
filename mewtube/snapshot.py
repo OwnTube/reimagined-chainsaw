@@ -113,10 +113,11 @@ def shell(c, origin, watch_id=None, search_query=None, user=None):
             guest, _ = json.JSONDecoder().raw_decode(html[match.end():])
             topbar = guest.get('topbar', {}).get('desktopTopbarRenderer')
             if isinstance(topbar, dict):
+                account_url = innertube.sign_in_url(watch_id)
                 topbar['topbarButtons'] = [{'buttonRenderer': {'style': 'STYLE_SUGGESTIVE', 'size': 'SIZE_SMALL',
                     'text': {'runs': [{'text': 'MewTube @' + user['username'] if user else 'MewTube account'}]},
-                    'navigationEndpoint': {'urlEndpoint': {'url': '/?signin=1'},
-                        'commandMetadata': {'webCommandMetadata': {'url': '/?signin=1'}}}}}]
+                    'navigationEndpoint': {'urlEndpoint': {'url': account_url},
+                        'commandMetadata': {'webCommandMetadata': {'url': account_url}}}}}]
                 initial['topbar'] = {'desktopTopbarRenderer': topbar}
         except (ValueError, AttributeError, TypeError):
             pass

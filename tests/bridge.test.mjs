@@ -41,4 +41,6 @@ assert.equal(prevented,true);
 assert.deepEqual(navigations,['http://localhost:3000/watch?v=abcdefghijk']);
 captureClick({...click,ctrlKey:true});
 assert.equal(navigations.length,1,'Modified clicks must keep normal browser behavior');
+captureClick({...click,target:{closest:()=>({href:'/?signin=1&return_to=%2Fofficial%3Fv%3Dabcdefghijk'})}});
+assert.equal(navigations[1],'/?signin=1&return_to=%2Fofficial%3Fv%3Dabcdefghijk');
 console.log('Bridge request buffering, origin restrictions and captured-watch navigation regressions passed');
