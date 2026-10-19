@@ -90,7 +90,7 @@ try {
   diagnostics.capturedClient.nativeApi=[];
   page.on('response',async response=>{
     const path=new URL(response.url()).pathname;
-    if(!['/youtubei/v1/like/like','/youtubei/v1/like/removelike','/youtubei/v1/subscription/subscribe','/youtubei/v1/subscription/unsubscribe'].includes(path))return;
+    if(!['/youtubei/v1/like/like','/youtubei/v1/like/removelike','/youtubei/v1/subscription/subscribe','/youtubei/v1/subscription/unsubscribe','/youtubei/v1/comment/create_comment'].includes(path))return;
     const entry={path,status:response.status(),gzip:response.request().headers()['content-encoding']==='gzip'};
     diagnostics.capturedClient.nativeApi.push(entry);
     if(response.status()>=400)try{const data=await response.json();entry.error=typeof data.error==='string'?data.error.slice(0,120):null;}catch{}
@@ -207,9 +207,25 @@ try {
           await page.getByText('A real browser comment',{exact:true}).first().waitFor({timeout:8000});
           diagnostics.capturedClient.nativeComments={visible:true,
             localAuthor:await page.getByText('@'+username,{exact:true}).first().isVisible()};
+          await page.getByText('Add a local comment…',{exact:true}).first().click({timeout:8000});
+          await page.locator('ytd-commentbox [contenteditable="true"]').first().fill('Created through the captured client',{timeout:8000});
+          await page.locator('ytd-commentbox').getByRole('button',{name:'Comment',exact:true}).first().click({timeout:8000});
+          let created=false;
+          for(let i=0;i<30 && !created;i++) {
+            await page.waitForTimeout(100);
+            created=(await (await context.get('/api/videos/'+id)).json()).comments.some(comment=>comment.text==='Created through the captured client');
+          }
+          assert.equal(created,true,'Native composer must persist a local-account comment');
+          diagnostics.capturedClient.nativeComments.created=true;
+          await page.getByText('Created through the captured client',{exact:true}).first().waitFor({timeout:5000});
+          diagnostics.capturedClient.nativeComments.liveInsert=true;
+          await page.reload();
+          await page.mouse.wheel(0,900);
+          await page.getByText('Created through the captured client',{exact:true}).first().waitFor({timeout:8000});
+          diagnostics.capturedClient.nativeComments.persisted=true;
           await page.screenshot({path:'evidence/official-comments.png',fullPage:true,timeout:10000});
           await page.mouse.wheel(0,-900);
-        }catch(error){diagnostics.capturedClient.nativeComments={ok:false,error:error.message.slice(0,300)};}
+        }catch(error){diagnostics.capturedClient.nativeComments={...diagnostics.capturedClient.nativeComments,ok:false,error:error.message.slice(0,300)};}
         await checkpoint('official-comments-inspected');
         try {
           const subscribeButton=()=>page.locator('ytd-app').getByRole('button',{name:'Subscribe',exact:true}).first();

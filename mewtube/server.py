@@ -17,7 +17,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit, unquote
 
-from . import innertube
+from . import innertube, comments
 from .media import start_worker
 from .store import DATA, db, init, video, videos
 
@@ -233,6 +233,24 @@ class Handler(BaseHTTPRequestHandler):
             body = self.json_body()
             operation = path.removeprefix('/youtubei/v1/')
             with db() as c:
+                if operation == 'comment/create_comment':
+                    user = self.user(c, True)
+                    self.limit('comment', 20)
+                    params, value = body.get('createCommentParams'), body.get('commentText')
+                    target = re.fullmatch(re.escape(comments.CREATE_PREFIX) + '(' + ID + ')', params) if isinstance(params, str) else None
+                    if not target or not isinstance(value, str) or not 1 <= len(value.strip()) <= 2000:
+                        raise Error(400, 'Local comment target and 1–2000 characters are required')
+                    v = video(c, target[1])
+                    if not v or v['status'] != 'ready':
+                        raise Error(404, 'Video not found')
+                    comment_id = uid()
+                    c.execute('INSERT INTO comments(id,user_id,video_id,text,created) VALUES(?,?,?,?,?)',
+                              (comment_id, user['id'], v['id'], value.strip(), int(time.time())))
+                    c.commit()
+                    view, framework = comments.section(c, v, user, comment_id)
+                    thread = view['itemSectionRenderer']['contents'][0]
+                    return self.send({'responseContext': {}, 'frameworkUpdates': framework,
+                                      'actions': [{'createCommentAction': {'contents': thread}}]})
                 if operation in ('subscription/subscribe', 'subscription/unsubscribe'):
                     user = self.user(c, True)
                     channels = body.get('channelIds')

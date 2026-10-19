@@ -1,10 +1,12 @@
-"""Read-only native comment entities, authored from the observed guest contract.
+"""Local native comment entities, authored from the observed guest contract.
 
 Entity keys identify local UI records, not credentials or upstream tracking data.
-Posting/replies/voting remain separate, unsupported native-client operations.
+Only top-level creation is supported; replies and voting remain unsupported.
 """
 import base64
 from datetime import datetime, timezone
+
+CREATE_PREFIX = 'mewtube-comment-v1:'
 
 
 def varint(value):
@@ -22,10 +24,12 @@ def entity_key(identifier, entity_type):
     return base64.urlsafe_b64encode(encoded).decode().rstrip('=')
 
 
-def section(c, video, user):
+def section(c, video, user, comment_id=None):
+    predicate = ' AND co.id=?' if comment_id is not None else ''
+    arguments = (video['id'], comment_id) if comment_id is not None else (video['id'],)
     rows = c.execute('''SELECT co.id,co.text,co.created,co.user_id,u.username FROM comments co
-        JOIN users u ON u.id=co.user_id WHERE co.video_id=? ORDER BY co.created DESC,co.id DESC LIMIT 100''',
-        (video['id'],)).fetchall()
+        JOIN users u ON u.id=co.user_id WHERE co.video_id=?''' + predicate +
+        ' ORDER BY co.created DESC,co.id DESC LIMIT 100', arguments).fetchall()
     mutations, threads = [], []
     shared = entity_key('', 43)
 
@@ -62,6 +66,16 @@ def section(c, video, user):
             'commentId': row['id'], 'commentKey': key, 'sharedKey': shared,
             'commentSurfaceKey': surface, 'toolbarStateKey': toolbar, 'toolbarSurfaceKey': toolbar_surface}}}})
     count = c.execute('SELECT count(*) FROM comments WHERE video_id=?', (video['id'],)).fetchone()[0]
+    header = {'countText': {'simpleText': str(count) + ' comments'}}
+    if user:
+        header['createRenderer'] = {'commentSimpleboxRenderer': {
+            'authorThumbnail': {'thumbnails': [{'url': thumbnail, 'width': 80, 'height': 80}]},
+            'placeholderText': {'simpleText': 'Add a local comment…'},
+            'submitButton': {'buttonRenderer': {'text': {'simpleText': 'Comment'}, 'style': 'STYLE_PRIMARY',
+                'isDisabled': False, 'serviceEndpoint': {
+                    'commandMetadata': {'webCommandMetadata': {'sendPost': True, 'apiUrl': '/youtubei/v1/comment/create_comment'}},
+                    'createCommentEndpoint': {'createCommentParams': CREATE_PREFIX + video['id']}}}},
+            'cancelButton': {'buttonRenderer': {'text': {'simpleText': 'Cancel'}, 'style': 'STYLE_DEFAULT'}}}}
     return {'itemSectionRenderer': {'sectionIdentifier': 'comment-item-section', 'targetId': 'comments-section',
-        'header': {'commentsHeaderRenderer': {'countText': {'simpleText': str(count) + ' comments'}}},
+        'header': {'commentsHeaderRenderer': header},
         'contents': threads}}, {'entityBatchUpdate': {'mutations': mutations}}

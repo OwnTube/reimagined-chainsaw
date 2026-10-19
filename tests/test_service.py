@@ -280,6 +280,34 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(self.request('/api/login', {'username':'telemetry_viewer', 'password':'long-test-password'})[0], 200)
         self.assertEqual(self.request('/api/logout', {})[0], 200)
 
+    def test_11_native_comment_creation_is_local_and_authorized(self):
+        owner, video_id = 'postowner01', 'postvideo01'
+        with sqlite3.connect(self.data / 'mewtube.sqlite3') as c:
+            c.execute('INSERT INTO users(id,username,password) VALUES(?,?,?)', (owner, 'post_creator', 'unused'))
+            for identifier, status in ((video_id,'ready'),('postfailed1','failed')):
+                c.execute('INSERT INTO videos(id,owner,title,status,duration,created) VALUES(?,?,?,?,1,?)',
+                          (identifier, owner, 'Native comment target', status, int(time.time())))
+        self.account('native_commenter')
+        body = {'createCommentParams':'mewtube-comment-v1:'+video_id,
+                'commentText':'  <script>Local native text</script>  ', 'authorId':owner}
+        self.assertEqual(self.request('/youtubei/v1/comment/create_comment', body, client=urllib.request.build_opener())[0], 401)
+        self.assertEqual(self.request('/youtubei/v1/comment/create_comment', body, headers={'Origin':'https://evil.test'})[0], 403)
+        for invalid in ({}, {**body,'createCommentParams':'upstream-opaque-params'},
+                        {**body,'commentText':''}, {**body,'commentText':[]}, {**body,'commentText':'x'*2001}):
+            self.assertEqual(self.request('/youtubei/v1/comment/create_comment', invalid)[0], 400)
+        for target in ('missing0001','postfailed1'):
+            self.assertEqual(self.request('/youtubei/v1/comment/create_comment',
+                {**body,'createCommentParams':'mewtube-comment-v1:'+target})[0], 404)
+        status, result, _ = self.request('/youtubei/v1/comment/create_comment',
+            raw=gzip.compress(json.dumps(body).encode()), headers={'Content-Encoding':'gzip'})
+        self.assertEqual(status, 200)
+        model = result['actions'][0]['createCommentAction']['contents']['commentThreadRenderer']['commentViewModel']['commentViewModel']
+        stored = self.request('/api/videos/'+video_id)[1]['comments']
+        self.assertEqual(len(stored), 1)
+        self.assertEqual(stored[0]['text'], '<script>Local native text</script>')
+        self.assertEqual(stored[0]['username'], 'native_commenter', 'Body author IDs must not impersonate another account')
+        self.assertEqual(stored[0]['id'], model['commentId'])
+
     def test_05_reject_nonvideo_and_playlists(self):
         self.account('invalid_upload')
         for raw in (b'not a video', b'#EXTM3U\n#EXTINF:1\nfile:///etc/passwd\n'):

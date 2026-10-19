@@ -37,7 +37,8 @@ class CommentContractTests(unittest.TestCase):
         self.assertNotIn('Other video', json.dumps(framework))
         self.assertNotIn('createCommentEndpoint', json.dumps(framework))
         for i in range(101):
-            c.execute('INSERT INTO comments VALUES(?,?,?,?,?)', (f'comment{i:04}', 'Bounded item', i+2, 'author00001', 'localvid001'))
+            c.execute('INSERT INTO comments VALUES(?,?,?,?,?)', (f'bound{i:06}', 'Bounded item', i+2, 'author00001', 'localvid001'))
         bounded, _ = section(c, {'id':'localvid001', 'owner':'author00001'}, None)
         self.assertEqual(len(bounded['itemSectionRenderer']['contents']), 100)
         self.assertEqual(bounded['itemSectionRenderer']['header']['commentsHeaderRenderer']['countText']['simpleText'], '102 comments')
+        self.assertNotIn('createRenderer', bounded['itemSectionRenderer']['header']['commentsHeaderRenderer'])

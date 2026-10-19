@@ -2,7 +2,17 @@
 
 Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, draft PR #1. Do not merge or change repository visibility.
 
-## Current verified native checkpoint: October 19, 2026, 06:51 UTC
+## Current verified native checkpoint: October 19, 2026, 07:01 UTC
+
+Run `39213121880`, commit `0db7e08`, browser artifact `12168313299` uploaded 07:01:11 UTC, confirms native local comment text and author rendering. Its comment screenshot was inspected: local creator/subscription controls, local title, comment count, author and text render through the actual captured UI. The unrelated-creator decoy is excluded from both native subscription and creator grids. Actual guide clicks, Subscribe/Unsubscribe and reload persistence pass. Playback, official controls, Like/Unlike, local bootstrap/title and guest sign-in return remain true. The channel screenshot establishes a basic filtered grid, not a finished channel banner/header or management UI.
+
+### Candidate native top-level composer
+
+The observed main-bundle createCommentEndpoint handler accepts createCommentParams plus comment_text/commentText; comment-simplebox forwards submit/cancel buttons into the native dialog, and createCommentAction.contents inserts a thread. The candidate adapter now emits that composer for local authenticated users and handles /comment/create_comment. Its instance-local target envelope is not a credential and is never sent upstream. The endpoint derives the author exclusively from the local session, requires a ready local video and 1–2000 characters, shares the existing comment rate limit, commits before replying, and returns a new local thread plus entity updates. Unknown/upstream envelopes are rejected; guests have no composer and receive 401 on mutation. Replies and voting remain unsupported.
+
+**21 Python methods and all three JS suites pass locally**, including gzip comment creation, author-impersonation rejection, guest/CSRF rejection, malformed/oversized content and unavailable-video rejection. The browser will type into the native editor, require the local API write, live insertion and persistence after reload. **Native composer success is not yet verified.** The existing verified feature set is the read-only result above.
+
+### Earlier subscription milestone
 
 Run `39212197938`, commit `338975a`, browser artifact `12167598385` uploaded 06:51:41 UTC, now passes the complete tested subscription flow: actual native Guide/Subscriptions click, Subscribe, persistence after reload, local feed and channel grids, and Unsubscribe. Both mutation requests are gzip with 200 responses. Playback, official controls, local metadata/bootstrap, Like/Unlike persistence and guest local sign-in/return all remain true. Telemetry-related 429s are absent after the separate discard budget. The prior failed auth regression must not be treated as still active on this commit.
 
