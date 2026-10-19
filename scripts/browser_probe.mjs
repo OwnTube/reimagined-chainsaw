@@ -96,6 +96,16 @@ try {
         const officialVideo=page.locator('ytd-app #movie_player video').first();
         await officialVideo.waitFor({state:'attached',timeout:15000});
         await checkpoint('official-player-attached');
+        await page.waitForFunction(()=>typeof document.querySelector('ytd-app #movie_player')?.playVideo==='function',null,{timeout:10000});
+        await page.locator('ytd-app #movie_player').evaluate(root=>root.mute?.());
+        const largePlay=page.locator('ytd-app #movie_player .ytp-large-play-button');
+        if(await largePlay.isVisible()) {
+          await largePlay.click({timeout:5000});
+          diagnostics.capturedClient.startMethod='official-play-button';
+        }else {
+          await page.locator('ytd-app #movie_player').evaluate(root=>root.playVideo());
+          diagnostics.capturedClient.startMethod='official-controller';
+        }
         diagnostics.capturedClient.media=await bounded(officialVideo.evaluate(probePlayback,{timeoutMs:10000,stableMs:1200}),12000,'Official playback probe');
         diagnostics.capturedClient.player=await bounded(page.evaluate(()=>{
           const root=document.querySelector('ytd-app #movie_player');
@@ -140,7 +150,8 @@ try {
       }catch(error){diagnostics.capturedClient.playback=false;diagnostics.capturedClient.watchError=error.message.slice(0,500);}
       await checkpoint('official-watch-inspected');
       await page.screenshot({path:'evidence/official-watch-experimental.png',fullPage:true,timeout:10000});
-      if(diagnostics.capturedClient.playback) {
+      // Keep mutation evidence independent from media/autoplay acceptance.
+      if(diagnostics.capturedClient.player?.videoId===id && diagnostics.capturedClient.player.playabilityStatus==='OK') {
         try {
           diagnostics.capturedClient.nativeActionButtons=await page.locator('ytd-app button').evaluateAll(buttons=>buttons
             .filter(button=>/like/i.test(button.getAttribute('aria-label') || ''))
