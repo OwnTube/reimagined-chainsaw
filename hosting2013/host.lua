@@ -11,7 +11,8 @@ local ok, problem = pcall(function()
     stage = "NetworkServer creation"
     local server = game:GetService("NetworkServer")
     stage = "local authentication option"
-    server:SetIsPlayerAuthenticationRequired(false)
+    local authOption = pcall(function() server:SetIsPlayerAuthenticationRequired(false) end)
+    print(marker .. "|AUTH_OPTION_AVAILABLE|" .. tostring(authOption))
     stage = "UDP server start"
     server:Start(port)
     print(marker .. "|NETWORK_STARTED|" .. tostring(port))
