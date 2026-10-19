@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import secrets
 import subprocess
 import time
@@ -67,6 +68,35 @@ def read_marked_events(marker):
     return events
 
 
+def classify_startup(log_texts, process_id):
+    # Native logs contain this exact process-identifying message. Never use a
+    # previous API-dump/editor session to diagnose this owned server process.
+    identity = f"for process '{int(process_id)}'"
+    relevant = [text for text in log_texts if identity in text]
+    if not relevant:
+        return {'native_log_identified': False, 'launch_arguments_rejected': None,
+                'launch_values_rejected': None, 'login_dialog_observed': None,
+                'start_server_intent_observed': None}
+    text = '\n'.join(relevant)
+    return {'native_log_identified': True,
+            'launch_arguments_rejected': 'Invalid Launch Intent! Too many arguments provided' in text,
+            'launch_values_rejected': 'Invalid Launch Intent! Validation failed' in text,
+            'login_dialog_observed': bool(re.search(r'Authenticated\s*:\s*NO', text))
+                and 'show login dialog [end]' in text,
+            'start_server_intent_observed': 'Studio Launch Intent is StartServer' in text}
+
+
+def read_startup_observations(process_id):
+    logs = Path(os.environ['LOCALAPPDATA']) / 'Roblox' / 'logs'
+    texts = []
+    for path in sorted(logs.glob('*.log'), key=lambda p: p.stat().st_mtime)[-10:]:
+        try:
+            texts.append(path.read_bytes()[-4 * 1024 * 1024:].decode('utf-8', errors='replace'))
+        except OSError:
+            continue
+    return classify_startup(texts, process_id)
+
+
 def udp_binding(process_id, port):
     # Numeric arguments only. The output contains booleans, not the runner's
     # network inventory or unrelated processes.
@@ -100,13 +130,18 @@ def main():
     marker = 'RCCSERVER_' + secrets.token_hex(16) + ':'
     place = out / 'owned-server-test.rbxlx'
     write_place(place, marker)
-    command = [str(studio), '-task', 'StartServer', '-localPlaceFile', str(place),
-               '-port', str(args.port), '-numTestServerPlayersUponStartup', '0',
-               '-instanceId', 'RccProbeServer', '-Console']
+    # Derived from this exact build's StartServer launch builder, not the
+    # older injector example. localPlaceFile belongs to the edit-file intent;
+    # StartServer emits localProjectFile plus the server/place metadata below.
+    command = [str(studio), '-task', 'StartServer', '-localProjectFile', str(place),
+               '-placeId', '0', '-universeId', '0', '-port', str(args.port),
+               '-creatorId', '0', '-creatorType', '0', '-placeVersion', '0',
+               '-numTestServerPlayersUponStartup', '0']
     result = {'studio_sha256': STUDIO_SHA256, 'launch_task': 'StartServer',
               'server_script_validated': False, 'udp_port_bound_by_studio': None,
               'server_hosting_validated': False, 'client_join_validated': False,
               'render_validated': False, 'scope': 'unmodified Studio local test task'}
+    result['launch_profile'] = '743-builder-local-project-zero-place-metadata'
     events = []
     with (out / 'process.log').open('wb') as log:
         process = subprocess.Popen(command, cwd=studio.parent, env=studio_environment(studio),
@@ -114,6 +149,17 @@ def main():
         try:
             deadline = time.monotonic() + args.timeout
             while process.poll() is None and time.monotonic() < deadline:
+                observations = read_startup_observations(process.pid)
+                result['startup_observations'] = observations
+                if observations['launch_arguments_rejected']:
+                    result['startup_blocker'] = 'invalid_launch_arguments'
+                    break
+                if observations['launch_values_rejected']:
+                    result['startup_blocker'] = 'invalid_launch_values'
+                    break
+                if observations['login_dialog_observed']:
+                    result['startup_blocker'] = 'unauthenticated_login_dialog'
+                    break
                 events = read_marked_events(marker)
                 records = [e['data'] for e in events if e['kind'] == 'server_probe']
                 if len(records) == 1:

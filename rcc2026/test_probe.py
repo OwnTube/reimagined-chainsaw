@@ -7,6 +7,30 @@ from PIL import Image
 
 from windows_probe import collect_result, parse_events, validate_png
 from inspect_studio import positions
+from windows_server_probe import classify_startup
+
+
+class StartupEvidenceTests(unittest.TestCase):
+    def test_unrelated_process_cannot_supply_failure_or_login_evidence(self):
+        text = "Constructing UIThreadNotifier for process '1123'\nInvalid Launch Intent! Too many arguments provided\nAuthenticated : NO\nshow login dialog [end]"
+        result = classify_startup([text], 123)
+        self.assertFalse(result['native_log_identified'])
+        self.assertIsNone(result['launch_arguments_rejected'])
+        self.assertIsNone(result['login_dialog_observed'])
+
+    def test_rejected_intent_and_login_are_both_retained(self):
+        text = "Constructing UIThreadNotifier for process '123'\nStudio Launch Intent is StartServer\nInvalid Launch Intent! Too many arguments provided\nAuthenticated : NO\nshow login dialog [end]"
+        result = classify_startup([text], 123)
+        self.assertTrue(result['start_server_intent_observed'])
+        self.assertTrue(result['launch_arguments_rejected'])
+        self.assertTrue(result['login_dialog_observed'])
+
+    def test_clean_intent_is_not_server_execution_or_login_proof(self):
+        result = classify_startup(["Constructing UIThreadNotifier for process '123'\nStudio Launch Intent is StartServer"], 123)
+        self.assertFalse(result['launch_arguments_rejected'])
+        self.assertFalse(result['launch_values_rejected'])
+        self.assertFalse(result['login_dialog_observed'])
+        self.assertNotIn('server_hosting_validated', result)
 
 
 class EvidenceBoundaryTests(unittest.TestCase):

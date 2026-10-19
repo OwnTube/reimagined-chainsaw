@@ -2,7 +2,7 @@
 
 Experimental tests for Roblox Studio 0.743.0.7431133. This is not a completed RCCService replacement. No game hosting or client joining is implemented.
 
-The Windows workflow downloads vendor packages directly from Roblox, verifies the pinned manifests and executable hash, builds the upstream Luau compiler smoke test, and attempts Studio API dumping and viewport capture. Native Studio behavior is unverified until the workflow produces valid output. Permission or sign-in requirements may cause a recorded failure.
+The Windows workflow downloads vendor packages directly from Roblox, verifies the pinned manifests and executable hash, builds the upstream Luau compiler smoke test, and runs bounded native engine probes. Native API dumping is validated. Script execution, rendering, and game hosting are still experimental; the exact limitations and evidence are recorded below.
 
 Only test source and configuration are committed. Roblox executables, proprietary decompiler output, account credentials, and cookies are not included. Upstream pattern-data and Luau licenses are included.
 
@@ -45,3 +45,11 @@ Push runs now test a separate, bounded `StartServer` launch against an owned, ge
 Next, inspect this exact build's launch-intent parser and reconcile the combination of `StartServer`, `localPlaceFile`, and the legacy test-server flags. Do not repeat the same invalid command. Only launch a new native test when its arguments follow a concrete new hypothesis. The UDP check was not reached, so the recorded `null` UDP field means untested, not evidence that no socket existed. Rendering, server hosting, and client joining remain unvalidated.
 
 The generated place is independently owned test source. A `.gitignore` excludes downloaded Studio/Luau packages, build outputs, runtime evidence, and Python caches from source commits.
+
+## Launch-intent investigation: first continuation
+
+Read-only analysis of the exact verified build identifies an unconsumed-argument check before value validation. The build's server launch builder emits `localProjectFile`, place/universe/creator metadata, port, and test-player count; `localPlaceFile` appears in the file-editing branch instead. This suggests the earlier command mixed intent-specific options. It is a hypothesis until native validation, not a claim that a `.rbxlx` is a supported project-file format.
+
+The next probe follows that server argument set, removes the old `Console` and `instanceId` additions, and uses zero place/universe/creator metadata with the owned local fixture. It also records process-attributed startup observations: argument rejection, value rejection, the observed server intent, and an unauthenticated login dialog. Another session's API/editor logs cannot establish these facts for the server process. Three new evidence-boundary tests cover those distinctions; all nine Python tests pass locally.
+
+Private decompiler output is retained locally and is not committed. Only the probe implementation and summarized observations are published.
