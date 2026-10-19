@@ -259,6 +259,16 @@ try {
         }catch(error){diagnostics.capturedClient.nativeComments={...diagnostics.capturedClient.nativeComments,ok:false,error:error.message.slice(0,300)};}
         await checkpoint('official-comments-inspected');
         try {
+          const viewer=(await (await context.get('/api/me')).json()).user;
+          await page.getByRole('link',{name:'@'+username,exact:true}).first().click({timeout:8000});
+          await page.waitForURL(url=>url.pathname==='/channel/'+viewer.id,{timeout:8000});
+          await page.locator('yt-page-header-view-model').getByText('@'+username,{exact:true}).waitFor({timeout:8000});
+          diagnostics.capturedClient.nativeCommentAuthor={navigation:true,localChannel:true};
+          await page.screenshot({path:'evidence/official-comment-author.png',timeout:10000});
+        }catch(error){diagnostics.capturedClient.nativeCommentAuthor={ok:false,error:error.message.slice(0,300)};}
+        await page.goto(origin+'/watch?v='+id);
+        await checkpoint('official-comment-author-inspected');
+        try {
           const subscribeButton=()=>page.locator('ytd-app').getByRole('button',{name:'Subscribe',exact:true}).first();
           await subscribeButton().click({timeout:8000});
           let subscribed=false;
@@ -362,6 +372,10 @@ try {
           assert.equal(await page.locator('yt-lockup-view-model').getByText('Unsubscribed decoy',{exact:true}).first().isVisible(),false);
           diagnostics.capturedClient.nativeLikedPlaylist={guide:true,localVideo:true,excludesUnliked:true};
           await page.waitForTimeout(800);
+          diagnostics.capturedClient.nativeLikedPlaylist.compactLayout=await page.locator('yt-lockup-view-model img').first().evaluate(image=>{
+            const rect=image.getBoundingClientRect();return rect.width>0 && rect.width<=420 && rect.height>0 && rect.height<=260;
+          });
+          assert.equal(diagnostics.capturedClient.nativeLikedPlaylist.compactLayout,true,'Native playlist must receive its compact layout metadata');
           await page.screenshot({path:'evidence/official-liked-playlist.png',timeout:10000});
           const finalTitle=page.locator('yt-lockup-view-model').getByText(libraryFixture.lastTitle,{exact:true}).first();
           for(let i=0;i<8 && !await finalTitle.isVisible();i++) {
@@ -373,6 +387,8 @@ try {
           assert.ok(diagnostics.capturedClient.likedContinuationResponses.some(response=>response.status===200));
           diagnostics.capturedClient.nativeLikedPlaylist.pagination=true;
           diagnostics.capturedClient.nativeLikedPlaylist.renderedCards=await page.locator('yt-lockup-view-model').count();
+          await finalTitle.scrollIntoViewIfNeeded({timeout:5000});
+          await page.waitForTimeout(500);
           await page.screenshot({path:'evidence/official-liked-pagination.png',timeout:10000});
           await page.reload();
           await likedTitle().waitFor({timeout:10000});

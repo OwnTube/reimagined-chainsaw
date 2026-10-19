@@ -32,6 +32,9 @@ class CommentContractTests(unittest.TestCase):
         self.assertTrue(all(model[name] in entities for name in ('commentKey','sharedKey','commentSurfaceKey','toolbarStateKey','toolbarSurfaceKey')))
         self.assertTrue(entities[model['commentKey']]['author']['isCurrentUser'])
         self.assertEqual(entities[model['commentKey']]['author']['displayName'], '@local_author')
+        author_endpoint = entities[model['commentSurfaceKey']]['avatar']['avatarViewModel']['endpoint']['innertubeCommand']
+        self.assertEqual(author_endpoint['browseEndpoint']['browseId'], 'author00001')
+        self.assertEqual(author_endpoint['commandMetadata']['webCommandMetadata']['url'], '/channel/author00001')
         encoded = replace_json_assignment('<script>var ytInitialData={};</script>', 'ytInitialData', framework)
         self.assertEqual(encoded.count('</script>'), 1)
         self.assertNotIn('Other video', json.dumps(framework))

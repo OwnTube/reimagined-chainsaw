@@ -4,7 +4,11 @@ Product requirement clarified: use the actual captured YouTube frontend/player, 
 
 Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, draft PR #1. Do not merge or change repository visibility.
 
-## Current native checkpoint: October 19, 2026, 13:53 UTC
+## Current native checkpoint: October 19, 2026, 14:02 UTC
+
+**Native liked-pagination is functionally verified:** `5a81d4f`, run `39265083104`, artifact `12192836635` uploaded 14:02:37 UTC. The actual client makes a local continuation request (200), appends 41 cards, and passes reload, watch navigation and unlike removal. acceptanceFailures=[] and pageErrors=[]. The pagination screenshot was inspected and shared at the milestone. It also exposes oversized cards after opting into the shared section-list component: the response omitted its responsive layout configuration. The follow-up supplies the observed native compact-list metadata, asserts thumbnail bounds and scrolls the final fixture title into the screenshot viewport. No custom CSS/UI is added. The unsupported Play all action is omitted until queue sequencing is implemented.
+
+Current additional candidate: comment surface avatar endpoints now carry the native innertubeCommand wrapper pointing to the stored local author's channel. Source inspection confirms this is also the native author-name navigation fallback. The browser will click the actual comment author, verify the local channel header and save a screenshot, then restore watch before the existing subscription tests. Local author identity/URL consistency is tested and all 25 Python methods pass. Native author navigation and the compact-list visual correction still need runner evidence.
 
 **Native Liked videos is verified:** `55de117`, run `39263817187`, browser artifact `12191639697` uploaded 13:53:56 UTC. All nativeLikedPlaylist flags (guide, localVideo, excludesUnliked, reload, watchNavigation, unlikeRemoves) are true, acceptanceFailures=[] and no page errors. The screenshot was inspected and shared with the user. The native playlist header, hero thumbnail, local owner and current lockup video component render using only this instance's data. It is not custom playlist creation/editing, watch-next sequencing or full playlist parity. All prior account/search/channel/media/mutation flows remain true. The user requests a screenshot at every verified milestone; honor that in progress updates.
 

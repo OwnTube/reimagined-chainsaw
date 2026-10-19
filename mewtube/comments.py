@@ -25,6 +25,7 @@ def entity_key(identifier, entity_type):
 
 
 def section(c, video, user, comment_id=None):
+    from .innertube import channel_endpoint
     predicate = ' AND co.id=?' if comment_id is not None else ''
     arguments = (video['id'], comment_id) if comment_id is not None else (video['id'],)
     rows = c.execute('''SELECT co.id,co.text,co.created,co.user_id,u.username FROM comments co
@@ -57,6 +58,7 @@ def section(c, video, user, comment_id=None):
             'relativeNestingLevel': 0, 'avatar': {'avatarViewModel': {
                 'image': {'sources': [{'url': thumbnail, 'width': 80, 'height': 80}],
                           'processor': {'borderImageProcessor': {'circular': True}}},
+                'endpoint': {'innertubeCommand': channel_endpoint(row['user_id'])},
                 'accessibilityText': '@' + row['username']}}})
         put('engagementToolbarStateEntityPayload', {'key': toolbar,
             'likeState': 'TOOLBAR_LIKE_STATE_INDIFFERENT', 'heartState': 'TOOLBAR_HEART_STATE_UNHEARTED'})

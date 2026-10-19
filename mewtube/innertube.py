@@ -79,12 +79,23 @@ def liked_playlist(rows, user, total, offset=0):
     if rows:
         header['playlistHeaderBanner'] = {'heroPlaylistThumbnailRenderer': {
             'thumbnail': renderer(rows[0])['videoRenderer']['thumbnail'], 'maxRatio': 1.7777778, 'onTap': endpoint(rows[0])}}
-        header['playButton'] = {'buttonRenderer': {'text': text('Play all'), 'style': 'STYLE_MONO_FILLED',
-            'icon': {'iconType': 'PLAY_ARROW'}, 'navigationEndpoint': endpoint(rows[0])}}
+        # Queue sequencing is not implemented yet; do not advertise Play all
+        # while the only available action opens an individual video.
+    responsive = []
+    # Current playlist responses supply this layout contract to the shared
+    # native component; omitting it makes cards expand to the container width.
+    for size, width, margin in [('NARROW', 599, 12), ('MEDIUM', 1023, 16), ('WIDE', 2047, 16)]:
+        responsive.append({'containerSize': 'CONTAINER_SIZE_' + size, 'containerType': 'CONTAINER_TYPE_VERTICAL_LIST',
+            'maxWidth': width, 'minColumnSize': 310, 'minColumnCount': 1, 'maxColumnCount': 1,
+            'columnMultiplier': 1, 'columnAdder': 0, 'spacingConfiguration': {'columnGap': 12, 'rowGap': 12,
+                'containerMarginTop': margin, 'containerMarginBottom': margin,
+                'containerMarginStart': margin, 'containerMarginEnd': margin}})
     return {'header': {'playlistHeaderRenderer': header},
         'contents': {'twoColumnBrowseResultsRenderer': {'tabs': [{'tabRenderer': {'selected': True,
             'content': {'sectionListRenderer': {'contents': [{'itemSectionRenderer': {'targetId': LIKED_TARGET, 'contents': items}}],
-                'webComponentHint': {'componentVersion': 'WEB_COMPONENT_VERSION_SHARED'}}}}}]}}}
+                'webComponentHint': {'componentVersion': 'WEB_COMPONENT_VERSION_SHARED'},
+                'sectionListLayoutConfiguration': {'layoutConfiguration': {'responsiveContainerConfiguration': {
+                    'responsiveSize': 'RESPONSIVE_SIZE_COMPACT', 'responsiveMap': responsive}}}}}}}]}}}
 
 
 def renderer(v):
