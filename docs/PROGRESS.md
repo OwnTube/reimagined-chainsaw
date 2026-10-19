@@ -4,7 +4,15 @@ Product requirement clarified: use the actual captured YouTube frontend/player, 
 
 Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, draft PR #1. Do not merge or change repository visibility.
 
-## Current native checkpoint: October 19, 2026, 14:13 UTC
+## Current native checkpoint: October 19, 2026, 14:19 UTC
+
+**Native comment voting is verified:** `d4de0b2`, run `39267593611`, artifact `12193947570` uploaded 14:19:30 UTC. Like, persisted toggled state, Dislike, Clear and local positive counts all pass; four native perform_comment_action requests are gzip/200. acceptanceFailures=[], pageErrors=[] and all established flows pass. The native comment-vote screenshot was inspected and shared at the milestone. Local checks on that implementation passed 27 Python methods and four JS suites.
+
+### Candidate: native comment deletion/moderation
+
+Source inspection shows the actual comment view model reads toolbarSurface.menuCommand.innertubeCommand.menuEndpoint.menu.menuRenderer. The candidate supplies its native Delete service item only to the local author, video owner or operator. The same action endpoint accepts a separate local deletion namespace, checks permissions against the stored comment/video and current session, commits removal with cascading votes, and returns removeCommentAction with STATUS_SUCCEEDED. Forged user IDs cannot grant access; guests and unrelated accounts are rejected. Unknown/bulk actions still fail closed. No replacement menu or frontend code is introduced.
+
+**28 Python methods and four JS suites pass locally**, including menu omission for unauthorized users, author deletion, creator moderation, host-granted operator moderation, duplicate deletion rejection and vote cascade. The browser will use the real overflow menu, require database removal, native live removal and absence after reload, then preserve author/subscription regressions using the remaining local comment. Native deletion is not yet browser verified.
 
 **Complete native flow is green again:** `eab7388`, run `39266756826`, artifact `12192784081` uploaded 14:13:52 UTC. acceptanceFailures=[], pageErrors=[], compactLayout/pagination/renderedCards=41/reload/watchNavigation/unlikeRemoves are all successful, as are native comment-author links and all prior flows. The fresh playlist screenshot was inspected and shared. The leading-dash cleanup issue is resolved; the earlier 14:07 failure below is historical.
 

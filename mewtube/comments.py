@@ -8,12 +8,13 @@ from datetime import datetime, timezone
 
 CREATE_PREFIX = 'mewtube-comment-v1:'
 VOTE_PREFIX = 'mewtube-comment-vote-v1:'
+ACTION_PREFIX = 'mewtube-comment-action-v1:'
 
 
-def vote_command(comment_id, action):
+def action_command(comment_id, action, prefix=VOTE_PREFIX):
     return {'innertubeCommand': {
         'commandMetadata': {'webCommandMetadata': {'sendPost': True, 'apiUrl': '/youtubei/v1/comment/perform_comment_action'}},
-        'performCommentActionEndpoint': {'action': VOTE_PREFIX + comment_id + ':' + action}}}
+        'performCommentActionEndpoint': {'action': prefix + comment_id + ':' + action}}}
 
 
 def varint(value):
@@ -79,8 +80,15 @@ def section(c, video, user, comment_id=None):
         put('engagementToolbarStateEntityPayload', {'key': toolbar,
             'likeState': {-1:'TOOLBAR_LIKE_STATE_DISLIKED', 0:'TOOLBAR_LIKE_STATE_INDIFFERENT', 1:'TOOLBAR_LIKE_STATE_LIKED'}[row['vote']],
             'heartState': 'TOOLBAR_HEART_STATE_UNHEARTED'})
-        actions = {'likeCommand': vote_command(row['id'], 'like'), 'unlikeCommand': vote_command(row['id'], 'clear'),
-                   'dislikeCommand': vote_command(row['id'], 'dislike'), 'undislikeCommand': vote_command(row['id'], 'clear')} if user else {}
+        actions = {'likeCommand': action_command(row['id'], 'like'), 'unlikeCommand': action_command(row['id'], 'clear'),
+                   'dislikeCommand': action_command(row['id'], 'dislike'), 'undislikeCommand': action_command(row['id'], 'clear')} if user else {}
+        can_remove = bool(user and (user['id'] in (row['user_id'], video['owner']) or
+                          ('admin' in user.keys() and user['admin'])))
+        if can_remove:
+            actions['menuCommand'] = {'innertubeCommand': {'menuEndpoint': {'menu': {'menuRenderer': {
+                'accessibility': {'accessibilityData': {'label': 'Comment actions'}},
+                'items': [{'menuServiceItemRenderer': {'text': {'simpleText': 'Delete'}, 'icon': {'iconType': 'DELETE'},
+                    'serviceEndpoint': action_command(row['id'], 'delete', ACTION_PREFIX)['innertubeCommand']}}]}}}}}
         put('engagementToolbarSurfaceEntityPayload', {'key': toolbar_surface, **actions})
         threads.append({'commentThreadRenderer': {'commentViewModel': {'commentViewModel': {
             'commentId': row['id'], 'commentKey': key, 'sharedKey': shared,

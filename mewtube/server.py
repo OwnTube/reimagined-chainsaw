@@ -241,10 +241,22 @@ class Handler(BaseHTTPRequestHandler):
                     return self.send(innertube.account_menu(user))
                 if operation == 'comment/perform_comment_action':
                     user = self.user(c, True)
-                    self.limit('comment-vote', 60)
+                    self.limit('comment-action', 60)
                     actions = body.get('actions')
                     if not isinstance(actions, list) or len(actions) != 1 or not isinstance(actions[0], str):
-                        raise Error(400, 'Expected one local comment vote action')
+                        raise Error(400, 'Expected one local comment action')
+                    deletion = re.fullmatch(re.escape(comments.ACTION_PREFIX) + '(' + ID + r'):delete', actions[0])
+                    if deletion:
+                        row = c.execute('SELECT user_id,video_id FROM comments WHERE id=?', (deletion[1],)).fetchone()
+                        v = video(c, row['video_id']) if row else None
+                        if not v or v['status'] != 'ready':
+                            raise Error(404, 'Comment unavailable')
+                        if user['id'] not in (row['user_id'], v['owner']) and not user['admin']:
+                            raise Error(403, 'Only the author, video owner or operator may remove this comment')
+                        c.execute('DELETE FROM comments WHERE id=?', (deletion[1],))
+                        c.commit()
+                        return self.send({'responseContext': {}, 'actions': [{'removeCommentAction': {
+                            'commentId': deletion[1], 'actionResult': {'status': 'STATUS_SUCCEEDED', 'feedbackText': 'Comment removed'}}}]})
                     target = re.fullmatch(re.escape(comments.VOTE_PREFIX) + '(' + ID + r'):(like|dislike|clear)', actions[0])
                     row = c.execute('SELECT video_id FROM comments WHERE id=?', (target[1],)).fetchone() if target else None
                     if not target:

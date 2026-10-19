@@ -294,6 +294,27 @@ try {
         }catch(error){diagnostics.capturedClient.nativeCommentVotes={...diagnostics.capturedClient.nativeCommentVotes,ok:false,error:error.message.slice(0,300)};}
         await checkpoint('official-comment-votes-inspected');
         try {
+          const thread=page.locator('ytd-comment-thread-renderer').filter({hasText:'Created through the captured client'}).first();
+          await thread.getByRole('button',{name:'Comment actions',exact:true}).click({timeout:8000});
+          await page.locator('ytd-menu-service-item-renderer:visible').getByText('Delete',{exact:true}).first().click({timeout:8000});
+          let removed=false;
+          for(let i=0;i<30 && !removed;i++) {
+            removed=!(await (await context.get('/api/videos/'+id)).json()).comments.some(comment=>comment.text==='Created through the captured client');
+            if(!removed)await page.waitForTimeout(100);
+          }
+          assert.equal(removed,true,'Native Delete must commit removal of the local comment');
+          diagnostics.capturedClient.nativeCommentDelete={stored:true};
+          await page.getByText('Created through the captured client',{exact:true}).first().waitFor({state:'hidden',timeout:8000});
+          diagnostics.capturedClient.nativeCommentDelete.liveRemoval=true;
+          await page.reload();
+          await page.mouse.wheel(0,900);
+          await page.getByText('A real browser comment',{exact:true}).first().waitFor({timeout:8000});
+          assert.equal(await page.getByText('Created through the captured client',{exact:true}).count(),0);
+          diagnostics.capturedClient.nativeCommentDelete.persisted=true;
+          await page.screenshot({path:'evidence/official-comment-delete.png',fullPage:true,timeout:10000});
+        }catch(error){diagnostics.capturedClient.nativeCommentDelete={...diagnostics.capturedClient.nativeCommentDelete,ok:false,error:error.message.slice(0,300)};}
+        await checkpoint('official-comment-delete-inspected');
+        try {
           const viewer=(await (await context.get('/api/me')).json()).user;
           await page.getByRole('link',{name:'@'+username,exact:true}).first().click({timeout:8000});
           await page.waitForURL(url=>url.pathname==='/channel/'+viewer.id,{timeout:8000});

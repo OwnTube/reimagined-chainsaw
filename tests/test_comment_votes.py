@@ -7,6 +7,53 @@ import test_service
 
 
 class NativeCommentVoteTests(test_service.ServiceCase):
+    def test_delete_checks_author_creator_operator_and_cascades_votes(self):
+        creator=self.account('delete_creator')
+        video=self.upload('Native comment deletion')
+        self.request('/api/videos/'+video['id']+'/comment',{'text':'Creator target'})
+        creator_comment=self.request('/api/videos/'+video['id'])[1]['comments'][0]['id']
+        creator_client=self.client
+        self.client=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+        viewer=self.account('delete_viewer')
+        def post(text):
+            self.request('/api/videos/'+video['id']+'/comment',{'text':text})
+            return next(row['id'] for row in self.request('/api/videos/'+video['id'])[1]['comments'] if row['text']==text)
+        own_comment=post('Viewer target')
+        path='/youtubei/v1/comment/perform_comment_action'
+        def remove(identifier,client=None,**extra):
+            return self.request(path,{'actions':['mewtube-comment-action-v1:'+identifier+':delete'],**extra},client=client)
+        def menu(identifier,client=None):
+            result=self.request('/youtubei/v1/next',{'videoId':video['id']},client=client)[1]
+            sections=result['contents']['twoColumnWatchNextResults']['results']['results']['contents']
+            threads=next(item['itemSectionRenderer']['contents'] for item in sections if 'itemSectionRenderer' in item)
+            model=next(item['commentThreadRenderer']['commentViewModel']['commentViewModel'] for item in threads
+                       if item['commentThreadRenderer']['commentViewModel']['commentViewModel']['commentId']==identifier)
+            surface=next(item['payload']['engagementToolbarSurfaceEntityPayload']
+                         for item in result['frameworkUpdates']['entityBatchUpdate']['mutations']
+                         if item['entityKey']==model['toolbarSurfaceKey'])
+            return surface.get('menuCommand')
+        self.assertIsNone(menu(creator_comment))
+        self.assertIsNotNone(menu(own_comment))
+        self.assertIsNotNone(menu(own_comment,creator_client))
+        self.assertIsNone(menu(own_comment,urllib.request.build_opener()))
+        self.assertEqual(remove(creator_comment,userId=creator['id'])[0],403)
+        self.assertEqual(remove(own_comment,urllib.request.build_opener())[0],401)
+        self.request(path,{'actions':['mewtube-comment-vote-v1:'+own_comment+':like']})
+        status,result,_=remove(own_comment)
+        self.assertEqual(status,200)
+        self.assertEqual(result['actions'][0]['removeCommentAction']['commentId'],own_comment)
+        self.assertEqual(result['actions'][0]['removeCommentAction']['actionResult']['status'],'STATUS_SUCCEEDED')
+        self.assertEqual(remove(own_comment)[0],404)
+        with sqlite3.connect(self.data / 'mewtube.sqlite3') as c:
+            self.assertEqual(c.execute('SELECT count(*) FROM comment_votes WHERE comment_id=?',(own_comment,)).fetchone()[0],0)
+        third=post('Video owner can moderate')
+        self.assertEqual(remove(third,creator_client)[0],200)
+        with sqlite3.connect(self.data / 'mewtube.sqlite3') as c:
+            c.execute('UPDATE users SET admin=1 WHERE id=?',(viewer['id'],))
+        self.assertIsNotNone(menu(creator_comment))
+        self.assertEqual(remove(creator_comment)[0],200)
+        self.assertEqual(self.request('/api/videos/'+video['id']+'/delete',{},client=creator_client)[0],200)
+
     def test_native_votes_authorize_session_update_entities_and_cascade(self):
         first = self.account('vote_author')
         video = self.upload('Local comment votes')

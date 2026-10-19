@@ -65,12 +65,13 @@ New captures also pin a guest search-page template for native search reloads. Up
 - Captured watch Like/Unlike and Subscribe/Unsubscribe backed by local sessions, bounded gzip API decoding, persisted native state, and guest local sign-in returning to the captured watch page.
 - Captured Guide/Subscriptions navigation and filtered subscription and creator video grids. Native comment display and top-level posting, immediate insertion and reload persistence pass in the actual client (runner 39259838348).
 - Native account menu with local identity and own-channel navigation; native search submission/filtering/reload/watch navigation; modern channel name/handle/counts (runner 39262565637).
-- Native Liked videos guide/page, local-only filtering, reload/watch navigation and removal after Unlike; native continuation loading beyond 40 rows (runner 39265083104). Its compact layout correction is undergoing browser validation; arbitrary playlists and sequencing remain unsupported.
+- Native Liked videos guide/page, local-only filtering, reload/watch navigation and removal after Unlike, with compact native continuation loading beyond 40 rows (runner 39266756826). Arbitrary playlists and sequencing remain unsupported.
+- Native comment author links and local Like/Dislike/Clear with counts and persisted toggle state (runner 39267593611). Native comment deletion is undergoing browser validation.
 - HTTP integration tests and a GitHub Actions browser/REA diagnostic workflow.
 
 ## Known limits
 
-- **Official home/watch rendering, local playback/controls, Like/Unlike and subscription persistence, filtered feeds, comment display/posting and local-account handoff pass runner tests (run 39259838348).** Sign-in uses MewTube's local auth dialog. Replies, comment voting, Studio, playlists and full channel management remain unimplemented; the client may still display unsupported comment voting buttons. Basic creator grids do not establish full channel-page compatibility. The independent interface provides the existing local upload and management tools while those native flows are developed.
+- **Captured-client home/watch, playback/controls, video and comment voting, subscriptions, search, native account menu, comment posting, channel metadata and liked-playlist pagination have browser evidence.** See the progress log for exact commits and runs. Native Studio/uploads, registration/sign-in, account sign-out/settings/switching, comment editing/replies, arbitrary playlists/sequencing and full channel management remain unfinished. Local sign-in/upload screens are temporary separate development tools. Native comment deletion is undergoing browser validation.
 - No federation, live streaming, Shorts, adaptive bitrate/HLS/DASH, captions, notifications, email verification, password recovery, or private videos.
 - Uploads become public when processing finishes. View counts currently count authenticated play events and are not unique-view analytics.
 - A single process and one transcoder serve a small instance; not a production-scale video platform. No total storage quota, mature abuse controls, or resumable upload support yet.

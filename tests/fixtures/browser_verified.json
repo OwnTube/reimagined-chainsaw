@@ -86,6 +86,13 @@
     "nativeCommentAuthor": {
       "navigation": true,
       "localChannel": true
+    },
+    "nativeCommentVotes": {
+      "like": true,
+      "persisted": true,
+      "dislike": true,
+      "clear": true,
+      "localCounts": true
     }
   }
 }
