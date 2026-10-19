@@ -30,7 +30,7 @@ docker compose up -d --build
 docker compose exec mewtube python scripts/manage_operator.py grant YOUR_USERNAME
 ```
 
-The default Docker port is bound to the host's loopback interface. Put an HTTPS reverse proxy in front of it for remote access; set `PUBLIC_ORIGIN` to the exact browser-facing origin. Configure its request-size limit and upload timeout. The container runs as an unprivileged user. This stack has not been built in the development container because Docker is unavailable there.
+The default Docker port is bound to the host's loopback interface. Put an HTTPS reverse proxy in front of it for remote access; set `PUBLIC_ORIGIN` to the exact browser-facing origin. Configure its request-size limit and upload timeout. The container runs as an unprivileged user. The Docker Compose stack built, started and passed its HTTP/FFmpeg health check on a disposable GitHub runner.
 
 ## Capture the official guest client
 

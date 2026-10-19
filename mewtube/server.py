@@ -293,7 +293,7 @@ class Handler(BaseHTTPRequestHandler):
             if action in ('delete', 'edit'):
                 if v['owner'] != u['id'] and not u['admin']:
                     raise Error(403, 'Only the owner or operator may change this video')
-                if v['status'] == 'processing':
+                if v['status'] in ('processing', 'uploading'):
                     raise Error(409, 'Wait for processing to finish')
                 if action == 'delete':
                     c.execute('DELETE FROM videos WHERE id=?', (v['id'],))

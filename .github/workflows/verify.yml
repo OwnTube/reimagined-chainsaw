@@ -53,12 +53,6 @@ jobs:
       - name: Capture a guest client
         continue-on-error: true
         run: python scripts/fetch_client.py
-      - name: REA static analysis
-        continue-on-error: true
-        timeout-minutes: 4
-        run: |
-          mkdir -p evidence
-          npx --yes --package=rea-agents@6.7.0 rea analyze-javascript-application "$PWD/data/client/assets" --json > evidence/rea.json
       - name: Browser and playback evidence
         run: |
           mkdir -p evidence
@@ -66,6 +60,12 @@ jobs:
           python -m mewtube.server > evidence/server.log 2>&1 &
           for i in $(seq 1 30); do curl -fsS http://localhost:3000/healthz && break; sleep 1; done
           npm run test:browser
+      - name: REA static analysis
+        continue-on-error: true
+        timeout-minutes: 4
+        run: |
+          mkdir -p evidence
+          npx --yes --package=rea-agents@6.7.0 rea analyze-javascript-application "$PWD/data/client/assets" --json > evidence/rea.json
       - name: Upload diagnostics (no downloaded client or credentials)
         if: always()
         uses: actions/upload-artifact@v4

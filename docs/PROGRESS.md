@@ -10,10 +10,13 @@ Project: MewTube. Repository: `vibecodeforever/reimagined-chainsaw`, branch `fea
 - Implemented independent interface, auth, uploads/transcoding/playback, search, channels, subscriptions, likes, comments, reports and host-granted operator role.
 - Implemented candidate InnerTube browse/search/player/next renderers, capture bootstrap replacement and fetch/XHR transport bridge.
 - Nine local test methods pass, including actual FFmpeg transcoding and byte-range reads. A send-before-commit race found by the tests was corrected in mutation response paths.
-- First GitHub Actions run (39180980209) completed: HTTP tests and independent browser playback, likes, comments and mobile width checks passed. Screenshots inspected. Official client capture failed because scripts/operator.py shadowed Python stdlib operator in a fresh interpreter. Renamed it to scripts/manage_operator.py and added fresh-interpreter CLI startup regression coverage. REA in that run had no capture to analyze; it was not a successful analysis. Docker remains unbuilt.
+- First GitHub Actions run (39180980209) completed: HTTP tests and independent browser playback, likes, comments and mobile width checks passed. Screenshots inspected. Official client capture failed because scripts/operator.py shadowed Python stdlib operator in a fresh interpreter. Renamed it to scripts/manage_operator.py and added fresh-interpreter CLI startup regression coverage. REA in that run had no capture to analyze; it was not a successful analysis. Docker Compose build/start and HTTP/FFmpeg health were subsequently verified in run 39181455425 (container job).
 
 - Restart integration test now confirms session/video durability, queued-job recovery, and cleanup of partial HTTP uploads.
 - Six hourly continuation runs are scheduled for 01:29–06:29 UTC on October 19, 2026.
+
+- Fresh-client capture subsequently succeeded on the runner in run 39181319724. REA/browser results still need inspection.
+- The browser probe now separately records real YouTube custom-element registration, same-origin home rendering, and an attempted local-video watch/playback check. These diagnostics are not yet claimed as passed.
 
 ## Next work, in priority order
 

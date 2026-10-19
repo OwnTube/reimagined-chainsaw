@@ -186,13 +186,17 @@ class ServiceTests(unittest.TestCase):
         v = self.upload('Survives a restart')
         partial_id, queued_id = 'partial0001', 'queued00001'
         (self.data / 'incoming' / partial_id).write_bytes(b'partial body')
-        (self.data / 'incoming' / queued_id).write_bytes(self.fixture.read_bytes())
         with sqlite3.connect(self.data / 'mewtube.sqlite3') as c:
-            for vid, status in ((partial_id, 'uploading'), (queued_id, 'processing')):
-                c.execute('INSERT INTO videos(id,owner,title,status,created) VALUES(?,?,?,?,?)',
-                          (vid, owner['id'], 'Recovery fixture', status, int(time.time())))
+            c.execute('INSERT INTO videos(id,owner,title,status,created) VALUES(?,?,?,?,?)',
+                      (partial_id, owner['id'], 'Partial fixture', 'uploading', int(time.time())))
+        self.assertEqual(self.request('/api/videos/' + partial_id + '/delete', {})[0], 409)
         self.process.terminate()
         self.process.wait(timeout=10)
+        # Queue this job while the service is down, so only the restarted worker can handle it.
+        (self.data / 'incoming' / queued_id).write_bytes(self.fixture.read_bytes())
+        with sqlite3.connect(self.data / 'mewtube.sqlite3') as c:
+            c.execute('INSERT INTO videos(id,owner,title,status,created) VALUES(?,?,?,?,?)',
+                      (queued_id, owner['id'], 'Recovery fixture', 'processing', int(time.time())))
         type(self).process = subprocess.Popen([sys.executable, '-m', 'mewtube.server'], cwd=ROOT,
             env={**os.environ, 'DATA_DIR':str(self.data), 'PORT':str(self.port),
                  'BIND':'127.0.0.1', 'PUBLIC_ORIGIN':self.origin}, stdout=self.log, stderr=self.log)

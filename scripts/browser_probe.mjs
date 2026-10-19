@@ -59,8 +59,19 @@ try {
     diagnostics.capturedClient.status='captured';
     diagnostics.capturedClient.customElementDefined=await page.evaluate(()=>!!customElements.get('ytd-app'));
     diagnostics.capturedClient.localTitleVisible=await page.getByText('Runner test video',{exact:true}).first().isVisible().catch(()=>false);
-    diagnostics.capturedClient.status=diagnostics.capturedClient.localTitleVisible?'home-rendered':'boot-incomplete';
+    diagnostics.capturedClient.sameOrigin=new URL(page.url()).origin===origin;
+    diagnostics.capturedClient.status=diagnostics.capturedClient.localTitleVisible && diagnostics.capturedClient.customElementDefined && diagnostics.capturedClient.sameOrigin?'home-rendered':'boot-incomplete';
     await page.screenshot({path:'evidence/official-experimental.png',fullPage:true});
+    if(diagnostics.capturedClient.status==='home-rendered'){
+      try{
+        await page.getByText('Runner test video',{exact:true}).first().click({timeout:10000});
+        await page.locator('video').first().waitFor({state:'attached',timeout:15000});
+        await page.locator('video').first().evaluate(async v=>{v.muted=true;await v.play();});
+        await page.waitForFunction(()=>Array.from(document.querySelectorAll('video')).some(v=>v.currentTime>0.1),{},{timeout:15000});
+        diagnostics.capturedClient.playback=true;
+      }catch(error){diagnostics.capturedClient.playback=false;diagnostics.capturedClient.watchError=error.message.slice(0,500);}
+      await page.screenshot({path:'evidence/official-watch-experimental.png',fullPage:true});
+    }
   }else diagnostics.capturedClient.status='capture-unavailable';
 }catch(error){diagnostics.error=error.message;process.exitCode=1;}
 finally{
