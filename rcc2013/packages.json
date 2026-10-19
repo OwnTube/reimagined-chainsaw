@@ -1,0 +1,19 @@
+{
+  "studio": {
+    "url": "https://archive.roblonium.com/Client/Windows/TODO/ROBLOX%20clients/november%2026%202013%20studio.zip",
+    "zip_sha256": "f1230aa538aba93459136595c60e2b214f37f620f86cdb6d6a70e0fec5c22847",
+    "archive_root": "version-37aa5de965994585",
+    "executable": "RobloxStudioBeta.exe",
+    "executable_sha256": "f404880ab8b4c313b9b7a3c8c599afafcdbf4e8fe4ae22d9852954690364c311",
+    "file_version": "2013.11.25.2",
+    "coff_timestamp_utc": "2013-11-26T10:33:55+00:00"
+  },
+  "player": {
+    "url": "https://archive.roblonium.com/Client/Windows/TODO/ROBLOX%20clients/november%2025%202013%20playerbeta.zip",
+    "zip_sha256": "77e9a528e99d0dd936946e2a2b8b318eb3bfe13db73d9f779b3c39bdd641c4f5",
+    "archive_root": "version-6c381b4cfd5a4f96",
+    "executable": "RobloxPlayerBeta.exe",
+    "executable_sha256": "30502f062f428d3d808e7119ddb991865c91eb4beeed9f2c6b983198c007ea41",
+    "file_version": "0.130.0.40915"
+  }
+}
