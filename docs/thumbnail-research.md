@@ -87,3 +87,15 @@ shading differences across native process starts do not make solid skin faintly
 translucent. Lower alpha remains available for edge reconstruction, but
 transparent clothing/accessories have not been validated. This is a measured
 wrapper approximation, not a claim of RCC's internal render-target alpha.
+
+## Native verification of the source-equivalent headshot
+
+[Windows run 39317404183](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39317404183)
+passed all eight local tests, four HTTP render jobs, and the browser console
+check at source commit `71c5f1b48e50d707c3e88e6f6ea7217e7f911aa4`.
+Both native headshot passes logged eye approximately
+[0.585271,4.5,-2.942356], target [0,4.5,0.1], and a 30-degree FOV, within the
+old engine's floating-point precision. The 512 × 512 PNG was visually
+inspected: closer, nearly front-facing head framing, transparent background,
+no overhead or other GUI. Its SHA-256 is
+`c8bdf5ece7685b3ff4b1bfa0d74052f56d0ddbbac70cc253ac1b3c453c0d4fb8`.

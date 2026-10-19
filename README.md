@@ -109,7 +109,17 @@ Their mock engine is separate from actual native evidence.
 `windows_e2e.py` checks actual scene and GUI-removal markers, exact sizes,
 full-body margins, distinct headshot/full-body images, and PNG alpha.
 `console_capture.py` checks Chrome against a completed native player job.
-Latest [native run 39316052306](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39316052306),
+Latest [source-framing run 39317404183](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39317404183),
+source commit `71c5f1b48e50d707c3e88e6f6ea7217e7f911aa4`, passed eight local tests,
+four native HTTP jobs, and Chrome console validation. The headshot uses the
+BubbaBlox v2 no-hat geometry and was visually inspected. Both native passes
+reported eye approximately `[0.585271,4.5,-2.942356]`, target `[0,4.5,0.1]`,
+and FOV approximately 30 degrees. Its 512 × 512 RGBA PNG SHA-256 is
+`c8bdf5ece7685b3ff4b1bfa0d74052f56d0ddbbac70cc253ac1b3c453c0d4fb8`.
+The result records the camera profile and actual engine camera markers. It
+contains transparent background and opaque player pixels, with no GUI.
+
+Earlier transparency checkpoint [native run 39316052306](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39316052306),
 source commit `24aaa4baab49464bdd260b425a2a6fc2331b13a1`, passed all six local
 tests, four actual HTTP render jobs (six native Studio launches), and Chrome
 console validation. Both player PNGs were visually inspected: the smiling
