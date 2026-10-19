@@ -31,7 +31,7 @@ def original_asset(path, source_url=None):
 
 def dynamic_asset(path, origin):
     """Cache lazy client chunks from fixed public static paths, never arbitrary URLs."""
-    from scripts.fetch_client import allowed, fetch, rewrite_origins
+    from scripts.fetch_client import allowed, fetch, rewrite_origins, adapt_local_player
     missing = DATA / 'client' / '__missing__'
     url = 'https://www.youtube.com' + path
     if path.startswith('/client-static/fonts/'):
@@ -64,12 +64,20 @@ def dynamic_asset(path, origin):
             if used + len(raw) > 384 * 1024 * 1024 or raw.lstrip().lower().startswith(b'<!doctype html'):
                 return missing
             name = asset_name(url)
-            served = rewrite_origins(raw.decode(), origin).encode() if name.endswith(('.js', '.css')) else raw
+            adapted = 0
+            if name.endswith(('.js', '.css')):
+                source = rewrite_origins(raw.decode(), origin)
+                if name.endswith('.js'):
+                    source, adapted = adapt_local_player(source, origin)
+                served = source.encode()
+            else:
+                served = raw
             temporary = directory / (name + '.tmp')
             temporary.write_bytes(served)
             temporary.replace(directory / name)
             entries.append({'url': url, 'file': name, 'sha256': hashlib.sha256(raw).hexdigest(),
-                            'served_sha256': hashlib.sha256(served).hexdigest(), 'runtime': True})
+                            'served_sha256': hashlib.sha256(served).hexdigest(), 'runtime': True,
+                            'localPlayerAdapter': adapted})
             staged = manifest_path.with_suffix('.json.tmp')
             staged.write_text(json.dumps(manifest, indent=2))
             staged.replace(manifest_path)

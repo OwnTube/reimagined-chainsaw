@@ -2,6 +2,18 @@
 
 Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, draft PR #1. Do not merge or change repository visibility.
 
+## Newest checkpoint: local response-integrity adapter (05:29 UTC continuation)
+
+Started from branch head `944d906` in a fresh checkout; no in-progress Actions runs or newer branch writes were observed. Run `39201145405`, artifact `12163986946`, correctly reports official playback **false**: local media advances to 1.307733 s, but the wrapper mutates playability to ERROR and displays 282054944. Its container and independent checks passed.
+
+A fresh guest-only pin (33 assets, zero failures) allowed static inspection of the actual main bundle. The function associated with diagnostic `282054944_a` requires `responseContext.mainAppWebResponseContext.trackingParam`, decodes its build-specific tracking envelope, and compares response fields. Missing metadata returns failure; its caller replaces playability with ERROR, removes videoDetails and installs the exact observed error renderer. This explains why decoding worked while the application rejected our response. No upstream video media or account was accessed.
+
+The capture pipeline now inserts a small, explicit local-backend adapter at that identified gate. It accepts only OK responses bearing `mewtubeLocalResponse: true` **and** running on the exact instance origin. It retains the original tracking-integrity gate for unmarked, non-OK or other-origin responses. This is a modified captured client, not a claim to issue Google's tracking metadata. The actual player/renderer and strict error acceptance remain untouched. Unknown build shapes are left unchanged; manifest entries record adapter counts and original/served hashes. Lazy chunks use the same adaptation. Existing pins require recapture (`--latest`). Local player details also point thumbnails at local media rather than provoking upstream fallback requests.
+
+The regression executes a synthetic gate in Node and checks marked local success, unmarked failure, ERROR failure, other-origin failure, original behavior and idempotence. Both observed main bundles match exactly one gate. Expanded sanitized browser diagnostics record response/playability key names and plain error reason, never complete responses or tracking payloads. Fresh runner playback evidence remains required before claiming this fixes playback.
+
+Next: inspect the new browser artifact for playability OK, no error overlay, local media progress and matching official watch identity; inspect its screenshot. Only then move to native-client account/mutation compatibility. Do not confuse a green workflow or synthetic gate test with official playback success.
+
 ## Current status
 
 The independent service works: local accounts, streaming uploads, FFmpeg MP4 conversion/thumbnails, range playback, search, channels, subscriptions, likes, comments, reports and host-granted operator controls. Docker Compose build/start and HTTP/FFmpeg health passed on GitHub Actions. Actual YouTube home components display a local uploaded title, thumbnail, creator and view count. The latest inspected screenshot also shows the real masthead and local MewTube account button.

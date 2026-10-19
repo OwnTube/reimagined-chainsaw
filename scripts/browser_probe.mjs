@@ -94,12 +94,25 @@ try {
           const error=Array.from(document.querySelectorAll('ytd-app .ytp-error,ytd-app #error-screen,ytd-app yt-playability-error-supported-renderers')).find(node=>
             getComputedStyle(node).display!=='none' && getComputedStyle(node).visibility!=='hidden' && node.getBoundingClientRect().height>0);
           const visible=!!error;
-          let state=null,videoId=null,status=null,reason=null;
+          let state=null,videoId=null,status=null,reason=null,responseKeys=[],playabilityKeys=[],errorCode=null,errorReason=null;
           try{state=root?.getPlayerState?.() ?? null;}catch{}
           try{videoId=root?.getVideoData?.()?.video_id ?? null;}catch{}
-          try{const playability=root?.getPlayerResponse?.()?.playabilityStatus;status=playability?.status ?? null;reason=playability?.reason?.slice(0,250) ?? null;}catch{}
+          try{
+            const response=root?.getPlayerResponse?.();
+            const playability=response?.playabilityStatus;
+            responseKeys=Object.keys(response || {}).slice(0,40);
+            playabilityKeys=Object.keys(playability || {}).slice(0,20);
+            status=playability?.status ?? null;reason=playability?.reason?.slice(0,250) ?? null;
+            const message=playability?.errorScreen?.playerErrorMessageRenderer;
+            const plainText=value=>typeof value?.simpleText==='string'?value.simpleText:
+              (value?.runs || []).map(run=>run.text || '').join('');
+            errorReason=message?plainText(message.reason).slice(0,250):null;
+            const code=response?.errorCode ?? playability?.errorCode;
+            errorCode=typeof code==='number' || (typeof code==='string' && /^\d{1,12}$/.test(code))?code:null;
+          }catch{}
           return {state,videoId,playabilityStatus:status,playabilityReason:reason,errorVisible:visible,errorText:visible?error.textContent.trim().slice(0,250):null,
-            errorClass:root?.classList.contains('ytp-error') || root?.classList.contains('ytp-error-mode') || false};
+            errorClass:root?.classList.contains('ytp-error') || root?.classList.contains('ytp-error-mode') || false,
+            responseKeys,playabilityKeys,errorCode,errorReason};
         }),3000,'Official player state');
         const watchUrl=new URL(page.url());
         diagnostics.capturedClient.watchPath=watchUrl.pathname;

@@ -21,6 +21,38 @@ MAX_FILE = 20 * 1024 * 1024
 WATCH_ID = 'jNQXAC9IVRw'  # Public guest HTML only; no video media is fetched.
 
 
+def adapt_local_player(text, origin):
+    """Adapt the pinned build's Google response-integrity gate, not its player.
+
+    The observed gate replaces otherwise playable responses with error 282054944
+    when Google's obfuscated trackingParam is absent. Our backend cannot issue
+    Google's tracking metadata. Admit only explicitly marked local OK responses,
+    on this pin's exact instance origin; retain the original gate for all others.
+    Unknown builds are left unchanged (and remain experimental/unverified).
+    """
+    marker = 'mewtubeLocalResponse'
+    if marker in text:
+        return text, 0
+    diagnostic = text.find('"282054944_a"')
+    if diagnostic < 0:
+        return text, 0
+    start = max(0, diagnostic - 1600)
+    declarations = list(re.finditer(r'[A-Za-z_$][\w$]*=function\(([A-Za-z_$][\w$]*)\)\{', text[start:diagnostic]))
+    if not declarations:
+        return text, 0
+    declaration = declarations[-1]
+    position = start + declaration.end()
+    prefix = text[position:diagnostic]
+    if '.mainAppWebResponseContext' not in prefix or '.trackingParam' not in prefix or 'MISSING' not in prefix:
+        return text, 0
+    arg = declaration.group(1)
+    guard = ('if(window.location.origin===' + json.dumps(origin) + '&&' + arg + '&&' +
+             arg + '.playabilityStatus&&' + arg + '.playabilityStatus.status==="OK"&&' +
+             arg + '.responseContext&&' + arg + '.responseContext.mainAppWebResponseContext&&' +
+             arg + '.responseContext.mainAppWebResponseContext.' + marker + '===true)return 1;')
+    return text[:position] + guard + text[position:], 1
+
+
 def rewrite_origins(text, origin):
     # Workers have their own fetch/XHR globals, so the window bridge alone cannot
     # redirect hardcoded API origins inside worker bundles.
@@ -126,10 +158,17 @@ def main():
         # The module loader parses its own script URL for /_/js/, /k= and
         # module parameters. Keep public build paths intact; hashes are only
         # storage filenames resolved through the manifest by dynamic_asset().
-        served = rewrite_origins(raw.decode('utf-8'), origin).encode() if name.endswith(('.js', '.css')) else raw
+        adapted = 0
+        if name.endswith(('.js', '.css')):
+            source = rewrite_origins(raw.decode('utf-8'), origin)
+            if name.endswith('.js'):
+                source, adapted = adapt_local_player(source, origin)
+            served = source.encode()
+        else:
+            served = raw
         (directory / name).write_bytes(served)
         entries.append({'url': url, 'file': name, 'sha256': hashlib.sha256(raw).hexdigest(),
-                        'served_sha256': hashlib.sha256(served).hexdigest()})
+                        'served_sha256': hashlib.sha256(served).hexdigest(), 'localPlayerAdapter': adapted})
     # Retained only on this machine. It may contain anonymous visitor identifiers.
     staged = client / 'index.html.tmp'
     staged.write_text(rewrite_origins(html, origin))

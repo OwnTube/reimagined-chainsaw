@@ -28,11 +28,14 @@ def response(c, operation, body, origin):
         v = video(c, body.get('videoId', ''))
         if not v or v['status'] != 'ready':
             return {**context, 'playabilityStatus': {'status': 'ERROR', 'reason': 'Video unavailable'}}
+        context['responseContext']['mainAppWebResponseContext']['mewtubeLocalResponse'] = True
         return {**context, 'playabilityStatus': {'status': 'OK'},
                 'videoDetails': {'videoId': v['id'], 'title': v['title'], 'author': v['username'],
                                  'channelId': v['owner'], 'lengthSeconds': str(int(v['duration'])),
                                  'viewCount': str(v['views']), 'shortDescription': v['description'],
-                                 'isLiveContent': False, 'isOwnerViewing': False},
+                                 'isLiveContent': False, 'isOwnerViewing': False,
+                                 'thumbnail': {'thumbnails': [{'url': origin + '/media/' + v['id'] + '/thumb.jpg',
+                                                              'width': 640, 'height': 360}]}},
                 'streamingData': {'expiresInSeconds': '3600', 'formats': [{
                     'itag': 22, 'url': origin + '/media/' + v['id'] + '/video.mp4',
                     'mimeType': 'video/mp4; codecs="avc1.64001F, mp4a.40.2"',

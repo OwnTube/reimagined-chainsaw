@@ -133,7 +133,13 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(len(self.request('/api/videos?q=Cats')[1]['videos']), 1)
         response = self.request('/youtubei/v1/player', {'videoId':v['id']})[1]
         self.assertEqual(response['playabilityStatus']['status'], 'OK')
+        self.assertTrue(response['responseContext']['mainAppWebResponseContext']['mewtubeLocalResponse'])
         self.assertEqual(response['streamingData']['formats'][0]['url'], self.origin + path)
+        self.assertEqual(response['videoDetails']['thumbnail']['thumbnails'][0]['url'],
+                         self.origin + f"/media/{v['id']}/thumb.jpg")
+        missing = self.request('/youtubei/v1/player', {'videoId':'___________'})[1]
+        self.assertEqual(missing['playabilityStatus']['status'], 'ERROR')
+        self.assertNotIn('mewtubeLocalResponse', missing['responseContext']['mainAppWebResponseContext'])
         search = self.request('/youtubei/v1/search', {'query':'Cats'})[1]
         items = search['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents']
         self.assertEqual(items[0]['videoRenderer']['title']['runs'][0]['text'], v['title'])

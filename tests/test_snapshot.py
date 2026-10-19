@@ -17,6 +17,31 @@ spec.loader.exec_module(capture)
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_local_player_adapter_is_scoped_and_preserves_original_gate(self):
+        # Synthetic contract fixture, not downloaded client code.
+        gate = ('var check=function(R){var context=R.responseContext.mainAppWebResponseContext;'
+                'if(!context.trackingParam){var label="MISSING";throw Error("282054944_a");}'
+                'return 7;};')
+        adapted, count = capture.adapt_local_player(gate, 'http://localhost:3000')
+        self.assertEqual(count, 1)
+        self.assertIn('throw Error("282054944_a")', adapted)
+        self.assertEqual(capture.adapt_local_player(adapted, 'http://localhost:3000'), (adapted, 0))
+        self.assertEqual(capture.adapt_local_player('var unknown=function(){return 9;};', 'http://localhost:3000')[1], 0)
+        script = adapted + '''
+        const assert=require('node:assert/strict');
+        global.window={location:{origin:'http://localhost:3000'}};
+        const local={playabilityStatus:{status:'OK'},responseContext:{mainAppWebResponseContext:{mewtubeLocalResponse:true}}};
+        assert.equal(check(local),1);
+        const unmarked={playabilityStatus:{status:'OK'},responseContext:{mainAppWebResponseContext:{}}};
+        assert.throws(()=>check(unmarked),/282054944_a/);
+        local.playabilityStatus.status='ERROR';
+        assert.throws(()=>check(local),/282054944_a/);
+        local.playabilityStatus.status='OK';window.location.origin='https://www.youtube.com';
+        assert.throws(()=>check(local),/282054944_a/);
+        assert.equal(check({responseContext:{mainAppWebResponseContext:{trackingParam:'original'}}}),7);
+        '''
+        subprocess.run(['node', '-e', script], check=True, timeout=10)
+
     def test_capture_keeps_module_loader_url_contract(self):
         modern = 'https://www.youtube.com/s/_/ytmainappweb/_/js/k=build/m=base'
         html = '<html><head><script id="base-js" src="'+modern+'"></script></head><script>var ytInitialData={};var ytInitialPlayerResponse={};window._F_jsUrl="'+modern+'";</script><ytd-app></ytd-app></html>'
