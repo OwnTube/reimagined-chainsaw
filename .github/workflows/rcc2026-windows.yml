@@ -41,7 +41,7 @@ jobs:
       - name: Install research dependencies
         run: python -m pip install -r requirements.txt Pillow
       - name: Run evidence-processing tests
-        run: python -m unittest -v test_probe.py test_adapter_references.py test_unwind_groups.py
+        run: python -m unittest -v test_probe.py test_adapter_references.py test_unwind_groups.py test_rea_evidence.py
       - name: Assemble the pinned official Studio release
         run: |
           New-Item -ItemType Directory -Path ci-output
@@ -58,9 +58,9 @@ jobs:
         timeout-minutes: 2
         run: python inspect_unwind_groups.py ci-studio/RobloxStudioBeta.exe --output ci-output/unwind-groups.json
       - name: Record independent REA resource metadata
-        timeout-minutes: 2
+        timeout-minutes: 4
         continue-on-error: true
-        run: npx -y rea-agents@6.7.0 inspect-pe-resources ci-studio/RobloxStudioBeta.exe --max-file-bytes 268435456 --format json > ci-output/rea-pe-resources.json
+        run: python record_rea_resources.py --binary ci-studio/RobloxStudioBeta.exe --output ci-output
       - name: Build pinned compiler component on Windows
         run: |
           git clone --depth 1 --branch 0.743 https://github.com/luau-lang/luau.git ci-luau
