@@ -32,10 +32,10 @@ def like_button(c, v, user):
     button = {'style': {'styleType': 'STYLE_TEXT'}, 'size': {'sizeType': 'SIZE_DEFAULT'},
               'isToggled': liked, 'isDisabled': False, 'targetId': 'mewtube-like',
               'defaultIcon': {'iconType': 'LIKE'}, 'toggledIcon': {'iconType': 'LIKE'},
-              'defaultText': text(v['likes']), 'toggledText': text(v['likes']),
+              'defaultText': text(v['likes'] - int(liked)), 'toggledText': text(v['likes'] + int(not liked)),
               'defaultTooltip': 'Like', 'toggledTooltip': 'Unlike',
-              'accessibility': {'label': 'Like this video'},
-              'toggledAccessibility': {'label': 'Unlike this video'}}
+              'accessibilityData': {'accessibilityData': {'label': 'Like this video'}},
+              'toggledAccessibilityData': {'accessibilityData': {'label': 'Unlike this video'}}}
     if user:
         button.update(defaultServiceEndpoint=command(True), toggledServiceEndpoint=command(False))
     else:

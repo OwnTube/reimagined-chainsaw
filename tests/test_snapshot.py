@@ -95,6 +95,10 @@ class SnapshotTests(unittest.TestCase):
             self.assertNotIn('accounts.google.test', result)
             self.assertIn('"local":true', result)
             self.assertIn('src="/bridge.js"', result)
+            with patch.object(snapshot, 'DATA', root), patch.object(snapshot.innertube, 'response', return_value={'contents': {}}):
+                personal = snapshot.shell(None, 'http://localhost:3000', user={'username':'local_viewer'}).decode()
+            self.assertIn('MewTube @local_viewer', personal)
+            self.assertNotIn('MewTube @local_viewer', (root / 'client' / 'index.html').read_text())
 
     def test_console_scripts_start_in_fresh_interpreters(self):
         root = Path(__file__).resolve().parents[1]

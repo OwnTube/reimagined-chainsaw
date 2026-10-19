@@ -134,7 +134,10 @@ try {
       await page.screenshot({path:'evidence/official-watch-experimental.png',fullPage:true,timeout:10000});
       if(diagnostics.capturedClient.playback) {
         try {
-          const nativeLike=()=>page.locator('ytd-video-primary-info-renderer ytd-toggle-button-renderer').first().getByRole('button').first();
+          diagnostics.capturedClient.nativeActionButtons=await page.locator('ytd-app button').evaluateAll(buttons=>buttons
+            .filter(button=>/like/i.test(button.getAttribute('aria-label') || ''))
+            .slice(0,10).map(button=>({label:button.getAttribute('aria-label'),pressed:button.getAttribute('aria-pressed')})));
+          const nativeLike=()=>page.locator('ytd-app').getByRole('button',{name:/^(Like|Unlike) this video$/}).first();
           await nativeLike().click({timeout:8000});
           let current=(await (await context.get('/api/videos/'+id)).json()).video;
           for(let i=0;i<30 && current.liked;i++) {
@@ -160,7 +163,7 @@ try {
         const guestPage=await browser.newPage();
         try {
           await guestPage.goto(origin+'/official?v='+id);
-          await guestPage.locator('ytd-video-primary-info-renderer ytd-toggle-button-renderer').first().getByRole('button').first().click({timeout:10000});
+          await guestPage.locator('ytd-app').getByRole('button',{name:/^(Like|Unlike) this video$/}).first().click({timeout:10000});
           await guestPage.waitForURL(url=>url.origin===origin && url.searchParams.get('signin')==='1',{timeout:8000});
           await guestPage.locator('#auth[open]').waitFor({timeout:5000});
           diagnostics.capturedClient.guestLocalSignIn=true;

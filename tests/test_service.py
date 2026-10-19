@@ -170,10 +170,18 @@ class ServiceTests(unittest.TestCase):
             self.assertEqual(self.request('/youtubei/v1/like/like', body)[0], 200)
         self.assertEqual(self.request('/api/videos/'+v['id'])[1]['video']['likes'], 1)
         self.assertTrue(native_button()['isToggled'])
+        self.assertEqual(native_button()['defaultText']['simpleText'], '0')
+        self.assertEqual(native_button()['toggledText']['simpleText'], '1')
         for _ in range(2):
             self.assertEqual(self.request('/youtubei/v1/like/removelike', body)[0], 200)
         self.assertFalse(self.request('/api/videos/'+v['id'])[1]['video']['liked'])
         self.assertFalse(native_button()['isToggled'])
+        first_client = self.client
+        self.client = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+        self.account('other_native_liker')
+        self.assertEqual(self.request('/youtubei/v1/like/like', body)[0], 200)
+        self.assertTrue(native_button()['isToggled'])
+        self.assertFalse(native_button(first_client)['isToggled'], 'Like state must be scoped to the local session')
 
     def test_04_interactions_ownership_and_moderation(self):
         owner = self.account('owner')
