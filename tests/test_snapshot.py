@@ -62,6 +62,8 @@ class SnapshotTests(unittest.TestCase):
         self.assertIn(url, capture.references('<script src="' + url + '"></script>'))
         self.assertFalse(capture.allowed('https://www.youtube.com.evil.test/s/player/test.js'))
         self.assertFalse(capture.allowed('http://127.0.0.1/s/player/test.js'))
+        self.assertTrue(capture.allowed('https://fonts.gstatic.com/s/i/youtube_outline_experimental/menu/v1/24px.svg'))
+        self.assertFalse(capture.allowed('https://fonts.gstatic.com/private/account.js'))
         self.assertEqual(asset_path('../../secret').name, '__missing__')
         source = 'fetch("https://youtubei.googleapis.com/youtubei/v1/player");var x="https:\\/\\/www.youtube.com/youtubei/v1/guide";'
         rewritten = capture.rewrite_origins(source, 'http://localhost:3000')

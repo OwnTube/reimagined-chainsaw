@@ -95,6 +95,7 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(self.request('/api/studio')[0], 401)
         self.assertEqual(self.request('/api/videos?feed=subscriptions')[0], 401)
         self.assertEqual(self.request('/youtubei/v1/player', {'videoId':123})[0], 400)
+        self.assertEqual(self.request('/youtubei/v1/log_event', raw=b'\x00\xffbinary')[0], 200)
         self.assertEqual(self.request('/api/register', {}, headers={'Origin':'https://evil.test'})[0], 403)
         self.assertEqual(self.request('/api/register', {}, headers={'X-MewTube':''})[0], 403)
         self.assertEqual(self.request('/api/register', {'username':'x', 'password':'short'})[0], 400)

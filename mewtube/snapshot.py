@@ -16,12 +16,13 @@ def asset_path(name):
     return DATA / 'client' / 'assets' / name
 
 
-def original_asset(path):
+def original_asset(path, source_url=None):
     """Resolve dynamic root-relative requests only if the asset is already pinned."""
     try:
         manifest = json.loads((DATA / 'client' / 'manifest.json').read_text())
         for entry in manifest['assets']:
-            if urlsplit(entry['url']).path == path:
+            matches = entry['url'] == source_url if source_url else urlsplit(entry['url']).path == path
+            if matches:
                 return asset_path(entry['file'])
     except (OSError, ValueError, KeyError, TypeError):
         pass
@@ -30,18 +31,23 @@ def original_asset(path):
 
 def dynamic_asset(path, origin):
     """Cache lazy client chunks from fixed public static paths, never arbitrary URLs."""
-    existing = original_asset(path)
-    if existing.is_file():
-        return existing
     from scripts.fetch_client import allowed, fetch, rewrite_origins
     missing = DATA / 'client' / '__missing__'
-    if not re.fullmatch(r'/s/[A-Za-z0-9_.,=/\-]+', path) or '..' in path:
-        return missing
     url = 'https://www.youtube.com' + path
+    if path.startswith('/client-static/fonts/'):
+        url = 'https://fonts.gstatic.com/' + path.removeprefix('/client-static/fonts/')
+    elif path.startswith('/client-static/branding/'):
+        url = 'https://www.gstatic.com/' + path.removeprefix('/client-static/branding/')
+    source_path = urlsplit(url).path
+    if not re.fullmatch(r'/[A-Za-z0-9_.,=/\-]+', source_path) or '..' in source_path:
+        return missing
     if not allowed(url):
         return missing
+    existing = original_asset(source_path, url)
+    if existing.is_file():
+        return existing
     with CAPTURE_LOCK:
-        existing = original_asset(path)
+        existing = original_asset(source_path, url)
         if existing.is_file():
             return existing
         manifest_path = DATA / 'client' / 'manifest.json'

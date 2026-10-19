@@ -42,3 +42,9 @@ Project: MewTube. Repository: `vibecodeforever/reimagined-chainsaw`, branch `fea
 - Watch-page capture exposed a separate base-module loader. Added bounded on-demand static-chunk caching: fixed www.youtube.com static paths only, no query URLs/traversal or forwarded cookies, 20 MB/file, 500 entries and 384 MB total cache. Tests verify host restriction, origin rewriting and cache reuse.
 - Local home+watch capture obtained 26 assets and a valid watch template. Seven icon requests returned HTTP errors; do not describe that pin as zero-failure. Earlier home-only pin had 23 assets/zero failures.
 - Next priority: inspect the latest strict `ytd-app #movie_player video` probe, its failure stack and sanitized request origins; fix real official-player boot/API failures. Masthead and worker-origin changes also need the latest browser evidence.
+
+## Transport and static-host findings
+
+- Run 39182040711's sanitized request trace showed local player/guide POST requests failing with Chromium `ERR_ALPN_NEGOTIATION_FAILED`. The bridge incorrectly passed a Request's ReadableStream body into RequestInit, triggering streaming uploads that need HTTP/2. The bridge now buffers API bodies and forwards bytes. `node tests/bridge.test.mjs` covers streaming Request input, ordinary URL/body input, GET, sensitive-header stripping and external-origin rejection; it passes locally.
+- Binary `log_event` telemetry is now explicitly acknowledged and discarded rather than parsed as JSON.
+- Actual icon hosts were `fonts.gstatic.com/s/i/` and `www.gstatic.com/youtube/img/icons/`, not www.youtube.com. Those fixed icon-only paths are now rewritten to local namespaces and use the bounded cache. No general Google proxy, font-CSS proxy, ad/analytics fetch, or forwarded credentials were added.

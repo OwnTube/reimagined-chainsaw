@@ -41,7 +41,7 @@ docker compose exec mewtube python scripts/fetch_client.py
 # open http://localhost:3000/official
 ```
 
-This downloads guest home/watch HTML and allowlisted static assets from YouTube; it does not download any upstream video media. It does not use your Google login, proxy YouTube videos, or import YouTube accounts. Captures stay in ignored `data/client/` and must not be committed. Capture uses `PUBLIC_ORIGIN` to rewrite hardcoded API origins for workers as well as the window transport; recapture after changing that origin. `--latest` replaces the pin. A manifest records original and served SHA-256 hashes and failed downloads. Use the banner’s independent-UI link (or `/?native=1`) to leave captured-client mode. The site CSP blocks external browser connections. Lazy chunks may be fetched by the server only from fixed public YouTube static paths, with 20 MB per-file, 500-file and 384 MB cache limits; arbitrary hosts, API URLs and traversal paths are rejected.
+This downloads guest home/watch HTML and allowlisted static assets from YouTube; it does not download any upstream video media. It does not use your Google login, proxy YouTube videos, or import YouTube accounts. Captures stay in ignored `data/client/` and must not be committed. Capture uses `PUBLIC_ORIGIN` to rewrite hardcoded API origins for workers as well as the window transport; recapture after changing that origin. `--latest` replaces the pin. A manifest records original and served SHA-256 hashes and failed downloads. Use the banner’s independent-UI link (or `/?native=1`) to leave captured-client mode. The site CSP blocks external browser connections. Lazy chunks may be fetched by the server only from fixed public YouTube build paths and the two observed Google icon path families, with 20 MB per-file, 500-file and 384 MB cache limits; arbitrary hosts, API URLs and traversal paths are rejected.
 
 The observed guest build used desktop `5d669aa8`, player `0229cd64`, and newer `/s/_/ytmainappweb/` main bundles. The local capture obtained **23 assets with zero reported download failures**. That count does not prove that every dynamically loaded module was discovered, or that the UI works.
 
@@ -86,6 +86,7 @@ Back up the complete data directory with the service stopped; retain SQLite alon
 python -m unittest discover -s tests -v
 node --check web/app.js
 node --check web/bridge.js
+node tests/bridge.test.mjs
 ```
 
 The tests start a disposable service, generate an audiovisual test pattern, upload and transcode it, read its MP4/thumbnails/ranges, verify auth and ownership, exercise interactions/moderation and InnerTube responses, reject nonvideo/playlist uploads, and test safe bootstrap replacement.

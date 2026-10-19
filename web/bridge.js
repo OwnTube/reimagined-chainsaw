@@ -10,15 +10,21 @@
     return url.href;
   };
   const originalFetch = window.fetch.bind(window);
-  window.fetch = (input, init = {}) => {
-    try {
-      const request = new Request(local(input instanceof Request ? input.url : input), input instanceof Request ? input : undefined);
-      const headers = new Headers(init.headers || request.headers);
-      headers.set('X-MewTube', '1');
-      headers.delete('Authorization');
-      headers.delete('X-Goog-Visitor-Id');
-      return originalFetch(request, {...init, headers, credentials: 'same-origin'});
-    } catch (error) { return Promise.reject(error); }
+  window.fetch = async (input, init = {}) => {
+    const request = new Request(input instanceof Request ? input : new URL(input, location.href), init);
+    const url = local(request.url);
+    const headers = new Headers(request.headers);
+    headers.set('X-MewTube', '1');
+    headers.delete('Authorization');
+    headers.delete('X-Goog-Visitor-Id');
+    // Request.body is a ReadableStream even for a string-backed Request. Passing
+    // that stream as a new RequestInit body forces streaming uploads/HTTP2 and
+    // Chromium reports ERR_ALPN_NEGOTIATION_FAILED against the HTTP/1 server.
+    const body = ['GET', 'HEAD'].includes(request.method) ? undefined : await request.arrayBuffer();
+    if (body && body.byteLength > 1024 * 1024) throw new TypeError('Client API request exceeds 1 MB');
+    return originalFetch(url, {method:request.method, headers, body, credentials:'same-origin',
+      mode:'same-origin', cache:request.cache, redirect:request.redirect, signal:request.signal,
+      referrerPolicy:'same-origin', keepalive:request.keepalive});
   };
   const open = XMLHttpRequest.prototype.open;
   const send = XMLHttpRequest.prototype.send;

@@ -47,7 +47,7 @@ jobs:
       - name: HTTP integration tests
         run: python -m unittest discover -s tests -v
       - name: JavaScript syntax
-        run: node --check web/app.js && node --check web/bridge.js
+        run: node --check web/app.js && node --check web/bridge.js && node tests/bridge.test.mjs
       - name: Install browser test dependencies
         run: npm ci --ignore-scripts && npx playwright install --with-deps chromium
       - name: Capture a guest client

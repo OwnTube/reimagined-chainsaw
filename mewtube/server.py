@@ -174,7 +174,7 @@ class Handler(BaseHTTPRequestHandler):
         if path.startswith('/client-assets/') and self.command in ('GET', 'HEAD'):
             from .snapshot import asset_path
             return self.file(asset_path(path.removeprefix('/client-assets/')))
-        if path.startswith('/s/') and self.command in ('GET', 'HEAD'):
+        if path.startswith(('/s/', '/client-static/')) and self.command in ('GET', 'HEAD'):
             from .snapshot import dynamic_asset
             self.limit('client-assets', 240)
             return self.file(dynamic_asset(path, ORIGIN))
@@ -196,6 +196,11 @@ class Handler(BaseHTTPRequestHandler):
                 raise Error(503, 'Captured client page unavailable. Run python scripts/fetch_client.py --latest. Independent UI: /?native=1')
             return self.send(content, headers={'Set-Cookie':'mewtube_client=official; Path=/; SameSite=Lax; HttpOnly'}, content_type='text/html; charset=utf-8')
         if path.startswith('/youtubei/v1/') and self.command == 'POST':
+            if path == '/youtubei/v1/log_event':
+                # The upstream client sends binary telemetry. Acknowledge and
+                # discard it; this instance does not need Google analytics data.
+                self.rfile.read(self.length(1024 * 1024))
+                return self.send({'responseContext': {}})
             body = self.json_body()
             operation = path.removeprefix('/youtubei/v1/')
             with db() as c:
