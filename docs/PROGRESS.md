@@ -4,7 +4,15 @@ Product requirement clarified: use the actual captured YouTube frontend/player, 
 
 Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, draft PR #1. Do not merge or change repository visibility.
 
-## Current native checkpoint: October 19, 2026, 13:45 UTC
+## Current native checkpoint: October 19, 2026, 13:53 UTC
+
+**Native Liked videos is verified:** `55de117`, run `39263817187`, browser artifact `12191639697` uploaded 13:53:56 UTC. All nativeLikedPlaylist flags (guide, localVideo, excludesUnliked, reload, watchNavigation, unlikeRemoves) are true, acceptanceFailures=[] and no page errors. The screenshot was inspected and shared with the user. The native playlist header, hero thumbnail, local owner and current lockup video component render using only this instance's data. It is not custom playlist creation/editing, watch-next sequencing or full playlist parity. All prior account/search/channel/media/mutation flows remain true. The user requests a screenshot at every verified milestone; honor that in progress updates.
+
+### Candidate: liked-playlist continuation past 40 rows
+
+A fresh public guest playlist continuation was inspected without cookies/accounts: it returns onResponseReceivedActions.appendContinuationItemsAction with lockupViewModel items and targetId. The candidate emits continuationItemViewModel and an instance-local offset token, then appends bounded 40-row pages to the declared local target. Tokens contain only an offset, confer no authority and always use the current local session; unknown/upstream/malformed tokens fail closed. Sort ties now use the generated ID for stable pages. This is offset pagination: concurrent mutations can shift page boundaries; reload refreshes current state.
+
+**25 Python methods and four JS suites pass locally.** Tests cover all 85 rows across three pages without duplication, full count, malformed offsets and guest replay isolation. A bounded host-only browser fixture helper copies the already generated local test pattern to 40 disposable records, adds only the viewer's likes, and removes marked fixtures after the probe; it adds no HTTP/admin endpoint. The browser will scroll to the 41st item, require a real local continuation response and save a pagination screenshot. Existing liked-page checks are now CI-gated; new pagination success is not yet claimed.
 
 Run `39262565637`, implementation `148c651`, browser artifact `12191852843` uploaded 13:45:04 UTC, confirms the HAR-derived native account menu opens, displays the local identity and navigates to the own-channel page. Its native menu request is gzip/200. Screenshot inspected; no custom DOM banner remains. Search submission/filtering/reload/watch navigation and modern channel header flags are all true; acceptanceFailures=[] and no page errors. Fresh guest /watch entry and the local sign-in return pass too. The prior candidate/locator caveats below are historical on this commit. The menu omits native sign-out/settings/switching, and registration/sign-in/upload screens are still temporary separate tooling, not finished native client features.
 

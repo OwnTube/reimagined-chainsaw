@@ -2,6 +2,11 @@
 from .store import videos, video
 from . import comments
 from urllib.parse import urlencode
+import re
+
+LIKED_PAGE_SIZE = 40
+LIKED_TARGET = 'mewtube-liked-videos'
+LIKED_CONTINUATION = 'mewtube-liked-v1:'
 
 
 def text(value):
@@ -41,7 +46,7 @@ def liked_endpoint():
     return destination
 
 
-def liked_playlist(rows, user, total):
+def liked_playlist(rows, user, total, offset=0):
     items = []
     for row in rows:
         source = renderer(row)['videoRenderer']
@@ -55,6 +60,16 @@ def liked_playlist(rows, user, total):
                     {'metadataParts': [{'text': {'content': row['username']}}]},
                     {'metadataParts': [{'text': {'content': str(row['views']) + ' views'}}]}], 'delimiter': '•'}}}},
             'rendererContext': {'commandContext': {'onTap': {'innertubeCommand': endpoint(row)}}}}})
+    next_offset = offset + len(rows)
+    if rows and next_offset < total:
+        items.append({'continuationItemViewModel': {'trigger': 'CONTINUATION_TRIGGER_ON_ITEM_SHOWN',
+            'continuationCommand': {'innertubeCommand': {
+                'commandMetadata': {'webCommandMetadata': {'sendPost': True, 'apiUrl': '/youtubei/v1/browse'}},
+                'continuationCommand': {'token': LIKED_CONTINUATION + str(next_offset),
+                    'request': 'CONTINUATION_REQUEST_TYPE_BROWSE'}}}}})
+    if offset:
+        return {'onResponseReceivedActions': [{'appendContinuationItemsAction': {
+            'targetId': LIKED_TARGET, 'continuationItems': items}}]}
     count = text(str(total) + (' video' if total == 1 else ' videos'))
     header = {'playlistId': 'LL', 'title': text('Liked videos'), 'numVideosText': count,
               'isEditable': False, 'editableDetails': {'canDelete': False}, 'stats': [count], 'briefStats': [count]}
@@ -68,7 +83,8 @@ def liked_playlist(rows, user, total):
             'icon': {'iconType': 'PLAY_ARROW'}, 'navigationEndpoint': endpoint(rows[0])}}
     return {'header': {'playlistHeaderRenderer': header},
         'contents': {'twoColumnBrowseResultsRenderer': {'tabs': [{'tabRenderer': {'selected': True,
-            'content': {'sectionListRenderer': {'contents': [{'itemSectionRenderer': {'contents': items}}]}}}}]}}}
+            'content': {'sectionListRenderer': {'contents': [{'itemSectionRenderer': {'targetId': LIKED_TARGET, 'contents': items}}],
+                'webComponentHint': {'componentVersion': 'WEB_COMPONENT_VERSION_SHARED'}}}}}]}}}
 
 
 def renderer(v):
@@ -204,10 +220,18 @@ def response(c, operation, body, origin, user=None):
             {'guideEntryRenderer': {'formattedTitle': text(title), 'icon': {'iconType': icon},
                 'isPrimary': True, 'navigationEndpoint': destination}} for title, icon, destination in entries]}}]}
     browse_id = body.get('browseId', '') if operation == 'browse' else ''
+    offset = 0
+    if 'continuation' in body:
+        token = body['continuation']
+        match = re.fullmatch(re.escape(LIKED_CONTINUATION) + r'([1-9][0-9]{0,5})', token) if isinstance(token, str) else None
+        if operation != 'browse' or not match or int(match[1]) % LIKED_PAGE_SIZE:
+            return None
+        browse_id, offset = 'VLLL', int(match[1])
     channel = c.execute('SELECT id,username FROM users WHERE id=?', (browse_id,)).fetchone() if browse_id else None
     rows = videos(c, body.get('query', '')[:200], channel=channel['id'] if channel else None,
                   subscriber=user['id'] if user and browse_id == 'FEsubscriptions' else None,
-                  liked_by=user['id'] if user and browse_id == 'VLLL' else None)
+                  liked_by=user['id'] if user and browse_id == 'VLLL' else None,
+                  offset=offset, limit=LIKED_PAGE_SIZE)
     if browse_id in ('FEsubscriptions', 'VLLL') and not user:
         rows = []
     elif browse_id and browse_id not in ('FEwhat_to_watch', 'FEsubscriptions', 'VLLL') and not channel:
@@ -215,7 +239,7 @@ def response(c, operation, body, origin, user=None):
     if operation == 'browse' and browse_id == 'VLLL':
         total = c.execute("SELECT count(*) FROM likes l JOIN videos v ON v.id=l.video_id WHERE l.user_id=? AND v.status='ready'",
                           (user['id'],)).fetchone()[0] if user else 0
-        return {**context, **liked_playlist(rows, user, total)}
+        return {**context, **liked_playlist(rows, user, total, offset)}
     items = [renderer(v) for v in rows]
     if operation == 'search':
         return {**context, 'contents': {'twoColumnSearchResultsRenderer': {'primaryContents': {

@@ -366,6 +366,38 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(liked(first_client)[1]['numVideosText']['simpleText'], '0 videos')
         self.assertEqual(self.request('/playlist?list=upstream')[0], 501)
 
+    def test_14_native_liked_continuation_is_bounded_and_session_scoped(self):
+        user = self.account('paged_likes')
+        with sqlite3.connect(self.data / 'mewtube.sqlite3') as c:
+            for i in range(85):
+                identifier = f'p{i:010}'
+                c.execute("INSERT INTO videos(id,owner,title,status,duration,created) VALUES(?,?,?,'ready',1,?)",
+                          (identifier, user['id'], identifier, 1000-i))
+                c.execute('INSERT INTO likes VALUES(?,?)', (user['id'],identifier))
+        def items(result):
+            if 'onResponseReceivedActions' in result:
+                return result['onResponseReceivedActions'][0]['appendContinuationItemsAction']['continuationItems']
+            return result['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents']
+        result = self.request('/youtubei/v1/browse', {'browseId':'VLLL'})[1]
+        self.assertEqual(result['header']['playlistHeaderRenderer']['numVideosText']['simpleText'], '85 videos')
+        seen, pages, token = [], 0, None
+        while True:
+            current = items(result)
+            seen.extend(item['lockupViewModel']['contentId'] for item in current if 'lockupViewModel' in item)
+            cursors = [item['continuationItemViewModel'] for item in current if 'continuationItemViewModel' in item]
+            pages += 1
+            if not cursors:break
+            token = cursors[0]['continuationCommand']['innertubeCommand']['continuationCommand']['token']
+            result = self.request('/youtubei/v1/browse', {'continuation':token})[1]
+            self.assertEqual(result['onResponseReceivedActions'][0]['appendContinuationItemsAction']['targetId'], 'mewtube-liked-videos')
+        self.assertEqual(pages, 3)
+        self.assertEqual(seen, [f'p{i:010}' for i in range(85)])
+        guest = self.request('/youtubei/v1/browse', {'continuation':token}, client=urllib.request.build_opener())[1]
+        self.assertEqual(items(guest), [], 'A continuation carries no authority to another account’s likes')
+        for invalid in ['upstream-token','mewtube-liked-v1:0','mewtube-liked-v1:41','mewtube-liked-v1:-40','mewtube-liked-v1:10000000']:
+            self.assertEqual(self.request('/youtubei/v1/browse', {'continuation':invalid})[0], 501)
+        self.assertEqual(self.request('/youtubei/v1/browse', {'continuation':[]})[0], 400)
+
     def test_05_reject_nonvideo_and_playlists(self):
         self.account('invalid_upload')
         for raw in (b'not a video', b'#EXTM3U\n#EXTINF:1\nfile:///etc/passwd\n'):

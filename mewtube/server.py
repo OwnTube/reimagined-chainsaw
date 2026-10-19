@@ -99,7 +99,7 @@ class Handler(BaseHTTPRequestHandler):
             value = json.loads(raw)
             if not isinstance(value, dict):
                 raise ValueError()
-            for key in ('username', 'password', 'title', 'description', 'text', 'reason', 'channelId', 'videoId', 'query', 'browseId'):
+            for key in ('username', 'password', 'title', 'description', 'text', 'reason', 'channelId', 'videoId', 'query', 'browseId', 'continuation'):
                 if key in value and not isinstance(value[key], str):
                     raise ValueError()
             if 'enabled' in value and not isinstance(value['enabled'], bool):

@@ -18,7 +18,10 @@ export function browserFailures(diagnostics) {
     'capturedClient.nativeSearch.submitted', 'capturedClient.nativeSearch.localResult', 'capturedClient.nativeSearch.excludesNonmatch',
     'capturedClient.nativeSearch.reload', 'capturedClient.nativeSearch.watchNavigation',
     'capturedClient.nativeChannelHeader.title', 'capturedClient.nativeChannelHeader.handle',
-    'capturedClient.nativeChannelHeader.subscriberCount', 'capturedClient.nativeChannelHeader.readyVideoCount'
+    'capturedClient.nativeChannelHeader.subscriberCount', 'capturedClient.nativeChannelHeader.readyVideoCount',
+    'capturedClient.nativeLikedPlaylist.guide', 'capturedClient.nativeLikedPlaylist.localVideo',
+    'capturedClient.nativeLikedPlaylist.excludesUnliked', 'capturedClient.nativeLikedPlaylist.reload',
+    'capturedClient.nativeLikedPlaylist.watchNavigation', 'capturedClient.nativeLikedPlaylist.unlikeRemoves'
   ];
   return paths.filter(path => path.split('.').reduce((value, key) => value?.[key], diagnostics) !== true);
 }

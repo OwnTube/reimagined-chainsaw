@@ -72,6 +72,14 @@
       "handle": true,
       "subscriberCount": true,
       "readyVideoCount": true
+    },
+    "nativeLikedPlaylist": {
+      "guide": true,
+      "localVideo": true,
+      "excludesUnliked": true,
+      "reload": true,
+      "watchNavigation": true,
+      "unlikeRemoves": true
     }
   }
 }

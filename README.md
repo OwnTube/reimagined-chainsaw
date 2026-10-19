@@ -65,6 +65,7 @@ New captures also pin a guest search-page template for native search reloads. Up
 - Captured watch Like/Unlike and Subscribe/Unsubscribe backed by local sessions, bounded gzip API decoding, persisted native state, and guest local sign-in returning to the captured watch page.
 - Captured Guide/Subscriptions navigation and filtered subscription and creator video grids. Native comment display and top-level posting, immediate insertion and reload persistence pass in the actual client (runner 39259838348).
 - Native account menu with local identity and own-channel navigation; native search submission/filtering/reload/watch navigation; modern channel name/handle/counts (runner 39262565637).
+- Native Liked videos guide/page, local-only filtering, reload/watch navigation and removal after Unlike (runner 39263817187). Loading beyond the initial 40 rows is undergoing browser validation; arbitrary playlists and sequencing remain unsupported.
 - HTTP integration tests and a GitHub Actions browser/REA diagnostic workflow.
 
 ## Known limits

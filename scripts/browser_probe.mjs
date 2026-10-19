@@ -5,6 +5,11 @@ import { randomBytes } from 'node:crypto';
 import assert from 'node:assert/strict';
 import {probePlayback,acceptOfficialPlayback,probeOfficialControls} from './playback_probe.mjs';
 import {browserFailures} from './browser_acceptance.mjs';
+import {execFile} from 'node:child_process';
+import {promisify} from 'node:util';
+import {gunzipSync} from 'node:zlib';
+
+const runFile=promisify(execFile);
 
 const origin = process.env.PUBLIC_ORIGIN || 'http://localhost:3000';
 await mkdir('evidence', {recursive:true});
@@ -89,8 +94,18 @@ try {
   page.on('requestfailed', req=>{try{const url=new URL(req.url());diagnostics.capturedClient.failedPaths.push(url.pathname.slice(0,250));if(diagnostics.capturedClient.failedRequests.length<100)diagnostics.capturedClient.failedRequests.push({method:req.method(),origin:url.origin,path:url.pathname.slice(0,250),error:req.failure()?.errorText});}catch{}});
   page.on('response',response=>{try{const path=new URL(response.url()).pathname;if(path===`/media/${id}/video.mp4` && [200,206].includes(response.status()))diagnostics.capturedClient.localMediaResponse=true;if(response.status()>=400)diagnostics.capturedClient.failedPaths.push(`${response.status()} ${path.slice(0,200)}`);}catch{}});
   diagnostics.capturedClient.nativeApi=[];
+  diagnostics.capturedClient.likedContinuationResponses=[];
   page.on('response',async response=>{
     const path=new URL(response.url()).pathname;
+    if(path==='/youtubei/v1/browse') {
+      try {
+        let raw=response.request().postDataBuffer();
+        if(raw && response.request().headers()['content-encoding']==='gzip')raw=gunzipSync(raw,{maxOutputLength:1024*1024});
+        const body=JSON.parse(raw.toString());
+        if(typeof body.continuation==='string' && body.continuation.startsWith('mewtube-liked-v1:'))
+          diagnostics.capturedClient.likedContinuationResponses.push({status:response.status()});
+      }catch{}
+    }
     if(!['/youtubei/v1/like/like','/youtubei/v1/like/removelike','/youtubei/v1/subscription/subscribe','/youtubei/v1/subscription/unsubscribe','/youtubei/v1/comment/create_comment','/youtubei/v1/account/account_menu'].includes(path))return;
     const entry={path,status:response.status(),gzip:response.request().headers()['content-encoding']==='gzip'};
     diagnostics.capturedClient.nativeApi.push(entry);
@@ -334,7 +349,11 @@ try {
           await page.screenshot({path:'evidence/official-search.png',fullPage:true,timeout:10000}).catch(()=>{});
         }
         await checkpoint('official-search-inspected');
+        let libraryFixture;
         try {
+          const viewer=(await (await context.get('/api/me')).json()).user;
+          const seeded=await runFile('python',['scripts/seed_browser_library.py','seed','--source',id,'--user',viewer.id],{timeout:15000});
+          libraryFixture=JSON.parse(seeded.stdout);
           await page.getByRole('button',{name:'Guide',exact:true}).first().click({timeout:8000});
           await page.locator('ytd-guide-renderer').getByRole('link',{name:'Liked videos',exact:true}).first().click({timeout:8000});
           await page.waitForURL(url=>url.pathname==='/playlist' && url.searchParams.get('list')==='LL',{timeout:8000});
@@ -342,13 +361,27 @@ try {
           await likedTitle().waitFor({timeout:10000});
           assert.equal(await page.locator('yt-lockup-view-model').getByText('Unsubscribed decoy',{exact:true}).first().isVisible(),false);
           diagnostics.capturedClient.nativeLikedPlaylist={guide:true,localVideo:true,excludesUnliked:true};
-          await page.screenshot({path:'evidence/official-liked-playlist.png',fullPage:true,timeout:10000});
+          await page.waitForTimeout(800);
+          await page.screenshot({path:'evidence/official-liked-playlist.png',timeout:10000});
+          const finalTitle=page.locator('yt-lockup-view-model').getByText(libraryFixture.lastTitle,{exact:true}).first();
+          for(let i=0;i<8 && !await finalTitle.isVisible();i++) {
+            await page.locator('yt-lockup-view-model').last().scrollIntoViewIfNeeded({timeout:5000});
+            await page.mouse.wheel(0,1200);
+            await page.waitForTimeout(400);
+          }
+          await finalTitle.waitFor({timeout:8000});
+          assert.ok(diagnostics.capturedClient.likedContinuationResponses.some(response=>response.status===200));
+          diagnostics.capturedClient.nativeLikedPlaylist.pagination=true;
+          diagnostics.capturedClient.nativeLikedPlaylist.renderedCards=await page.locator('yt-lockup-view-model').count();
+          await page.screenshot({path:'evidence/official-liked-pagination.png',timeout:10000});
           await page.reload();
           await likedTitle().waitFor({timeout:10000});
           diagnostics.capturedClient.nativeLikedPlaylist.reload=true;
           await likedTitle().click({timeout:8000});
           await page.waitForURL(url=>url.pathname==='/watch' && url.searchParams.get('v')===id,{timeout:8000});
           diagnostics.capturedClient.nativeLikedPlaylist.watchNavigation=true;
+          await runFile('python',['scripts/seed_browser_library.py','clean','--ids',...libraryFixture.ids],{timeout:15000});
+          libraryFixture=null;
           await page.locator('ytd-app').getByRole('button',{name:'Unlike this video',exact:true}).first().click({timeout:8000});
           let liked=true;
           for(let i=0;i<30 && liked;i++) {
@@ -364,6 +397,8 @@ try {
         }catch(error){
           diagnostics.capturedClient.nativeLikedPlaylist={...diagnostics.capturedClient.nativeLikedPlaylist,ok:false,error:error.message.slice(0,300)};
           await page.screenshot({path:'evidence/official-liked-playlist.png',fullPage:true,timeout:10000}).catch(()=>{});
+        }finally{
+          if(libraryFixture)await runFile('python',['scripts/seed_browser_library.py','clean','--ids',...libraryFixture.ids],{timeout:15000}).catch(()=>{});
         }
         await checkpoint('official-liked-playlist-inspected');
       }
