@@ -1,6 +1,7 @@
 """Local render-job API backed by the pinned 2013 Studio engine."""
 import argparse
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -45,8 +46,14 @@ class Renderer:
             db.execute("UPDATE jobs SET state='failed',result=? WHERE state IN ('queued','running')",
                        (json.dumps({'error':'Worker restarted before job completion'}),))
 
+    @contextmanager
     def connect(self):
-        return sqlite3.connect(self.root/'jobs.sqlite3',timeout=15)
+        db = sqlite3.connect(self.root/'jobs.sqlite3',timeout=15)
+        try:
+            with db:
+                yield db
+        finally:
+            db.close()
 
     def upload(self, content):
         if not content.startswith((b'<roblox',b'<?xml')):
