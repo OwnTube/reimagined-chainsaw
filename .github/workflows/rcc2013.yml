@@ -27,8 +27,10 @@ jobs:
         run: python -m unittest -v test_server.py
       - name: Restore both complete 2013 deployments
         run: python download.py
-      - name: Render two scenes through the local API and native Studio
+      - name: Render blocks, an uploaded place, and a classic R6 player in native Studio
         run: python windows_e2e.py --studio vendor/studio/RobloxStudioBeta.exe
+      - name: Verify the branded console displays the native avatar render
+        run: python console_capture.py --studio vendor/studio/RobloxStudioBeta.exe --data output/data --output output
       - name: Preserve native evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

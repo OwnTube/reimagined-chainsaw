@@ -85,6 +85,7 @@ async function watch(id) {
 el('scene').addEventListener('change', () => {
   el('upload-box').hidden = el('scene').value !== 'upload';
   el('place').required = el('scene').value === 'upload';
+  el('fov').value = el('scene').value === 'avatar' ? 35 : 50;
 });
 
 el('render-form').addEventListener('submit', async event => {
@@ -93,6 +94,15 @@ el('render-form').addEventListener('submit', async event => {
   el('render-button').disabled = true;
   try {
     const request = {camera:{...cameras[el('angle').value], fov:Number(el('fov').value)}};
+    if (el('scene').value === 'avatar') {
+      request.scene = 'avatar';
+      const views = {
+        classic:{position:[7,5,-10],target:[0,2.6,0]},
+        front:{position:[0,3,-12],target:[0,2.6,0]},
+        overhead:{position:[7,12,-10],target:[0,2.6,0]}
+      };
+      request.camera = {...views[el('angle').value], fov:Number(el('fov').value)};
+    }
     if (el('size').value !== 'native') {
       const [width,height] = el('size').value.split(',').map(Number);
       request.size = {width,height};
@@ -117,6 +127,8 @@ async function connect() {
     el('connection-dot').className = health.studio_present ? 'online' : '';
     if (!health.studio_present) showError('Install the pinned Studio deployment with download.py before rendering.');
     await refreshHistory();
+    const job = new URLSearchParams(location.search).get('job');
+    if (job && /^[a-f0-9]{32}$/.test(job)) await watch(job);
   } catch (error) {
     el('connection').textContent = 'Service unavailable';
     el('connection-dot').className = '';

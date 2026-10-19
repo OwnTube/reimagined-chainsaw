@@ -8,7 +8,7 @@ import urllib.error
 import urllib.request
 
 from PIL import Image
-from server import camera_spec, size_spec, Renderer, handler, ThreadingHTTPServer
+from server import camera_spec, size_spec, Renderer, handler, ThreadingHTTPServer, AVATAR_CAMERA
 
 
 class ControlPlaneTests(unittest.TestCase):
@@ -25,10 +25,10 @@ class ControlPlaneTests(unittest.TestCase):
 
     def test_http_job_lifecycle_and_asset_path_boundary_with_a_mock_engine(self):
         calls=[]
-        def mock_engine(studio,output,place,camera,size):
+        def mock_engine(studio,output,place,camera,size,scene):
             output.mkdir(parents=True)
             Image.new('RGB',(2,2),(20,40,60)).save(output/'render.png')
-            calls.append((place,camera,size))
+            calls.append((place,camera,size,scene))
             return {'engine_render_validated':True,'test_mock':True}
         with tempfile.TemporaryDirectory() as temporary:
             renderer=Renderer(Path(temporary)/'test.exe',Path(temporary)/'data',mock_engine)
@@ -61,6 +61,13 @@ class ControlPlaneTests(unittest.TestCase):
                 self.assertEqual(calls[0][2],{'width':512,'height':512})
                 with urllib.request.urlopen(base+'/v1/renders',timeout=3) as response:
                     self.assertEqual(json.load(response)['jobs'][0]['id'],job)
+                avatar=renderer.submit({'scene':'avatar'})
+                renderer.close()
+                self.assertEqual(calls[-1][1],AVATAR_CAMERA)
+                self.assertEqual(calls[-1][-1],'avatar')
+                self.assertEqual(renderer.get(avatar)['state'],'succeeded')
+                for config in ({'scene':'other'},{'scene':'avatar','place_id':'a'*64}):
+                    with self.assertRaises(ValueError):renderer.submit(config)
             finally:
                 http.shutdown();http.server_close();renderer.close();thread.join(timeout=3)
 

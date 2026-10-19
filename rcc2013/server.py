@@ -14,7 +14,7 @@ import time
 from urllib.parse import urlsplit
 import uuid
 
-from windows_probe import DEFAULT_CAMERA, render_scene
+from windows_probe import DEFAULT_CAMERA, AVATAR_CAMERA, render_scene
 
 STATIC = Path(__file__).with_name('static')
 
@@ -28,10 +28,10 @@ def size_spec(value):
     return dict(value)
 
 
-def camera_spec(value):
+def camera_spec(value, defaults=None):
     if not isinstance(value, dict) or set(value)-set(DEFAULT_CAMERA):
         raise ValueError('camera supports position, target, and fov only')
-    result = {**DEFAULT_CAMERA, **value}
+    result = {**(defaults or DEFAULT_CAMERA), **value}
     for key in ('position','target'):
         vector = result[key]
         if not isinstance(vector,list) or len(vector)!=3 or any(
@@ -76,10 +76,16 @@ class Renderer:
         return identity
 
     def submit(self, request):
-        if not isinstance(request,dict) or set(request)-{'place_id','camera','size'}:
-            raise ValueError('Render request supports place_id, camera, and size only')
+        if not isinstance(request,dict) or set(request)-{'place_id','camera','size','scene'}:
+            raise ValueError('Render request supports place_id, camera, size, and scene only')
         request = dict(request)
-        request['camera'] = camera_spec(request.get('camera',{}))
+        scene = request.get('scene','blocks')
+        if scene not in ('blocks','avatar'):
+            raise ValueError('scene must be blocks or avatar')
+        if 'scene' in request and request.get('place_id') is not None:
+            raise ValueError('Choose either a built-in scene or an uploaded place')
+        request['scene'] = scene
+        request['camera'] = camera_spec(request.get('camera',{}),AVATAR_CAMERA if scene=='avatar' else DEFAULT_CAMERA)
         request['size'] = size_spec(request.get('size'))
         identity = request.get('place_id')
         if identity is not None and (not isinstance(identity,str) or not re.fullmatch('[a-f0-9]{64}',identity)
@@ -98,7 +104,7 @@ class Renderer:
             db.execute("UPDATE jobs SET state='running' WHERE id=?",(job,))
         try:
             place = self.root/'places'/(request['place_id']+'.rbxl') if request.get('place_id') else None
-            report = self.engine(self.studio,self.root/'jobs'/job,place,request['camera'],request['size'])
+            report = self.engine(self.studio,self.root/'jobs'/job,place,request['camera'],request['size'],request['scene'])
             state = 'succeeded' if report.get('engine_render_validated') else 'failed'
         except Exception as error:
             report,state = {'error':str(error),'engine_render_validated':False},'failed'

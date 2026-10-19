@@ -1,4 +1,4 @@
-"""Exercise the actual HTTP API and two real native 2013 rendering jobs."""
+"""Exercise the actual HTTP API and three real native 2013 rendering jobs."""
 import argparse
 import hashlib
 import io
@@ -56,7 +56,8 @@ def main():
         if place_id!=hashlib.sha256(place).hexdigest():raise RuntimeError('Upload digest differs')
         for name,config in [('default',{'size':{'width':512,'height':512}}),
                             ('uploaded',{'place_id':place_id,'size':{'width':640,'height':360},
-                                         'camera':{'position':[16,12,22],'target':[0,3,0],'fov':45}})]:
+                                         'camera':{'position':[16,12,22],'target':[0,3,0],'fov':45}}),
+                            ('avatar',{'scene':'avatar','size':{'width':512,'height':512}})]:
             job=request('/v1/renders',config)['id']
             deadline=time.monotonic()+100
             while time.monotonic()<deadline:
@@ -72,6 +73,8 @@ def main():
             (out/(name+'-render.png')).write_bytes(image)
             if list(Image.open(io.BytesIO(image)).size)!=[config['size']['width'],config['size']['height']]:
                 raise RuntimeError('Returned PNG does not match requested native image size')
+            if name=='avatar' and not result['result'].get('avatar_structure_validated'):
+                raise RuntimeError('The R6 avatar construction marker was not observed')
         report['two_distinct_images']=report['jobs'][0]['result']['png_sha256']!=report['jobs'][1]['result']['png_sha256']
         if not report['two_distinct_images']:raise RuntimeError('Distinct scenes produced the same image')
         report['passed']=True
