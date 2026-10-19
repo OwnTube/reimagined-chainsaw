@@ -123,10 +123,12 @@ def main():
     page_failures = []
     try:
         watch_html = fetch('https://www.youtube.com/watch?v=' + WATCH_ID).decode('utf-8')
+        print('Watch bootstrap assignment forms:', [{'assignment':m.group(),
+              'stringified':watch_html[m.end():].startswith('JSON.parse(')}
+              for m in assignment_pattern('ytInitialData').finditer(watch_html)], flush=True)
         if (not isinstance(read_json_assignment(watch_html, 'ytInitialPlayerResponse'), dict) or
                 not isinstance(read_json_assignment(watch_html, 'ytInitialData'), dict) or '<ytd-app' not in watch_html):
             raise ValueError('Guest watch page did not contain the player bootstrap')
-        print('Watch bootstrap assignment forms:', [m.group() for m in assignment_pattern('ytInitialData').finditer(watch_html)], flush=True)
     except Exception as e:
         page_failures.append({'path': '/watch', 'error': type(e).__name__})
         watch_html = None

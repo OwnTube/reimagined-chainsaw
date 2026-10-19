@@ -7,7 +7,7 @@ import sys
 import tempfile
 import contextlib
 import io
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 import mewtube.snapshot as snapshot
 from mewtube.snapshot import asset_name, replace_json_assignment, asset_path
 
@@ -28,9 +28,24 @@ class SnapshotTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / 'client').mkdir()
-            (root / 'client' / 'index.html').write_text('<script>window["ytInitialData"]=JSON.parse("{}");</script>')
+            (root / 'client' / 'index.html').write_text('<script>window["ytInitialData"]=loadBootstrap();</script>')
             with patch.object(snapshot, 'DATA', root):
                 self.assertIsNone(snapshot.shell(None, 'http://localhost:3000'))
+
+    def test_stringified_bootstrap_decodes_without_executing_javascript(self):
+        payload = {'title': "Sample's </script> title", 'nested': {'text': 'brace }; and \\ quotes "'}}
+        double = json.dumps(json.dumps(payload))
+        single = "'" + double[1:-1].replace("'", "\\'") + "'"
+        for literal in (double, single, r"'\x7b\x22title\x22:\x22Hex escape\x22\x7d'"):
+            source = '<script>window["ytInitialData"] = JSON.parse('+literal+'); next();</script>'
+            self.assertIsInstance(snapshot.read_json_assignment(source, 'ytInitialData'), dict)
+            replaced = replace_json_assignment(source, 'ytInitialData', {'title':'Local </script>'})
+            self.assertNotIn('JSON.parse(', replaced)
+            self.assertEqual(replaced.count('</script>'), 1)
+            self.assertIn('next();', replaced)
+            self.assertEqual(snapshot.read_json_assignment(replaced, 'ytInitialData'), {'title':'Local </script>'})
+        for expression in ('JSON.parse(makeData())', 'JSON.parse("{}", evil)', 'JSON.parse(\'\\xzz\')', 'loadBootstrap()'):
+            self.assertIsNone(snapshot.read_json_assignment('var ytInitialData = '+expression, 'ytInitialData'))
 
     def test_local_player_adapter_is_scoped_and_preserves_original_gate(self):
         # Synthetic contract fixture, not downloaded client code.
@@ -90,10 +105,15 @@ class SnapshotTests(unittest.TestCase):
             (root / 'client' / 'manifest.json').write_text('{"assets":[]}')
             path = '/s/_/ytmainappweb/_/js/k=test/m=watch'
             with patch.object(snapshot, 'DATA', root), patch.object(downloader, 'fetch', return_value=b'fetch("https://www.youtube.com/youtubei/v1/player")') as fetch:
-                output = snapshot.dynamic_asset(path, 'http://localhost:3000')
+                miss = Mock()
+                output = snapshot.dynamic_asset(path, 'http://localhost:3000', miss)
                 self.assertTrue(output.is_file())
                 self.assertIn('http://localhost:3000/youtubei', output.read_text())
-                self.assertEqual(snapshot.dynamic_asset(path, 'http://localhost:3000'), output)
+                self.assertEqual(snapshot.dynamic_asset(path, 'http://localhost:3000', miss), output)
+                miss.assert_called_once_with()
+                with self.assertRaises(RuntimeError):
+                    snapshot.dynamic_asset('/s/player/test/base.js', 'http://localhost:3000',
+                                           Mock(side_effect=RuntimeError('Download quota reached')))
                 self.assertEqual(snapshot.dynamic_asset('/s/../../secret.js', 'http://localhost:3000').name, '__missing__')
                 self.assertEqual(snapshot.dynamic_asset('/s/private/account.js', 'http://localhost:3000').name, '__missing__')
                 fetch.assert_called_once_with('https://www.youtube.com' + path)

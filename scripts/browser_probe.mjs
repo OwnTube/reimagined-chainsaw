@@ -183,10 +183,11 @@ try {
           assert.equal(await nativeLike().getAttribute('aria-pressed'),'true','Reloaded native button must reflect persisted like');
           diagnostics.capturedClient.localAccountVisible=await page.getByText('MewTube @'+username,{exact:true}).isVisible();
           diagnostics.capturedClient.nativeLikes={unlike:true,like:true,persisted:true};
+          await page.waitForTimeout(800);
           await page.screenshot({path:'evidence/official-mutations.png',fullPage:true,timeout:10000});
         }catch(error){diagnostics.capturedClient.nativeLikes={ok:false,error:error.message.slice(0,300)};}
         await checkpoint('official-mutations-inspected');
-        const guestPage=await browser.newPage();
+        const guestPage=await browser.newPage({viewport:{width:1440,height:1000}});
         diagnostics.capturedClient.guestFailedPaths=[];
         guestPage.on('response',response=>{if(response.status()>=400 && diagnostics.capturedClient.guestFailedPaths.length<30)
           diagnostics.capturedClient.guestFailedPaths.push(response.status()+' '+new URL(response.url()).pathname.slice(0,160));});
@@ -196,6 +197,7 @@ try {
           const guestLike=guestApp.getByRole('button',{name:/^(Like|Unlike) this video$/})
             .or(guestApp.getByRole('link',{name:/^(Like|Unlike) this video$/})).first();
           await guestLike.waitFor({timeout:10000});
+          await guestPage.waitForTimeout(800);
           await guestPage.screenshot({path:'evidence/official-guest-watch.png',fullPage:true,timeout:10000});
           await guestLike.click({timeout:10000});
           await guestPage.waitForURL(url=>url.origin===origin && url.searchParams.get('signin')==='1',{timeout:8000});

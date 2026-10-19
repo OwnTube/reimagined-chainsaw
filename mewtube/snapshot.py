@@ -29,7 +29,7 @@ def original_asset(path, source_url=None):
     return DATA / 'client' / '__missing__'
 
 
-def dynamic_asset(path, origin):
+def dynamic_asset(path, origin, on_miss=None):
     """Cache lazy client chunks from fixed public static paths, never arbitrary URLs."""
     from scripts.fetch_client import allowed, fetch, rewrite_origins, adapt_local_player
     missing = DATA / 'client' / '__missing__'
@@ -50,6 +50,8 @@ def dynamic_asset(path, origin):
         existing = original_asset(source_path, url)
         if existing.is_file():
             return existing
+        if on_miss:
+            on_miss()
         manifest_path = DATA / 'client' / 'manifest.json'
         try:
             manifest = json.loads(manifest_path.read_text())
@@ -92,10 +94,54 @@ def assignment_pattern(name):
                       r'|window\s*(?:\.\s*' + key + r'|\[\s*["\']' + key + r'["\']\s*\]))\s*=\s*')
 
 
+def decode_assignment(source):
+    """Decode JSON or JSON.parse(string-literal), never execute captured code."""
+    parse = re.match(r'JSON\.parse\(\s*', source)
+    if not parse:
+        return json.JSONDecoder().raw_decode(source)
+    position = parse.end()
+    if position >= len(source) or source[position] not in ('"', "'"):
+        raise ValueError('Expected a string literal')
+    quote = source[position]
+    position += 1
+    chars = []
+    escapes = {'n':'\n', 'r':'\r', 't':'\t', 'b':'\b', 'f':'\f', 'v':'\v',
+               '\\':'\\', '/':'/', '"':'"', "'":"'"}
+    while position < len(source):
+        char = source[position]
+        position += 1
+        if char == quote:
+            close = re.match(r'\s*\)', source[position:])
+            if not close:
+                raise ValueError('Only a single literal argument is supported')
+            return json.loads(''.join(chars)), position + close.end()
+        if char in '\n\r':
+            raise ValueError('Unescaped line break')
+        if char != '\\':
+            chars.append(char)
+            continue
+        if position >= len(source):
+            break
+        escaped = source[position]
+        position += 1
+        if escaped in ('u', 'x'):
+            size = 4 if escaped == 'u' else 2
+            digits = source[position:position + size]
+            if len(digits) != size or not re.fullmatch(r'[0-9A-Fa-f]+', digits):
+                raise ValueError('Invalid string escape')
+            chars.append(chr(int(digits, 16)))
+            position += size
+        elif escaped in escapes:
+            chars.append(escapes[escaped])
+        else:
+            raise ValueError('Unsupported string escape')
+    raise ValueError('Unterminated string literal')
+
+
 def read_json_assignment(html, name):
     for match in assignment_pattern(name).finditer(html):
         try:
-            value, _ = json.JSONDecoder().raw_decode(html[match.end():])
+            value, _ = decode_assignment(html[match.end():])
             return value
         except ValueError:
             continue
@@ -106,7 +152,7 @@ def replace_json_assignment(html, name, value):
     pattern = assignment_pattern(name)
     for match in reversed(list(pattern.finditer(html))):
         try:
-            _, end = json.JSONDecoder().raw_decode(html[match.end():])
+            _, end = decode_assignment(html[match.end():])
         except ValueError:
             continue
         encoded = json.dumps(value, separators=(',', ':')).replace('<', '\\u003c')

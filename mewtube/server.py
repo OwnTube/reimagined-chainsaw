@@ -191,8 +191,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.file(asset_path(path.removeprefix('/client-assets/')))
         if path.startswith(('/s/', '/client-static/')) and self.command in ('GET', 'HEAD'):
             from .snapshot import dynamic_asset
-            self.limit('client-assets', 240)
-            return self.file(dynamic_asset(path, ORIGIN))
+            # Cached immutable files do not consume the upstream-download quota.
+            return self.file(dynamic_asset(path, ORIGIN, lambda: self.limit('client-assets', 240)))
         cookie = http.cookies.SimpleCookie()
         try:
             cookie.load(self.headers.get('Cookie', ''))
