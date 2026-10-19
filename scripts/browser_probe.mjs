@@ -40,6 +40,19 @@ try {
     await new Promise(resolve=>setTimeout(resolve,1000));
   }
   assert.equal(video.status,'ready');
+  result = await context.post('/api/register', {data:{username:'decoy_'+randomBytes(4).toString('hex'),password:randomBytes(18).toString('hex')}});
+  assert.equal(result.status(),200);
+  result = await context.post('/api/upload', {data:await readFile('evidence/sample.mp4'),headers:{
+    'Content-Type':'application/octet-stream','X-Video-Title':'Unsubscribed%20decoy'}});
+  assert.equal(result.status(),202);
+  const decoyId=(await result.json()).id;
+  let decoy;
+  for(let i=0;i<60;i++) {
+    decoy=(await (await context.get('/api/videos/'+decoyId)).json()).video;
+    if(decoy.status!=='processing')break;
+    await new Promise(resolve=>setTimeout(resolve,1000));
+  }
+  assert.equal(decoy.status,'ready');
   result = await context.post('/api/register', {data:{username,password}});
   assert.equal(result.status(),200);
   browser=await chromium.launch({headless:true});
@@ -190,6 +203,15 @@ try {
         }catch(error){diagnostics.capturedClient.nativeLikes={ok:false,error:error.message.slice(0,300)};}
         await checkpoint('official-mutations-inspected');
         try {
+          await page.mouse.wheel(0,900);
+          await page.getByText('A real browser comment',{exact:true}).first().waitFor({timeout:8000});
+          diagnostics.capturedClient.nativeComments={visible:true,
+            localAuthor:await page.getByText('@'+username,{exact:true}).first().isVisible()};
+          await page.screenshot({path:'evidence/official-comments.png',fullPage:true,timeout:10000});
+          await page.mouse.wheel(0,-900);
+        }catch(error){diagnostics.capturedClient.nativeComments={ok:false,error:error.message.slice(0,300)};}
+        await checkpoint('official-comments-inspected');
+        try {
           const subscribeButton=()=>page.locator('ytd-app').getByRole('button',{name:'Subscribe',exact:true}).first();
           await subscribeButton().click({timeout:8000});
           let subscribed=false;
@@ -205,13 +227,18 @@ try {
           await page.locator('ytd-guide-renderer').getByRole('link',{name:'Subscriptions',exact:true}).first().click({timeout:8000});
           await page.waitForURL(url=>url.pathname==='/feed/subscriptions',{timeout:8000});
           await page.getByText('Runner test video',{exact:true}).first().waitFor({timeout:10000});
+          assert.equal(await page.getByText('Unsubscribed decoy',{exact:true}).first().isVisible(),false);
           assert.equal(await page.evaluate(()=>!!document.querySelector('ytd-app')),true);
           diagnostics.capturedClient.nativeSubscriptions.feed=true;
           diagnostics.capturedClient.nativeSubscriptions.guide=true;
+          diagnostics.capturedClient.nativeSubscriptions.excludesUnfollowed=true;
           await page.screenshot({path:'evidence/official-subscriptions.png',fullPage:true,timeout:10000});
           await page.goto(origin+'/channel/'+video.owner);
           await page.getByText('Runner test video',{exact:true}).first().waitFor({timeout:10000});
+          assert.equal(await page.getByText('Unsubscribed decoy',{exact:true}).first().isVisible(),false);
           diagnostics.capturedClient.nativeSubscriptions.channel=true;
+          diagnostics.capturedClient.nativeSubscriptions.excludesOtherCreator=true;
+          await page.screenshot({path:'evidence/official-channel.png',fullPage:true,timeout:10000});
           await page.goto(origin+'/watch?v='+id);
           await page.locator('ytd-app').getByRole('button',{name:'Unsubscribe',exact:true}).first().click({timeout:8000});
           for(let i=0;i<30 && subscribed;i++) {

@@ -1,5 +1,6 @@
 """Experimental WEB renderer subset, not a claim of YouTube client parity."""
 from .store import videos, video
+from . import comments
 from urllib.parse import urlencode
 
 
@@ -144,9 +145,15 @@ def response(c, operation, body, origin, user=None):
                 'contents': [{'richItemRenderer': {'content': item}} for item in items]}}}}]}}}
     if operation == 'next':
         v = video(c, body.get('videoId', ''))
+        if v and v['status'] != 'ready':
+            v = None
         main = [] if not v else [{'videoPrimaryInfoRenderer': {'title': {'runs': [{'text': v['title']}]},
                     'videoActions': {'menuRenderer': {'topLevelButtons': [like_button(c, v, user)]}}}},
                                 owner_info(c, v, user)]
+        if v and v['status'] == 'ready':
+            comment_section, entities = comments.section(c, v, user)
+            main.append(comment_section)
+            context['frameworkUpdates'] = entities
         return {**context, 'contents': {'twoColumnWatchNextResults': {'results': {'results': {'contents': main}},
                    'secondaryResults': {'secondaryResults': {'results': items}}}}}
     return None

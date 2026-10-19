@@ -293,6 +293,8 @@ class ServiceTests(unittest.TestCase):
             self.assertEqual(v['status'], 'failed')
             self.assertNotIn('/etc/', v['error'])
             self.assertEqual(self.request(f"/media/{v['id']}/video.mp4")[0], 404)
+            native_next = self.request('/youtubei/v1/next', {'videoId':v['id']})[1]
+            self.assertEqual(native_next['contents']['twoColumnWatchNextResults']['results']['results']['contents'], [])
 
     def test_06_restart_preserves_sessions_and_recovers_jobs(self):
         owner = self.account('durable')

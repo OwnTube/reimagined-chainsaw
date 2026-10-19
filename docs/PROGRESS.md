@@ -2,6 +2,20 @@
 
 Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, draft PR #1. Do not merge or change repository visibility.
 
+## Current verified native checkpoint: October 19, 2026, 06:51 UTC
+
+Run `39212197938`, commit `338975a`, browser artifact `12167598385` uploaded 06:51:41 UTC, now passes the complete tested subscription flow: actual native Guide/Subscriptions click, Subscribe, persistence after reload, local feed and channel grids, and Unsubscribe. Both mutation requests are gzip with 200 responses. Playback, official controls, local metadata/bootstrap, Like/Unlike persistence and guest local sign-in/return all remain true. Telemetry-related 429s are absent after the separate discard budget. The prior failed auth regression must not be treated as still active on this commit.
+
+The browser had only one uploaded fixture in that result, so it proves rendering/navigation but not UI-level exclusion of unrelated creators. The next probe adds an unrelated creator's decoy upload and explicitly rejects that title in both subscription and creator grids. API tests already verify filtering and invalid-bulk atomicity.
+
+### New candidate: read-only native comments
+
+An account-free public guest comment continuation was inspected as an analysis aid (metadata only, no cookies, Google authentication or video media). It uses commentThreadRenderer/commentViewModel plus frameworkUpdates entity payloads, not the old commentRenderer shape. The new authored read-only adapter emits local comment/author data and generated local entity identifiers matching the observed wire fields/types. It does not reuse upstream entity IDs or tracking data and emits no comment posting/reply/voting endpoints. Author images use the same local video-frame placeholder as creator metadata.
+
+Local verification now passes **20 Python methods and three JS suites**, including entity-key/selector consistency, per-video isolation, a 100-comment rendering bound, script-safe bootstrap text and non-ready-video suppression. A browser check will require the independent interface's stored comment and local author to appear through actual native components. **Read-only native comment rendering and decoy exclusion are not yet browser verified; native posting remains unimplemented.** Inspect the next artifact before claiming either.
+
+Next: validate decoy filtering, native comment text/author and all existing media/account/mutation regressions. Fix concrete entity/renderer mismatches first; only then investigate the native composer and comment mutation protocol. Studio and full channel management remain unimplemented.
+
 ## New implementation checkpoint: October 19, 2026, 06:37 UTC
 
 Started from fresh branch head `aeb99fd` with no active Actions runs or newer writes. Latest run `39208139279` completed successfully: browser artifact `12166049664` again confirms official playback/controls, native Like/Unlike persistence and local-account handoff, with no page errors.
