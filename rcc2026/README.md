@@ -30,10 +30,18 @@ The user subsequently approved collecting and publishing startup screenshots and
 
 [Run 39179760987](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39179760987) captured the same modal error for API dumping and RunScript: "This application failed to start because no Qt platform plugin could be initialized." No native Studio log files were found in the normal log directory. Studio therefore failed before reaching either engine probe.
 
-The verified deployment includes `Qt5/platforms/qwindows.dll`, but the assembler did not configure Qt's plugin search path. The next revision generates `qt.conf` with `Plugins=Qt5`, sets per-process Qt plugin paths to the bundled directory, and enables Qt plugin diagnostics. This follows [Qt's deployment configuration](https://doc.qt.io/qt-5/qt-conf.html). Whether this clears startup is pending native validation. It does not change the Studio executable or its verified assets.
+The verified deployment includes `Qt5/platforms/qwindows.dll`, but the assembler did not configure Qt's plugin search path. The fix generates `qt.conf` with `Plugins=Qt5`, sets per-process Qt plugin paths to the bundled directory, and enables Qt plugin diagnostics. This follows [Qt's deployment configuration](https://doc.qt.io/qt-6/qt-conf.html). The third native run below validates the fix. It does not change the Studio executable or its verified assets.
 
 ## Native engine progress: third Windows run
 
 [Run 39180408120](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39180408120) confirms the Qt startup fix: `--fullApi` exited with code zero and produced a valid JSON API dump containing **943 classes**. The RunScript attempt reached Studio's login screen and timed out there. Its native logs record Direct3D 11 initialization using Microsoft Basic Render Driver. That establishes graphics initialization, not a successful viewport render.
 
 Push runs now test a separate, bounded `StartServer` launch against an owned, generated local `.rbxlx` place. Its script emits a random marker with server/runtime checks. The probe also checks whether that same Studio process binds the requested UDP port. This is an experiment to determine whether local test-server startup can run without an account; it does not modify authentication. Player compatibility, successful client joining, and rendering remain unvalidated even if these checks pass. The known login-blocked RunScript attempt is retained for manual dispatch rather than repeated on every push.
+
+## Local-server result and next investigation
+
+[Run 39180943668](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39180943668) again validated native API dumping (943 classes, exit zero). The local-server attempt reached the login screen and emitted no server-script marker. Crucially, its native log also reported **`Invalid Launch Intent! Too many arguments provided`** before recording the intent as `StartServer`. This is not a clean test of whether a correctly formed server launch requires authentication.
+
+Next, inspect this exact build's launch-intent parser and reconcile the combination of `StartServer`, `localPlaceFile`, and the legacy test-server flags. Do not repeat the same invalid command. Only launch a new native test when its arguments follow a concrete new hypothesis. The UDP check was not reached, so the recorded `null` UDP field means untested, not evidence that no socket existed. Rendering, server hosting, and client joining remain unvalidated.
+
+The generated place is independently owned test source. A `.gitignore` excludes downloaded Studio/Luau packages, build outputs, runtime evidence, and Python caches from source commits.

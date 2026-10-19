@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+ci-studio/
+ci-luau/
+ci-build/
+ci-output/
+studio-package-cache/
