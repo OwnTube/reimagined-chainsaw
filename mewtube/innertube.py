@@ -28,11 +28,18 @@ def channel_endpoint(channel):
     return destination
 
 
+def search_endpoint(query):
+    return {'searchEndpoint': {'query': query}, 'commandMetadata': {'webCommandMetadata': {
+        'url': '/results?' + urlencode({'search_query': query}),
+        'webPageType': 'WEB_PAGE_TYPE_SEARCH', 'apiUrl': '/youtubei/v1/search'}}}
+
+
 def renderer(v):
     return {'videoRenderer': {
         'videoId': v['id'], 'title': {'runs': [{'text': v['title']}]},
         'thumbnail': {'thumbnails': [{'url': '/media/' + v['id'] + '/thumb.jpg', 'width': 640, 'height': 360}]},
         'ownerText': {'runs': [{'text': v['username'], 'navigationEndpoint': channel_endpoint(v['owner'])}]},
+        'longBylineText': {'runs': [{'text': v['username'], 'navigationEndpoint': channel_endpoint(v['owner'])}]},
         'shortBylineText': {'runs': [{'text': v['username']}]},
         'viewCountText': text(str(v['views']) + ' views'),
         'lengthText': text(f"{int(v['duration']) // 60}:{int(v['duration']) % 60:02}"),

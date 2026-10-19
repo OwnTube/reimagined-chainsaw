@@ -12,6 +12,12 @@ Official local playback (time 1.343697, duration 8.010998, readyState 4, wrapper
 
 Next probe: submit a query using the actual masthead search input, require local matching results and exclusion of the unrelated decoy, reload the results and open the local watch page. Native search has not yet been verified. Then improve channel-page contracts and remaining local-account/mutation coverage.
 
+### Search diagnostics and enforced browser acceptance (13:29 UTC)
+
+Run `39260290500` at `3bd3ac2`, artifact `12191065481` uploaded 13:29:11 UTC, preserves every prior native flag including comment posting. Its search screenshot shows the correct matching local result and excludes the unrelated decoy. However the test's broad first title locator resolves to a hidden leftover player link and times out, so full native search/reload/watch navigation is not established. The locator now scopes to ytd-search. Direct search shells also had the captured home ytCommand/ytPageType: the candidate replaces both with local search routing and adds the native long creator byline. A regression checks non-ASCII and markup-containing queries without executing bootstrap code.
+
+The browser previously recorded failed native flags without necessarily failing CI. It now requires the established playback/control/account/mutation flows to be explicitly true, including comment creation/live insertion/persistence and exclusion of unrelated creators. Missing capture fails acceptance too. Diagnostics still write in finally and workflow artifacts upload on failure. A boolean-only fixture and acceptance regression reject independent-only, partial and regressed native evidence. New search remains a diagnostic probe until the full path is established. **22 Python methods and four JS suites pass locally**; runner validation of these candidates is pending.
+
 ### Earlier read-only evidence
 
 Run `39213121880`, commit `0db7e08`, browser artifact `12168313299` uploaded 07:01:11 UTC, confirms native local comment text and author rendering. Its comment screenshot was inspected: local creator/subscription controls, local title, comment count, author and text render through the actual captured UI. The unrelated-creator decoy is excluded from both native subscription and creator grids. Actual guide clicks, Subscribe/Unsubscribe and reload persistence pass. Playback, official controls, Like/Unlike, local bootstrap/title and guest sign-in return remain true. The channel screenshot establishes a basic filtered grid, not a finished channel banner/header or management UI.

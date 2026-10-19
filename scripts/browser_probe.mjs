@@ -4,6 +4,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { randomBytes } from 'node:crypto';
 import assert from 'node:assert/strict';
 import {probePlayback,acceptOfficialPlayback,probeOfficialControls} from './playback_probe.mjs';
+import {browserFailures} from './browser_acceptance.mjs';
 
 const origin = process.env.PUBLIC_ORIGIN || 'http://localhost:3000';
 await mkdir('evidence', {recursive:true});
@@ -295,15 +296,15 @@ try {
           await search.fill('Runner test',{timeout:8000});
           await search.press('Enter');
           await page.waitForURL(url=>url.pathname==='/results' && url.searchParams.get('search_query')==='Runner test',{timeout:8000});
-          await page.locator('ytd-app').getByText('Runner test video',{exact:true}).first().waitFor({timeout:10000});
-          assert.equal(await page.locator('ytd-app').getByText('Unsubscribed decoy',{exact:true}).first().isVisible(),false);
+          await page.locator('ytd-search').getByText('Runner test video',{exact:true}).first().waitFor({timeout:10000});
+          assert.equal(await page.locator('ytd-search').getByText('Unsubscribed decoy',{exact:true}).first().isVisible(),false);
           diagnostics.capturedClient.nativeSearch={submitted:true,localResult:true,excludesNonmatch:true};
           await page.screenshot({path:'evidence/official-search.png',fullPage:true,timeout:10000});
           await page.reload();
-          await page.locator('ytd-app').getByText('Runner test video',{exact:true}).first().waitFor({timeout:10000});
-          assert.equal(await page.locator('ytd-app').getByText('Unsubscribed decoy',{exact:true}).first().isVisible(),false);
+          await page.locator('ytd-search').getByText('Runner test video',{exact:true}).first().waitFor({timeout:10000});
+          assert.equal(await page.locator('ytd-search').getByText('Unsubscribed decoy',{exact:true}).first().isVisible(),false);
           diagnostics.capturedClient.nativeSearch.reload=true;
-          await page.locator('ytd-app').getByText('Runner test video',{exact:true}).first().click({timeout:8000});
+          await page.locator('ytd-search').getByText('Runner test video',{exact:true}).first().click({timeout:8000});
           await page.waitForURL(url=>url.pathname==='/watch' && url.searchParams.get('v')===id,{timeout:8000});
           await page.locator('ytd-app h1').getByText('Runner test video',{exact:true}).waitFor({timeout:8000});
           diagnostics.capturedClient.nativeSearch.watchNavigation=true;
@@ -318,6 +319,8 @@ try {
 }catch(error){diagnostics.error=error.message.replaceAll(password,'[redacted]').split('\n')[0].slice(0,300);process.exitCode=1;}
 finally{
   diagnostics.capturedClient.failedPaths=[...new Set(diagnostics.capturedClient.failedPaths)].slice(0,100);
+  diagnostics.acceptanceFailures=browserFailures(diagnostics);
+  if(diagnostics.acceptanceFailures.length)process.exitCode=1;
   await checkpoint('finished');
   console.log(JSON.stringify(diagnostics,null,2));
   try {await bounded(browser?.close() || Promise.resolve(),5000,'Browser cleanup');await bounded(context.dispose(),5000,'API cleanup');}

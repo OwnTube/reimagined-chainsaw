@@ -195,6 +195,9 @@ def shell(c, origin, watch_id=None, search_query=None, user=None, browse_id=''):
                        else innertube.browse_endpoint(browse_id or 'FEwhat_to_watch',
                             '/feed/subscriptions' if browse_id == 'FEsubscriptions' else '/'))
         html = replace_json_assignment(html, 'ytCommand', destination)
+    elif operation == 'search':
+        html = replace_json_assignment(html, 'ytCommand', innertube.search_endpoint(search_query))
+        html = replace_json_assignment(html, 'ytPageType', 'search')
     player = innertube.response(c, 'player', {'videoId': watch_id}, origin) if watch_id else {}
     html = replace_json_assignment(html, 'ytInitialPlayerResponse', player)
     if watch_id:

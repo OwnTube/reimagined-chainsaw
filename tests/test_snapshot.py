@@ -146,6 +146,23 @@ class SnapshotTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn('usage:', result.stdout)
 
+    def test_search_reload_replaces_captured_home_route(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'client').mkdir()
+            (root / 'client' / 'index.html').write_text('''<html><head></head><script>
+                window['ytPageType']="browse"; window['ytCommand']={"browseEndpoint":{"browseId":"FEwhat_to_watch"}};
+                var ytInitialData={"contents":{}};</script></html>''')
+            query = 'Cats & <robots> 🐈'
+            with patch.object(snapshot, 'DATA', root), patch.object(snapshot.innertube, 'response', return_value={'contents': {}}):
+                result = snapshot.shell(None, 'http://localhost:3000', search_query=query).decode()
+            command = snapshot.read_json_assignment(result, 'ytCommand')
+            self.assertEqual(command['searchEndpoint']['query'], query)
+            self.assertEqual(snapshot.read_json_assignment(result, 'ytPageType'), 'search')
+            self.assertEqual(command['commandMetadata']['webCommandMetadata']['webPageType'], 'WEB_PAGE_TYPE_SEARCH')
+            self.assertNotIn('FEwhat_to_watch', result)
+            self.assertNotIn('<robots>', result)
+
     def test_modern_bundle_and_restricted_hosts(self):
         url = 'https://www.youtube.com/s/_/ytmainappweb/_/js/k=build/m=kevlar_base_module,kevlar_main_module'
         self.assertTrue(capture.allowed(url))

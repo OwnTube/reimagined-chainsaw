@@ -1,0 +1,59 @@
+{
+  "independentClient": {
+    "playback": true,
+    "interactions": true
+  },
+  "capturedClient": {
+    "customElementDefined": true,
+    "localTitleVisible": true,
+    "sameOrigin": true,
+    "localMediaResponse": true,
+    "media": {
+      "ok": true,
+      "paused": false,
+      "ended": false
+    },
+    "player": {
+      "errorVisible": false,
+      "errorClass": false
+    },
+    "watchBootstrap": {
+      "local": true,
+      "present": true,
+      "localAccount": true
+    },
+    "watchLocalTitleVisible": true,
+    "playback": true,
+    "controls": {
+      "ok": true,
+      "pause": true,
+      "seek": true,
+      "resume": true
+    },
+    "localAccountVisible": true,
+    "nativeLikes": {
+      "unlike": true,
+      "like": true,
+      "persisted": true
+    },
+    "nativeComments": {
+      "visible": true,
+      "localAuthor": true,
+      "created": true,
+      "liveInsert": true,
+      "persisted": true
+    },
+    "nativeSubscriptions": {
+      "subscribe": true,
+      "persisted": true,
+      "feed": true,
+      "guide": true,
+      "excludesUnfollowed": true,
+      "channel": true,
+      "excludesOtherCreator": true,
+      "unsubscribe": true
+    },
+    "guestLocalSignIn": true,
+    "localAccountHandoff": true
+  }
+}

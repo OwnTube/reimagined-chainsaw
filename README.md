@@ -93,6 +93,7 @@ node --check web/bridge.js
 node tests/bridge.test.mjs
 node tests/playback_probe.test.mjs
 node tests/auth_return.test.mjs
+node tests/browser_acceptance.test.mjs
 ```
 
 The tests start a disposable service, generate an audiovisual test pattern, upload and transcode it, read its MP4/thumbnails/ranges, verify auth and ownership, exercise interactions/moderation and InnerTube responses, reject nonvideo/playlist uploads, and test safe bootstrap replacement.
@@ -108,7 +109,7 @@ ffmpeg -v error -y -f lavfi -i testsrc2=size=640x360:rate=24 -f lavfi -i sine=fr
 npm run test:browser
 ```
 
-`evidence/browser.json` distinguishes independent-client playback from captured-client results. A successful independent client must not be reported as a successful official client.
+`evidence/browser.json` distinguishes independent-client playback from captured-client results. The browser process fails when an established native playback, control, account or mutation check fails or is missing, and still writes its diagnostics. New compatibility probes remain separately identified until verified.
 
 See [research](docs/research.md), [architecture](docs/architecture.md), and [continuation notes](docs/PROGRESS.md).
 
