@@ -2,10 +2,20 @@
 local marker = MARKER
 local port = PORT
 local token = TOKEN
+local stage = "services"
 local ok, problem = pcall(function()
     local world = game:GetService("Workspace")
     local players = game:GetService("Players")
     local run = game:GetService("RunService")
+    -- Establish the server role before connecting server-only RemoteEvents.
+    stage = "NetworkServer creation"
+    local server = game:GetService("NetworkServer")
+    stage = "local authentication option"
+    server:SetIsPlayerAuthenticationRequired(false)
+    stage = "UDP server start"
+    server:Start(port)
+    print(marker .. "|NETWORK_STARTED|" .. tostring(port))
+    stage = "owned scene creation"
     local function part(name, position, size, color)
         local p = Instance.new("Part")
         p.Name = name
@@ -28,11 +38,13 @@ local ok, problem = pcall(function()
     local signal = Instance.new("RemoteEvent")
     signal.Name = "RccJoinSignal"
     signal.Parent = world
+    stage = "server RemoteEvent callback"
     signal.OnServerEvent:connect(function(player, reply, first, second)
         if reply == token and first ~= second and math.abs(first) == 6 and math.abs(second) == 6 then
             print(marker .. "|ROUNDTRIP_CONFIRMED|" .. tostring(player.userId))
         end
     end)
+    stage = "player admission callback"
     players.PlayerAdded:connect(function(player)
         print(marker .. "|PLAYER_ADDED|" .. tostring(player.userId))
         local character = game:GetObjects("rbxasset://fonts/character3.rbxm")[1]
@@ -85,11 +97,8 @@ local ok, problem = pcall(function()
             beacon.CFrame = CFrame.new(x,2,-8)
         end
     end)
-    local server = game:GetService("NetworkServer")
-    -- This is the owned local test server's documented authentication option.
-    server:SetIsPlayerAuthenticationRequired(false)
-    server:Start(port)
+    stage = "RunService start"
     run:Run()
     print(marker .. "|SERVER_READY|" .. tostring(port))
 end)
-if not ok then print(marker .. "|ERROR|" .. tostring(problem)) end
+if not ok then print(marker .. "|ERROR|stage=" .. stage .. "|" .. tostring(problem)) end
