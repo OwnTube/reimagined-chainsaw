@@ -75,11 +75,15 @@ margins on all sides.
 
 ## Rendering and positioning
 
-The owned [R6 fixture](rcc2013/avatar.lua) builds six visible parts, an invisible
-root, joints, a Humanoid, and the engine's Head mesh. Its smile uses the pinned
-deployment's bundled face texture locally. All parts are anchored. Before
-capture the Humanoid is detached to prevent automatic name/health billboards;
-the geometry and face remain.
+The [R6 fixture](rcc2013/avatar.lua) loads the pinned deployment's bundled
+`character3.rbxm` model. Its torso, arms, and legs explicitly use the five
+dedicated `rbxasset://fonts/*.mesh` body assets, preserving their bevelled
+character surfaces after the Humanoid is removed to suppress billboards.
+The bundled head mesh and face remain; all parts are anchored and recolored
+for the owned test appearance. These assets are referenced locally, never
+redistributed in this repository. Native evidence records their SHA-256 and
+five body-mesh markers. The earlier manual block fixture is superseded;
+native validation of this geometry change is pending.
 
 Player alpha comes from two matching native frames against contrasting solid
 backdrops, with calibrated backdrop RGB and fixed lighting. The worker rejects

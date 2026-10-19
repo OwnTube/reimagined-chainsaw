@@ -229,6 +229,10 @@ def render_pass(studio, output, place=None, camera=None, size=None, scene='block
     if default_blocks and scene=='avatar':
         face = studio.parent/'content'/'textures'/'face.png'
         report['bundled_face_sha256'] = hashlib.sha256(face.read_bytes()).hexdigest()
+        assets = ['character3.rbxm']+[name+'.mesh' for name in ('torso','leftarm','rightarm','leftleg','rightleg')]
+        report['bundled_character_assets_sha256'] = {
+            name:hashlib.sha256((studio.parent/'content'/'fonts'/name).read_bytes()).hexdigest()
+            for name in assets}
     env = os.environ.copy()
     env.pop('QT_PLUGIN_PATH', None)
     env.pop('QT_QPA_PLATFORM_PLUGIN_PATH', None)
@@ -243,6 +247,8 @@ def render_pass(studio, output, place=None, camera=None, size=None, scene='block
                     report['scene_script_executed'] = True
                     report['engine_marker_lines'] = [line for line in text.splitlines() if marker in line]
                     report['avatar_structure_validated'] = marker+'|R6_READY|' in text
+                    report['avatar_body_meshes_validated'] = marker+'|BODY_MESH_READY|5 ' in text and sum(
+                        marker+'|BODY_MESH|' in line for line in text.splitlines()) == 5
                     report['avatar_gui_free'] = marker+'|GUI_FREE|' in text
                     report['matte_ready'] = marker+'|MATTE_READY' in text
                     time.sleep(4)
@@ -286,7 +292,7 @@ def render_pass(studio, output, place=None, camera=None, size=None, scene='block
                 required = (('yellow','blue') if render_type=='headshot' else ('yellow','green','blue')) if scene=='avatar' else ('red','green','blue')
                 fixture_valid = all(colors[c]>100 for c in required)
                 if default_blocks and scene=='avatar':
-                    fixture_valid = fixture_valid and report.get('avatar_structure_validated',False) and report.get('avatar_gui_free',False)
+                    fixture_valid = fixture_valid and report.get('avatar_structure_validated',False) and report.get('avatar_gui_free',False) and report.get('avatar_body_meshes_validated',False)
                 if matte is not None:
                     fixture_valid = fixture_valid and report.get('matte_ready',False)
                 report['engine_render_validated'] = report['native_size_matched'] and (not default_blocks or fixture_valid)
@@ -332,6 +338,8 @@ def render_scene(studio, output, place=None, camera=None, size=None, scene='bloc
         report.update(stats)
         report.update({'engine_render_validated':True,'scene_script_executed':True,
                        'avatar_structure_validated':True,'avatar_gui_free':True,
+                       'avatar_body_meshes_validated':True,
+                       'avatar_geometry':'bundled character3.rbxm with five dedicated 2013 body meshes',
                        'image_size':list(image.size),'image_mode':'RGBA','transparent':True,
                        'native_size_matched':True,
                        'render_method':'two native QOgreWidget captures with calibrated alpha recovery',

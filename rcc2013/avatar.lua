@@ -1,58 +1,55 @@
--- Owned classic R6 fixture. Uses only the archive's bundled head mesh and face.
-local avatar = Instance.new("Model")
+-- Load the character template from the verified, locally restored deployment.
+-- Proprietary models/meshes stay in vendor; this script only references them.
+local models = game:GetObjects("rbxasset://fonts/character3.rbxm")
+assert(#models == 1 and models[1]:IsA("Model"), "Bundled R6 template missing")
+local avatar = models[1]
 avatar.Name = "RCC2013_ClassicPlayer"
-avatar.Parent = world
-local function bodyPart(name, size, position, color)
-    local part = Instance.new("Part")
-    part.Name = name
-    part.FormFactor = Enum.FormFactor.Custom
-    part.Size = size
-    part.CFrame = CFrame.new(position)
-    part.BrickColor = BrickColor.new(color)
-    part.TopSurface = Enum.SurfaceType.Smooth
-    part.BottomSurface = Enum.SurfaceType.Smooth
+local parts = {
+    {"Head", Vector3.new(0,4.5,0), 24},
+    {"Torso", Vector3.new(0,3,0), 23, "torso"},
+    {"Left Arm", Vector3.new(-1.5,3,0), 24, "leftarm"},
+    {"Right Arm", Vector3.new(1.5,3,0), 24, "rightarm"},
+    {"Left Leg", Vector3.new(-0.5,1,0), 37, "leftleg"},
+    {"Right Leg", Vector3.new(0.5,1,0), 37, "rightleg"},
+    {"HumanoidRootPart", Vector3.new(0,3,0), 23}
+}
+local meshCount = 0
+for _, spec in ipairs(parts) do
+    local part = avatar:FindFirstChild(spec[1])
+    assert(part and part:IsA("BasePart"), "Missing template part " .. spec[1])
+    part.CFrame = CFrame.new(spec[2])
+    part.BrickColor = BrickColor.new(spec[3])
     part.Anchored = true
     part.CanCollide = false
-    part.Parent = avatar
-    return part
+    part.TopSurface = Enum.SurfaceType.Smooth
+    part.BottomSurface = Enum.SurfaceType.Smooth
+    if spec[4] then
+        -- Explicit file meshes retain the dedicated body surfaces when the
+        -- GUI-producing Humanoid is detached for a static thumbnail.
+        for _, child in ipairs(part:GetChildren()) do
+            if child:IsA("DataModelMesh") or child:IsA("Decal") then child:Destroy() end
+        end
+        local mesh = Instance.new("SpecialMesh")
+        mesh.MeshType = Enum.MeshType.FileMesh
+        mesh.MeshId = "rbxasset://fonts/" .. spec[4] .. ".mesh"
+        mesh.Scale = Vector3.new(1,1,1)
+        mesh.Parent = part
+        assert(mesh.MeshId == "rbxasset://fonts/" .. spec[4] .. ".mesh")
+        meshCount = meshCount + 1
+        print(marker .. "|BODY_MESH|" .. part.Name .. "|" .. mesh.MeshId)
+    end
 end
-local torso = bodyPart("Torso", Vector3.new(2,2,1), Vector3.new(0,3,0), 23)
-local head = bodyPart("Head", Vector3.new(2,1,1), Vector3.new(0,4.5,0), 24)
-local leftArm = bodyPart("Left Arm", Vector3.new(1,2,1), Vector3.new(-1.5,3,0), 24)
-local rightArm = bodyPart("Right Arm", Vector3.new(1,2,1), Vector3.new(1.5,3,0), 24)
-local leftLeg = bodyPart("Left Leg", Vector3.new(1,2,1), Vector3.new(-0.5,1,0), 37)
-local rightLeg = bodyPart("Right Leg", Vector3.new(1,2,1), Vector3.new(0.5,1,0), 37)
-local root = bodyPart("HumanoidRootPart", Vector3.new(2,2,1), Vector3.new(0,3,0), 23)
-root.Transparency = 1
-local mesh = Instance.new("SpecialMesh")
-mesh.MeshType = Enum.MeshType.Head
-mesh.Scale = Vector3.new(1.25,1.25,1.25)
-mesh.Parent = head
-local face = Instance.new("Decal")
-face.Name = "face"
-face.Face = Enum.NormalId.Front
+avatar.HumanoidRootPart.Transparency = 1
+local face = avatar.Head:FindFirstChild("face")
+assert(face and face:IsA("Decal"), "Bundled character face missing")
 face.Texture = "rbxasset://textures/face.png"
-face.Parent = head
-local function joint(name, parent, child, offset)
-    local motor = Instance.new("Motor6D")
-    motor.Name = name
-    motor.Part0 = parent
-    motor.Part1 = child
-    motor.C0 = CFrame.new(offset)
-    motor.Parent = parent
-end
-joint("RootJoint", root, torso, Vector3.new(0,0,0))
-joint("Neck", torso, head, Vector3.new(0,1.5,0))
-joint("Left Shoulder", torso, leftArm, Vector3.new(-1.5,0,0))
-joint("Right Shoulder", torso, rightArm, Vector3.new(1.5,0,0))
-joint("Left Hip", torso, leftLeg, Vector3.new(-0.5,-2,0))
-joint("Right Hip", torso, rightLeg, Vector3.new(0.5,-2,0))
-local humanoid = Instance.new("Humanoid")
-humanoid.Parent = avatar
-print(marker .. "|R6_READY|6 body parts|Humanoid|Motor6D|bundled head and face")
--- This is a static thumbnail. Detach its behaviour controller before capture
--- so the 2013 engine cannot draw an automatic name or health billboard.
+local humanoid = avatar:FindFirstChild("Humanoid")
+assert(humanoid and humanoid:IsA("Humanoid"), "Bundled character Humanoid missing")
 humanoid.Parent = nil
+humanoid:Destroy()
 avatar.Name = ""
-assert(avatar:FindFirstChild("Humanoid") == nil)
+avatar.Parent = world
+assert(meshCount == 5 and avatar:FindFirstChild("Humanoid") == nil)
+print(marker .. "|R6_READY|bundled character3.rbxm|6 body parts|bundled head and face")
+print(marker .. "|BODY_MESH_READY|5 dedicated bundled body meshes")
 print(marker .. "|GUI_FREE|Humanoid detached before capture")

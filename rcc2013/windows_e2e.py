@@ -77,6 +77,12 @@ def main():
             if name in ('full-body','headshot'):
                 if not result['result'].get('avatar_structure_validated') or not result['result'].get('avatar_gui_free'):
                     raise RuntimeError('R6 construction and GUI removal markers were not observed')
+                if not result['result'].get('avatar_body_meshes_validated'):
+                    raise RuntimeError('Dedicated 2013 body meshes were not confirmed')
+                for native_pass in result['result']['passes']:
+                    assets=native_pass.get('bundled_character_assets_sha256',{})
+                    if len(assets)!=6 or 'character3.rbxm' not in assets:
+                        raise RuntimeError('Native character template/mesh identities missing')
                 decoded=Image.open(io.BytesIO(image))
                 if decoded.mode!='RGBA' or decoded.getextrema()[3]!=(0,255):
                     raise RuntimeError('Player PNG must contain both transparent background and opaque player')
