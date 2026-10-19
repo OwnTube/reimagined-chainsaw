@@ -6,6 +6,31 @@ on:
 permissions:
   contents: read
 jobs:
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start the self-hosting stack
+        run: docker compose up -d --build
+      - name: Verify container health
+        run: |
+          python - <<'PY'
+          import json,time,urllib.request
+          for attempt in range(60):
+              try:
+                  response = json.load(urllib.request.urlopen('http://localhost:3000/healthz',timeout=3))
+                  assert response['ok'] and response['ffmpeg']
+                  print('Container HTTP and FFmpeg health verified')
+                  break
+              except OSError:
+                  time.sleep(1)
+          else:
+              raise SystemExit('Container never became healthy')
+          PY
+      - name: Stop disposable stack
+        if: always()
+        run: docker compose logs --no-color && docker compose down -v
   service:
     runs-on: ubuntu-latest
     timeout-minutes: 20
