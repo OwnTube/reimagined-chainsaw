@@ -50,3 +50,9 @@ joint("Right Hip", torso, rightLeg, Vector3.new(0.5,-2,0))
 local humanoid = Instance.new("Humanoid")
 humanoid.Parent = avatar
 print(marker .. "|R6_READY|6 body parts|Humanoid|Motor6D|bundled head and face")
+-- This is a static thumbnail. Detach its behaviour controller before capture
+-- so the 2013 engine cannot draw an automatic name or health billboard.
+humanoid.Parent = nil
+avatar.Name = ""
+assert(avatar:FindFirstChild("Humanoid") == nil)
+print(marker .. "|GUI_FREE|Humanoid detached before capture")

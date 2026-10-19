@@ -31,6 +31,7 @@ function displayJob(job) {
   el('download').hidden = !ready;
   el('details').hidden = false;
   el('evidence').textContent = JSON.stringify(result, null, 2);
+  el('preview').dataset.transparent = String(result.transparent === true);
   if (ready) {
     const source = '/v1/renders/' + job.id + '/image';
     if (el('render-image').getAttribute('src') !== source) el('render-image').src = source;
@@ -59,7 +60,8 @@ async function refreshHistory() {
     const button = document.createElement('button');
     button.className = 'history-job ' + job.state + (activeJob === job.id ? ' active' : '');
     const dot = document.createElement('span'); dot.className = 'dot';
-    const label = document.createElement('span'); label.textContent = 'Render ' + job.id.slice(0, 8);
+    const label = document.createElement('span');
+    label.textContent = (job.result.type || 'render').replaceAll('_',' ') + ' · ' + job.id.slice(0, 6);
     const state = document.createElement('small'); state.textContent = job.state;
     label.append(state); button.append(dot, label);
     button.addEventListener('click', () => watch(job.id));
@@ -82,10 +84,20 @@ async function watch(id) {
   } catch (error) { if (activeJob === id) showError(error.message); }
 }
 
-el('scene').addEventListener('change', () => {
+function sourceChanged() {
   el('upload-box').hidden = el('scene').value !== 'upload';
   el('place').required = el('scene').value === 'upload';
-  el('fov').value = el('scene').value === 'avatar' ? 35 : 50;
+}
+el('scene').addEventListener('change', sourceChanged);
+el('type').addEventListener('change', () => {
+  const player = el('type').value !== 'game_thumbnail';
+  el('scene').disabled = player;
+  el('scene').value = player ? 'avatar' : 'default';
+  el('scene').querySelector('option[value="avatar"]').disabled = !player;
+  el('fov').value = el('type').value === 'headshot' ? 24 : player ? 35 : 50;
+  el('angle').value = 'classic';
+  el('output-help').textContent = player ? 'Transparent PNG · player only' : 'PNG image · game scene';
+  sourceChanged();
 });
 
 el('render-form').addEventListener('submit', async event => {
@@ -93,7 +105,7 @@ el('render-form').addEventListener('submit', async event => {
   showError('');
   el('render-button').disabled = true;
   try {
-    const request = {camera:{...cameras[el('angle').value], fov:Number(el('fov').value)}};
+    const request = {type:el('type').value,camera:{...cameras[el('angle').value], fov:Number(el('fov').value)}};
     if (el('scene').value === 'avatar') {
       request.scene = 'avatar';
       const views = {
@@ -101,6 +113,11 @@ el('render-form').addEventListener('submit', async event => {
         front:{position:[0,3,-12],target:[0,2.6,0]},
         overhead:{position:[7,12,-10],target:[0,2.6,0]}
       };
+      if (request.type === 'headshot') {
+        views.classic = {position:[2.8,4.8,-5.2],target:[0,4.4,0]};
+        views.front = {position:[0,4.6,-6],target:[0,4.4,0]};
+        views.overhead = {position:[2.8,7,-5.2],target:[0,4.4,0]};
+      }
       request.camera = {...views[el('angle').value], fov:Number(el('fov').value)};
     }
     if (el('size').value !== 'native') {

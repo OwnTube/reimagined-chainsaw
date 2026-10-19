@@ -14,7 +14,7 @@ import time
 from urllib.parse import urlsplit
 import uuid
 
-from windows_probe import DEFAULT_CAMERA, AVATAR_CAMERA, render_scene
+from windows_probe import DEFAULT_CAMERA, AVATAR_CAMERA, HEADSHOT_CAMERA, render_scene
 
 STATIC = Path(__file__).with_name('static')
 
@@ -76,17 +76,26 @@ class Renderer:
         return identity
 
     def submit(self, request):
-        if not isinstance(request,dict) or set(request)-{'place_id','camera','size','scene'}:
-            raise ValueError('Render request supports place_id, camera, size, and scene only')
+        if not isinstance(request,dict) or set(request)-{'place_id','camera','size','scene','type'}:
+            raise ValueError('Render request supports type, place_id, camera, size, and scene only')
         request = dict(request)
-        scene = request.get('scene','blocks')
+        render_type=request.get('type','full_body' if request.get('scene')=='avatar' else 'game_thumbnail')
+        if render_type not in ('headshot','full_body','game_thumbnail'):
+            raise ValueError('type must be headshot, full_body, or game_thumbnail')
+        player=render_type!='game_thumbnail'
+        scene = request.get('scene','avatar' if player else 'blocks')
         if scene not in ('blocks','avatar'):
             raise ValueError('scene must be blocks or avatar')
         if 'scene' in request and request.get('place_id') is not None:
             raise ValueError('Choose either a built-in scene or an uploaded place')
+        if (player and (scene!='avatar' or request.get('place_id') is not None)) or (not player and scene=='avatar'):
+            raise ValueError('Player thumbnail types require the avatar scene; game thumbnails require a place or blocks')
+        request['type']=render_type
         request['scene'] = scene
-        request['camera'] = camera_spec(request.get('camera',{}),AVATAR_CAMERA if scene=='avatar' else DEFAULT_CAMERA)
+        defaults=HEADSHOT_CAMERA if render_type=='headshot' else AVATAR_CAMERA if player else DEFAULT_CAMERA
+        request['camera'] = camera_spec(request.get('camera',{}),defaults)
         request['size'] = size_spec(request.get('size'))
+        if player and request['size'] is None:request['size']={'width':512,'height':512}
         identity = request.get('place_id')
         if identity is not None and (not isinstance(identity,str) or not re.fullmatch('[a-f0-9]{64}',identity)
                                     or not (self.root/'places'/(identity+'.rbxl')).is_file()):
@@ -104,7 +113,7 @@ class Renderer:
             db.execute("UPDATE jobs SET state='running' WHERE id=?",(job,))
         try:
             place = self.root/'places'/(request['place_id']+'.rbxl') if request.get('place_id') else None
-            report = self.engine(self.studio,self.root/'jobs'/job,place,request['camera'],request['size'],request['scene'])
+            report = self.engine(self.studio,self.root/'jobs'/job,place,request['camera'],request['size'],request['scene'],request['type'])
             state = 'succeeded' if report.get('engine_render_validated') else 'failed'
         except Exception as error:
             report,state = {'error':str(error),'engine_render_validated':False},'failed'
@@ -147,6 +156,7 @@ def handler(renderer):
             assets = {'/':('index.html','text/html; charset=utf-8'),
                       '/app.js':('app.js','text/javascript; charset=utf-8'),
                       '/style.css':('style.css','text/css; charset=utf-8'),
+                      '/thumbnails.css':('thumbnails.css','text/css; charset=utf-8'),
                       '/logo.png':('logo.png','image/png')}
             if path in assets:
                 name,content_type = assets[path]

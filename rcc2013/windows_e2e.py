@@ -1,4 +1,4 @@
-"""Exercise the actual HTTP API and three real native 2013 rendering jobs."""
+"""Validate game thumbnails, transparent full body, and transparent headshot."""
 import argparse
 import hashlib
 import io
@@ -57,7 +57,8 @@ def main():
         for name,config in [('default',{'size':{'width':512,'height':512}}),
                             ('uploaded',{'place_id':place_id,'size':{'width':640,'height':360},
                                          'camera':{'position':[16,12,22],'target':[0,3,0],'fov':45}}),
-                            ('avatar',{'scene':'avatar','size':{'width':512,'height':512}})]:
+                            ('full-body',{'type':'full_body','size':{'width':512,'height':512}}),
+                            ('headshot',{'type':'headshot','size':{'width':512,'height':512}})]:
             job=request('/v1/renders',config)['id']
             deadline=time.monotonic()+100
             while time.monotonic()<deadline:
@@ -73,10 +74,21 @@ def main():
             (out/(name+'-render.png')).write_bytes(image)
             if list(Image.open(io.BytesIO(image)).size)!=[config['size']['width'],config['size']['height']]:
                 raise RuntimeError('Returned PNG does not match requested native image size')
-            if name=='avatar' and not result['result'].get('avatar_structure_validated'):
-                raise RuntimeError('The R6 avatar construction marker was not observed')
+            if name in ('full-body','headshot'):
+                if not result['result'].get('avatar_structure_validated') or not result['result'].get('avatar_gui_free'):
+                    raise RuntimeError('R6 construction and GUI removal markers were not observed')
+                decoded=Image.open(io.BytesIO(image))
+                if decoded.mode!='RGBA' or decoded.getextrema()[3]!=(0,255):
+                    raise RuntimeError('Player PNG must contain both transparent background and opaque player')
+                if any(decoded.getpixel(p)[3]!=0 for p in ((0,0),(511,0))):
+                    raise RuntimeError('Player thumbnail top corners must be fully transparent')
+                if name=='full-body':
+                    x,y,r,b=decoded.getchannel('A').getbbox()
+                    if min(x,y,512-r,512-b)<8:raise RuntimeError('Full body must fit inside the frame')
         report['two_distinct_images']=report['jobs'][0]['result']['png_sha256']!=report['jobs'][1]['result']['png_sha256']
         if not report['two_distinct_images']:raise RuntimeError('Distinct scenes produced the same image')
+        if report['jobs'][2]['result']['png_sha256']==report['jobs'][3]['result']['png_sha256']:
+            raise RuntimeError('Full body and headshot must be different images')
         report['passed']=True
     finally:
         http.shutdown();http.server_close();renderer.close();thread.join(timeout=5)

@@ -24,10 +24,10 @@ jobs:
       - name: Install capture dependency
         run: python -m pip install Pillow
       - name: Check camera validation and HTTP control plane
-        run: python -m unittest -v test_server.py
+        run: python -m unittest -v test_server.py test_matting.py
       - name: Restore both complete 2013 deployments
         run: python download.py
-      - name: Render blocks, an uploaded place, and a classic R6 player in native Studio
+      - name: Render game thumbnails, transparent full body, and transparent headshot in native Studio
         run: python windows_e2e.py --studio vendor/studio/RobloxStudioBeta.exe
       - name: Verify the branded console displays the native avatar render
         run: python console_capture.py --studio vendor/studio/RobloxStudioBeta.exe --data output/data --output output
