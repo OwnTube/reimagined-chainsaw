@@ -41,12 +41,6 @@
     if (window.ytcfg?.set) window.ytcfg.set({INNERTUBE_HOST_OVERRIDE: location.origin,
       INNERTUBE_API_KEY: 'local', LOGGED_IN: false, DELEGATED_SESSION_ID: '',
       VISITOR_DATA: '', SESSION_INDEX: '0'});
-    const banner = document.createElement('div');
-    banner.style.cssText = 'position:fixed;bottom:12px;left:12px;z-index:2147483647;background:#151515;color:#fff;padding:12px;border-radius:8px;font:14px system-ui';
-    const link = document.createElement('a');
-    link.href = '/?native=1'; link.textContent = 'MewTube · Experimental captured client · Open independent UI';
-    link.addEventListener('click', event => {event.preventDefault();event.stopImmediatePropagation();location.assign('/?native=1');});
-    link.style.color = '#fff'; banner.append(link); document.body.append(banner);
     document.addEventListener('click', event => {
       if(event.defaultPrevented || event.button!==0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
       const anchor = event.target.closest?.('a');

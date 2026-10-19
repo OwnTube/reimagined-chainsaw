@@ -382,7 +382,7 @@ class ServiceTests(unittest.TestCase):
         (client / 'index.html').write_text(markup)
         (client / 'watch.html').write_text(markup)
         (client / 'manifest.json').write_text('{"assets":[],"watchSourceId":"jNQXAC9IVRw"}')
-        status, home, _ = self.request('/official')
+        status, home, _ = self.request('/')
         self.assertEqual(status, 200)
         self.assertIn(b'/bridge.js', home)
         status, watch, _ = self.request('/watch?v=' + video_id)
@@ -393,6 +393,9 @@ class ServiceTests(unittest.TestCase):
         self.assertNotIn(b'/app.js', watch)
         self.assertIn(b'/app.js', self.request('/?native=1')[1])
         self.assertIn(b'/app.js', self.request('/watch?v=' + video_id)[1])
+        self.assertIn(b'/bridge.js', self.request('/watch?v=' + video_id, client=urllib.request.build_opener())[1],
+                      'Fresh visitors must use the actual captured client by default')
+        self.assertIn(b'/bridge.js', self.request('/official')[1], 'Explicit entry must leave the development utility')
 
 
 if __name__ == '__main__':

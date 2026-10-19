@@ -214,7 +214,7 @@ class Handler(BaseHTTPRequestHandler):
         except http.cookies.CookieError:
             cookie = http.cookies.SimpleCookie()
         channel_path = re.fullmatch(r'/channel/(' + ID + ')', path)
-        official = path == '/official' or (cookie.get('mewtube_client') and cookie['mewtube_client'].value == 'official'
+        official = path == '/official' or (not (cookie.get('mewtube_client') and cookie['mewtube_client'].value == 'independent')
                     and (path in ('/', '/watch', '/results', '/feed/subscriptions') or channel_path)
                     and query.get('native') != ['1'] and query.get('signin') != ['1'])
         if official and self.command in ('GET', 'HEAD'):
@@ -300,7 +300,7 @@ class Handler(BaseHTTPRequestHandler):
             raise Error(404, 'Not found')
         if query.get('native') == ['1'] or query.get('signin') == ['1']:
             return self.send((ROOT / 'web' / assets[path]).read_bytes(),
-                headers={'Set-Cookie':'mewtube_client=; Path=/; Max-Age=0; SameSite=Lax; HttpOnly'},
+                headers={'Set-Cookie':'mewtube_client=independent; Path=/; SameSite=Lax; HttpOnly'},
                 content_type='text/html; charset=utf-8')
         return self.file(ROOT / 'web' / assets[path])
 

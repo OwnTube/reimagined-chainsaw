@@ -62,7 +62,7 @@ try {
   page.setDefaultNavigationTimeout(20000);
   const state=await context.storageState();
   await page.context().addCookies(state.cookies);
-  await page.goto(origin);
+  await page.goto(origin+'/?native=1');
   await page.getByRole('link',{name:'Runner test video',exact:true}).waitFor();
   await page.screenshot({path:'evidence/home.png',fullPage:true});
   await page.getByRole('link',{name:'Runner test video',exact:true}).click();
@@ -312,7 +312,7 @@ try {
           diagnostics.capturedClient.nativeSearch.reload=true;
           await page.locator('ytd-search').getByText('Runner test video',{exact:true}).first().click({timeout:8000});
           await page.waitForURL(url=>url.pathname==='/watch' && url.searchParams.get('v')===id,{timeout:8000});
-          await page.locator('ytd-app h1').getByText('Runner test video',{exact:true}).waitFor({timeout:8000});
+          await page.locator('ytd-app h1:visible').getByText('Runner test video',{exact:true}).first().waitFor({timeout:8000});
           diagnostics.capturedClient.nativeSearch.watchNavigation=true;
         }catch(error){
           diagnostics.capturedClient.nativeSearch={...diagnostics.capturedClient.nativeSearch,ok:false,error:error.message.slice(0,300)};

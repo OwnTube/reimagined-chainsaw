@@ -1,5 +1,7 @@
 # Continuation checkpoint
 
+Product requirement clarified: use the actual captured YouTube frontend/player, not a recreated interface. Backend renderer/API data are authored locally for those native components. The separate web/ app is temporary development/account/upload tooling and does not satisfy the native-client goal. Do not count those screens as finished native features. Never import Google-account data from HARs.
+
 Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, draft PR #1. Do not merge or change repository visibility.
 
 ## Current verified native checkpoint: October 19, 2026, 13:25 UTC
@@ -29,6 +31,12 @@ The candidate capture pins a separate signed-out `/results` template, discovers 
 Two user-supplied HARs are analysis-only and stay outside the repository. The first has 117 entries and 105 response bodies, including native account_menu. The second is truncated at 19,900,000 characters; 63 complete entries can be inspected without altering the upload. Only schema names/counts have been extracted; captured requests are never replayed and Google-account data/credentials are never imported. The account menu's openPopupAction/multiPageMenuRenderer contract is a useful next analysis target for a local-only menu.
 
 ### Earlier read-only evidence continued
+
+### Native search reload and modern channel header result (13:39 UTC)
+
+Run `39261704710`, commit `0b2d076`, artifact `12190078436` uploaded 13:39:06 UTC, has acceptanceFailures=[] with all established flows true. Modern native channel title, @handle, subscriber count and ready-video count all pass; the screenshot was inspected. Search submission, local filtering and reload now pass using the separate captured search template. The final watch URL navigation also occurs, but the last title assertion hits two native heading matches (strict locator violation), so full search-to-watch acceptance is not yet claimed. The follow-up scopes that check to a visible heading.
+
+Fresh visits now select the captured client on main routes by default; missing captures return 503 with setup instructions. The independent utility requires explicit /?native=1 selection, retained in an independent-mode cookie. /official switches back to the real captured client. The injected custom development banner is removed entirely: the bridge no longer creates DOM elements. HTTP routing and bridge regressions pass along with all 22 Python methods. Browser proof of these default/overlay changes is pending.
 
 Run `39213121880`, commit `0db7e08`, browser artifact `12168313299` uploaded 07:01:11 UTC, confirms native local comment text and author rendering. Its comment screenshot was inspected: local creator/subscription controls, local title, comment count, author and text render through the actual captured UI. The unrelated-creator decoy is excluded from both native subscription and creator grids. Actual guide clicks, Subscribe/Unsubscribe and reload persistence pass. Playback, official controls, Like/Unlike, local bootstrap/title and guest sign-in return remain true. The channel screenshot establishes a basic filtered grid, not a finished channel banner/header or management UI.
 

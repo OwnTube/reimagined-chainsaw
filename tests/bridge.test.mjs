@@ -5,13 +5,12 @@ import vm from 'node:vm';
 const calls=[];
 const events={},navigations=[];
 let captureClick;
-const element=()=>({style:{},addEventListener(){},append(){}});
 class XHR {open(){} send(){} setRequestHeader(){}}
 const context=vm.createContext({
   Request,Headers,URL,ArrayBuffer,TypeError,
   window:{fetch:async (url,options)=>{calls.push({url,options});return {ok:true};}},
   navigator:{},XMLHttpRequest:XHR,addEventListener(name,callback){events[name]=callback;},
-  document:{createElement:element,body:{append(){}},addEventListener(name,callback){if(name==='click')captureClick=callback;}},
+  document:{addEventListener(name,callback){if(name==='click')captureClick=callback;}},
   location:{href:'http://localhost:3000/official',origin:'http://localhost:3000',assign(url){navigations.push(url);}}
 });
 vm.runInContext(await readFile(new URL('../web/bridge.js',import.meta.url),'utf8'),context);
