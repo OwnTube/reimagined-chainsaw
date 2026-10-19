@@ -218,6 +218,30 @@ class ServiceTests(unittest.TestCase):
             time.sleep(.1)
         self.assertEqual(queued['status'], 'ready', queued)
 
+    def test_07_official_navigation_uses_watch_shell_until_explicit_exit(self):
+        video_id, owner_id = 'public00001', 'fixture0001'
+        with sqlite3.connect(self.data / 'mewtube.sqlite3') as c:
+            c.execute('INSERT INTO users(id,username,password) VALUES(?,?,?)', (owner_id, 'route_fixture', 'unused'))
+            c.execute("INSERT INTO videos(id,owner,title,status,duration,created) VALUES(?,?,?,'ready',1,?)",
+                      (video_id, owner_id, 'Pinned watch entry', int(time.time())))
+        client = self.data / 'client'
+        client.mkdir(exist_ok=True)
+        markup = '<html><head></head><script>var ytInitialData={};var ytInitialPlayerResponse={};var original="jNQXAC9IVRw";</script><ytd-app></ytd-app></html>'
+        (client / 'index.html').write_text(markup)
+        (client / 'watch.html').write_text(markup)
+        (client / 'manifest.json').write_text('{"assets":[],"watchSourceId":"jNQXAC9IVRw"}')
+        status, home, _ = self.request('/official')
+        self.assertEqual(status, 200)
+        self.assertIn(b'/bridge.js', home)
+        status, watch, _ = self.request('/watch?v=' + video_id)
+        self.assertEqual(status, 200)
+        self.assertIn(b'Pinned watch entry', watch)
+        self.assertIn(b'"playabilityStatus":{"status":"OK"}', watch)
+        self.assertNotIn(b'jNQXAC9IVRw', watch)
+        self.assertNotIn(b'/app.js', watch)
+        self.assertIn(b'/app.js', self.request('/?native=1')[1])
+        self.assertIn(b'/app.js', self.request('/watch?v=' + video_id)[1])
+
 
 if __name__ == '__main__':
     unittest.main()

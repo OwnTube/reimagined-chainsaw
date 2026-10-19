@@ -15,6 +15,22 @@ spec.loader.exec_module(capture)
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_lazy_chunks_are_fixed_host_bounded_and_cached(self):
+        import scripts.fetch_client as downloader
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'client' / 'assets').mkdir(parents=True)
+            (root / 'client' / 'manifest.json').write_text('{"assets":[]}')
+            path = '/s/_/ytmainappweb/_/js/k=test/m=watch'
+            with patch.object(snapshot, 'DATA', root), patch.object(downloader, 'fetch', return_value=b'fetch("https://www.youtube.com/youtubei/v1/player")') as fetch:
+                output = snapshot.dynamic_asset(path, 'http://localhost:3000')
+                self.assertTrue(output.is_file())
+                self.assertIn('http://localhost:3000/youtubei', output.read_text())
+                self.assertEqual(snapshot.dynamic_asset(path, 'http://localhost:3000'), output)
+                self.assertEqual(snapshot.dynamic_asset('/s/../../secret.js', 'http://localhost:3000').name, '__missing__')
+                self.assertEqual(snapshot.dynamic_asset('/s/private/account.js', 'http://localhost:3000').name, '__missing__')
+                fetch.assert_called_once_with('https://www.youtube.com' + path)
+
     def test_guest_masthead_preserved_and_account_link_is_local(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

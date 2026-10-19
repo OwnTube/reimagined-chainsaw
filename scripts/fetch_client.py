@@ -18,6 +18,7 @@ from mewtube.store import DATA
 
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36'
 MAX_FILE = 20 * 1024 * 1024
+WATCH_ID = 'jNQXAC9IVRw'  # Public guest HTML only; no video media is fetched.
 
 
 def rewrite_origins(text, origin):
@@ -36,7 +37,9 @@ def allowed(url):
 
 class Redirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
-        if newurl != 'https://www.youtube.com/' and not allowed(newurl):
+        parsed = urllib.parse.urlsplit(newurl)
+        guest_page = parsed.scheme == 'https' and parsed.netloc == 'www.youtube.com' and parsed.path in ('/', '/watch')
+        if not guest_page and not allowed(newurl):
             raise ValueError('Unexpected redirect; capture stopped: ' + urllib.parse.urlsplit(newurl).netloc)
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
@@ -71,12 +74,22 @@ def main():
     html = fetch('https://www.youtube.com/').decode('utf-8')
     if 'ytInitialData' not in html or '<ytd-app' not in html:
         raise SystemExit('YouTube returned a consent/challenge/non-desktop page; no build was pinned.')
-    pending = sorted(u for u in references(html) if allowed(u))
+    watch_html = None
+    page_failures = []
+    try:
+        watch_html = fetch('https://www.youtube.com/watch?v=' + WATCH_ID).decode('utf-8')
+        if 'ytInitialPlayerResponse' not in watch_html or '<ytd-app' not in watch_html:
+            raise ValueError('Guest watch page did not contain the player bootstrap')
+    except Exception as e:
+        page_failures.append({'path': '/watch', 'error': type(e).__name__})
+        watch_html = None
+        print('Guest watch template unavailable:', type(e).__name__, flush=True)
+    pending = sorted(u for u in references(html + (watch_html or '')) if allowed(u))
     # Observed dynamic icon requests from the captured client's browser trace.
     pending += ['https://www.youtube.com/s/i/youtube_outline_experimental/search/v15/24px.svg',
                 'https://www.youtube.com/s/i/youtube_outline_experimental/menu/v1/24px.svg']
     raw_assets = {}
-    failures = []
+    failures = page_failures
     while pending and len(raw_assets) < args.max_assets:
         url = pending.pop(0)
         if url in raw_assets:
@@ -112,7 +125,14 @@ def main():
     staged = client / 'index.html.tmp'
     staged.write_text(rewrite(html))
     staged.replace(client / 'index.html')
+    if watch_html:
+        staged_watch = client / 'watch.html.tmp'
+        staged_watch.write_text(rewrite(watch_html))
+        staged_watch.replace(client / 'watch.html')
+    else:
+        (client / 'watch.html').unlink(missing_ok=True)
     (client / 'manifest.json').write_text(json.dumps({'capturedAt': int(time.time()), 'publicOrigin': origin, 'assets': entries,
+        'watchTemplate': bool(watch_html), 'watchSourceId': WATCH_ID,
         'failures': failures, 'remaining': len(pending), 'status': 'experimental-unverified'}, indent=2))
     print(f'Pinned {len(entries)} assets; {len(failures)} failures, {len(pending)} remaining. Experimental client: /official')
 

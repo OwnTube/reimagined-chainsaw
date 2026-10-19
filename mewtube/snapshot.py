@@ -2,9 +2,12 @@
 import hashlib
 import json
 import re
+import threading
 from urllib.parse import urlsplit
 from . import innertube
 from .store import DATA
+
+CAPTURE_LOCK = threading.Lock()
 
 
 def asset_path(name):
@@ -25,6 +28,50 @@ def original_asset(path):
     return DATA / 'client' / '__missing__'
 
 
+def dynamic_asset(path, origin):
+    """Cache lazy client chunks from fixed public static paths, never arbitrary URLs."""
+    existing = original_asset(path)
+    if existing.is_file():
+        return existing
+    from scripts.fetch_client import allowed, fetch, rewrite_origins
+    missing = DATA / 'client' / '__missing__'
+    if not re.fullmatch(r'/s/[A-Za-z0-9_.,=/\-]+', path) or '..' in path:
+        return missing
+    url = 'https://www.youtube.com' + path
+    if not allowed(url):
+        return missing
+    with CAPTURE_LOCK:
+        existing = original_asset(path)
+        if existing.is_file():
+            return existing
+        manifest_path = DATA / 'client' / 'manifest.json'
+        try:
+            manifest = json.loads(manifest_path.read_text())
+            entries = manifest['assets']
+            if len(entries) >= 500:
+                return missing
+            directory = DATA / 'client' / 'assets'
+            used = sum(f.stat().st_size for f in directory.iterdir() if f.is_file())
+            if used >= 384 * 1024 * 1024:
+                return missing
+            raw = fetch(url)
+            if used + len(raw) > 384 * 1024 * 1024 or raw.lstrip().lower().startswith(b'<!doctype html'):
+                return missing
+            name = asset_name(url)
+            served = rewrite_origins(raw.decode(), origin).encode() if name.endswith(('.js', '.css')) else raw
+            temporary = directory / (name + '.tmp')
+            temporary.write_bytes(served)
+            temporary.replace(directory / name)
+            entries.append({'url': url, 'file': name, 'sha256': hashlib.sha256(raw).hexdigest(),
+                            'served_sha256': hashlib.sha256(served).hexdigest(), 'runtime': True})
+            staged = manifest_path.with_suffix('.json.tmp')
+            staged.write_text(json.dumps(manifest, indent=2))
+            staged.replace(manifest_path)
+            return directory / name
+        except (OSError, ValueError, KeyError, TypeError):
+            return missing
+
+
 def replace_json_assignment(html, name, value):
     pattern = re.compile(r'(?:var\s+)?' + re.escape(name) + r'\s*=\s*')
     for match in reversed(list(pattern.finditer(html))):
@@ -37,12 +84,13 @@ def replace_json_assignment(html, name, value):
     return html
 
 
-def shell(c, origin):
-    target = DATA / 'client' / 'index.html'
+def shell(c, origin, watch_id=None, search_query=None):
+    target = DATA / 'client' / ('watch.html' if watch_id else 'index.html')
     if not target.is_file():
         return None
     html = target.read_text()
-    initial = innertube.response(c, 'browse', {}, origin)
+    operation = 'next' if watch_id else ('search' if search_query is not None else 'browse')
+    initial = innertube.response(c, operation, {'videoId': watch_id, 'query': search_query or ''}, origin)
     # Keep the guest masthead's renderer structure; replacing it with only feed
     # contents leaves the actual client's header as a permanent loading skeleton.
     match = re.search(r'(?:var\s+)?ytInitialData\s*=\s*', html)
@@ -59,7 +107,15 @@ def shell(c, origin):
         except (ValueError, AttributeError, TypeError):
             pass
     html = replace_json_assignment(html, 'ytInitialData', initial)
-    html = replace_json_assignment(html, 'ytInitialPlayerResponse', {})
+    player = innertube.response(c, 'player', {'videoId': watch_id}, origin) if watch_id else {}
+    html = replace_json_assignment(html, 'ytInitialPlayerResponse', player)
+    if watch_id:
+        try:
+            source_id = json.loads((DATA / 'client' / 'manifest.json').read_text()).get('watchSourceId', '')
+            if re.fullmatch(r'[A-Za-z0-9_-]{11}', source_id):
+                html = html.replace(source_id, watch_id)
+        except (OSError, ValueError, TypeError):
+            pass
     # The bridge executes before captured inline code; all network APIs stay local.
     html = html.replace('<head>', '<head><script src="/bridge.js"></script>', 1)
     html = re.sub(r'<base\b[^>]*>', '', html, flags=re.I)

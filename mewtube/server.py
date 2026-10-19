@@ -175,15 +175,26 @@ class Handler(BaseHTTPRequestHandler):
             from .snapshot import asset_path
             return self.file(asset_path(path.removeprefix('/client-assets/')))
         if path.startswith('/s/') and self.command in ('GET', 'HEAD'):
-            from .snapshot import original_asset
-            return self.file(original_asset(path))
-        if path == '/official' and self.command in ('GET', 'HEAD'):
+            from .snapshot import dynamic_asset
+            self.limit('client-assets', 240)
+            return self.file(dynamic_asset(path, ORIGIN))
+        cookie = http.cookies.SimpleCookie()
+        try:
+            cookie.load(self.headers.get('Cookie', ''))
+        except http.cookies.CookieError:
+            cookie = http.cookies.SimpleCookie()
+        official = path == '/official' or (cookie.get('mewtube_client') and cookie['mewtube_client'].value == 'official'
+                    and path in ('/', '/watch', '/results') and query.get('native') != ['1'] and query.get('signin') != ['1'])
+        if official and self.command in ('GET', 'HEAD'):
             from .snapshot import shell
+            watch_id = query.get('v', [None])[0] if path in ('/watch', '/official') else None
+            if watch_id and not re.fullmatch(ID, watch_id):
+                raise Error(400, 'Invalid video ID')
             with db() as c:
-                content = shell(c, ORIGIN)
+                content = shell(c, ORIGIN, watch_id, query.get('search_query', [None])[0] if path == '/results' else None)
             if content is None:
-                raise Error(503, 'No captured client. Run python scripts/fetch_client.py first. The independent UI is at /.')
-            return self.send(content, content_type='text/html; charset=utf-8')
+                raise Error(503, 'Captured client page unavailable. Run python scripts/fetch_client.py --latest. Independent UI: /?native=1')
+            return self.send(content, headers={'Set-Cookie':'mewtube_client=official; Path=/; SameSite=Lax; HttpOnly'}, content_type='text/html; charset=utf-8')
         if path.startswith('/youtubei/v1/') and self.command == 'POST':
             body = self.json_body()
             operation = path.removeprefix('/youtubei/v1/')
@@ -203,6 +214,10 @@ class Handler(BaseHTTPRequestHandler):
                   '/subscriptions': 'index.html', '/channel': 'index.html', '/admin': 'index.html'}
         if path not in assets:
             raise Error(404, 'Not found')
+        if query.get('native') == ['1'] or query.get('signin') == ['1']:
+            return self.send((ROOT / 'web' / assets[path]).read_bytes(),
+                headers={'Set-Cookie':'mewtube_client=; Path=/; Max-Age=0; SameSite=Lax; HttpOnly'},
+                content_type='text/html; charset=utf-8')
         return self.file(ROOT / 'web' / assets[path])
 
     def api(self, path, query):

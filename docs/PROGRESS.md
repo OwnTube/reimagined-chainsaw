@@ -9,7 +9,7 @@ Project: MewTube. Repository: `vibecodeforever/reimagined-chainsaw`, branch `fea
 - Captured a live guest YouTube page and 23 static files, including current modern main bundle URLs, with zero capture failures. Files are ignored and instance-local; fresh workers need to recapture.
 - Implemented independent interface, auth, uploads/transcoding/playback, search, channels, subscriptions, likes, comments, reports and host-granted operator role.
 - Implemented candidate InnerTube browse/search/player/next renderers, capture bootstrap replacement and fetch/XHR transport bridge.
-- Ten local test methods pass, including actual FFmpeg transcoding and byte-range reads. A send-before-commit race found by the tests was corrected in mutation response paths.
+- Twelve local test methods pass, including actual FFmpeg transcoding and byte-range reads. A send-before-commit race found by the tests was corrected in mutation response paths.
 - First GitHub Actions run (39180980209) completed: HTTP tests and independent browser playback, likes, comments and mobile width checks passed. Screenshots inspected. Official client capture failed because scripts/operator.py shadowed Python stdlib operator in a fresh interpreter. Renamed it to scripts/manage_operator.py and added fresh-interpreter CLI startup regression coverage. REA in that run had no capture to analyze; it was not a successful analysis. Docker Compose build/start and HTTP/FFmpeg health were subsequently verified in run 39181455425 (container job).
 
 - Restart integration test now confirms session/video durability, queued-job recovery, and cleanup of partial HTTP uploads.
@@ -34,3 +34,11 @@ Project: MewTube. Repository: `vibecodeforever/reimagined-chainsaw`, branch `fea
 - Do not commit downloaded proprietary clients, cookies, raw HAR captures, secrets, user uploads, SQLite files, node_modules, or data/client.
 - No YouTube/Google account or personal credentials are needed or authorized for this project.
 - Keep clear separation in reporting: working independent service, experimental captured official client, and unexecuted checks.
+
+## Latest watch-path work
+
+- Screenshot from run 39181670534 proved the older generic-video watch probe was a false positive: the click had fully navigated into the independent interface. Official watch playback is NOT verified.
+- Added a guest watch HTML capture (public page metadata only, never upstream video media), local `ytInitialData`/`ytInitialPlayerResponse` injection, replacement of the sample source video ID, and a view-preference cookie so `/watch` remains in the captured client. `/?native=1` and local sign-in explicitly exit that mode. HTTP regression coverage confirms the routing switch without pretending that fixture HTML proves browser compatibility.
+- Watch-page capture exposed a separate base-module loader. Added bounded on-demand static-chunk caching: fixed www.youtube.com static paths only, no query URLs/traversal or forwarded cookies, 20 MB/file, 500 entries and 384 MB total cache. Tests verify host restriction, origin rewriting and cache reuse.
+- Local home+watch capture obtained 26 assets and a valid watch template. Seven icon requests returned HTTP errors; do not describe that pin as zero-failure. Earlier home-only pin had 23 assets/zero failures.
+- Next priority: inspect the latest strict `ytd-app #movie_player video` probe, its failure stack and sanitized request origins; fix real official-player boot/API failures. Masthead and worker-origin changes also need the latest browser evidence.
