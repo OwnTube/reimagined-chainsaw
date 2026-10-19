@@ -1,0 +1,31 @@
+{
+  "observed_date": "2026-10-19",
+  "workflow_run": 39211411785,
+  "source_commit": "13ae1059f33c425831264181c53ea24a9403d795",
+  "python_tests_passed": 29,
+  "compiler_vm_roundtrip_passed": true,
+  "unwind_report_matches_local": true,
+  "unwind_report": "unwind-groups-743.json",
+  "rea": {
+    "validated": true,
+    "operation": "inspect_pe_resources",
+    "evidence_id": "ev_42c9ad1cbcaa2a4eca93676e15a5acedecd878ee255c81fd9cc8da5561970403",
+    "artifact_sha256": "cc70176d50d5f2c1edc26d40f1fcdc530748fc83dedc63c2fdbb251f766972d2",
+    "resource_records": 7,
+    "elapsed_seconds": 88.985
+  },
+  "native_studio_launches": "all skipped",
+  "engine_execution_in_this_run": false,
+  "render_validated": false,
+  "server_hosting_validated": false,
+  "client_join_validated": false,
+  "complete_candidate_abi_validated": false,
+  "hooks_installed": false,
+  "limitations": [
+    "Static low-byte assignments and caller uses do not prove runtime outcomes or complete argument layouts.",
+    "Historical pointer-return hook assumptions are inconsistent with this build's observed low-byte result use.",
+    "Chained unwind membership is not proof of complete function extent or reachability.",
+    "Native engine API dumping was validated in earlier runs, not repeated in this static-only run.",
+    "The previously accepted local-server launch still stopped at sign-in; no authentication state was changed."
+  ]
+}
