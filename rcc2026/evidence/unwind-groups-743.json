@@ -1,0 +1,395 @@
+{
+  "artifact_sha256": "cc70176d50d5f2c1edc26d40f1fcdc530748fc83dedc63c2fdbb251f766972d2",
+  "exception_table_entries": 411984,
+  "unsupported_unwind_entries": 0,
+  "unresolved_chains": {},
+  "decoder_distribution": "capstone==5.0.9",
+  "groups": [
+    {
+      "seed_rva": 81647120,
+      "primary_runtime_function": [
+        81647120,
+        81647153,
+        200207388
+      ],
+      "members": [
+        [
+          81647120,
+          81647153,
+          200207388
+        ],
+        [
+          81647153,
+          81647403,
+          205235392
+        ],
+        [
+          81647403,
+          81647421,
+          205235412
+        ],
+        [
+          81647421,
+          81647456,
+          205235432
+        ],
+        [
+          81647456,
+          81647462,
+          205235412
+        ]
+      ],
+      "total_code_bytes": 342,
+      "instruction_count": 95,
+      "direct_edges": [
+        {
+          "rva": 81647136,
+          "kind": "call",
+          "target_rva": 67837792,
+          "target_in_group": false,
+          "target_boundary_in_group": null
+        },
+        {
+          "rva": 81647144,
+          "kind": "je",
+          "target_rva": 81647421,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647158,
+          "kind": "call",
+          "target_rva": 67846160,
+          "target_in_group": false,
+          "target_boundary_in_group": null
+        },
+        {
+          "rva": 81647189,
+          "kind": "jne",
+          "target_rva": 81647385,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647215,
+          "kind": "jbe",
+          "target_rva": 81647456,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647232,
+          "kind": "jb",
+          "target_rva": 81647237,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647241,
+          "kind": "jne",
+          "target_rva": 81647286,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647246,
+          "kind": "je",
+          "target_rva": 81647286,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647252,
+          "kind": "ja",
+          "target_rva": 81647286,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647262,
+          "kind": "jb",
+          "target_rva": 81647267,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647271,
+          "kind": "jb",
+          "target_rva": 81647276,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647284,
+          "kind": "je",
+          "target_rva": 81647403,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647294,
+          "kind": "je",
+          "target_rva": 81647336,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647304,
+          "kind": "jne",
+          "target_rva": 81647331,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647316,
+          "kind": "jne",
+          "target_rva": 81647331,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647329,
+          "kind": "je",
+          "target_rva": 81647312,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647334,
+          "kind": "jmp",
+          "target_rva": 81647375,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647346,
+          "kind": "jne",
+          "target_rva": 81647375,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647373,
+          "kind": "je",
+          "target_rva": 81647360,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647379,
+          "kind": "je",
+          "target_rva": 81647200,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 81647433,
+          "kind": "call",
+          "target_rva": 60552496,
+          "target_in_group": false,
+          "target_boundary_in_group": null
+        },
+        {
+          "rva": 81647450,
+          "kind": "call",
+          "target_rva": 124517002,
+          "target_in_group": false,
+          "target_boundary_in_group": null
+        },
+        {
+          "rva": 81647456,
+          "kind": "call",
+          "target_rva": 8058048,
+          "target_in_group": false,
+          "target_boundary_in_group": null
+        }
+      ],
+      "indirect_edges": [
+        {
+          "rva": 81647276,
+          "kind": "call"
+        }
+      ],
+      "return_sites": [
+        81647402,
+        81647420
+      ],
+      "near_return_byte_assignments": [
+        {
+          "assignment_rva": 81647390,
+          "return_site_rva": 81647402,
+          "register": "AL",
+          "constant": 0,
+          "scope": "nearby linear observation, not path/value proof"
+        },
+        {
+          "assignment_rva": 81647408,
+          "return_site_rva": 81647420,
+          "register": "AL",
+          "constant": 1,
+          "scope": "nearby linear observation, not path/value proof"
+        }
+      ],
+      "named_literal_references": [
+        {
+          "rva": 81647421,
+          "target_rva": 151471072,
+          "label": "http_service_uninitialized",
+          "literal_sha256": "847881d2656b74c2ea47592d73df087c0543b101feb995870666790f2ea04464"
+        }
+      ]
+    },
+    {
+      "seed_rva": 67837792,
+      "primary_runtime_function": [
+        67837792,
+        67837829,
+        199798612
+      ],
+      "members": [
+        [
+          67837792,
+          67837829,
+          199798612
+        ],
+        [
+          67837829,
+          67837882,
+          204136784
+        ],
+        [
+          67837882,
+          67837944,
+          204136804
+        ],
+        [
+          67837944,
+          67837956,
+          204136824
+        ]
+      ],
+      "total_code_bytes": 164,
+      "instruction_count": 47,
+      "direct_edges": [
+        {
+          "rva": 67837808,
+          "kind": "je",
+          "target_rva": 67837824,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 67837817,
+          "kind": "je",
+          "target_rva": 67837824,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 67837819,
+          "kind": "call",
+          "target_rva": 67847760,
+          "target_in_group": false,
+          "target_boundary_in_group": null
+        },
+        {
+          "rva": 67837827,
+          "kind": "je",
+          "target_rva": 67837944,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 67837841,
+          "kind": "je",
+          "target_rva": 67837882,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 67837850,
+          "kind": "je",
+          "target_rva": 67837860,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 67837852,
+          "kind": "call",
+          "target_rva": 8380288,
+          "target_in_group": false,
+          "target_boundary_in_group": null
+        },
+        {
+          "rva": 67837863,
+          "kind": "jne",
+          "target_rva": 67837885,
+          "target_in_group": true,
+          "target_boundary_in_group": true
+        },
+        {
+          "rva": 67837889,
+          "kind": "call",
+          "target_rva": 67849792,
+          "target_in_group": false,
+          "target_boundary_in_group": null
+        }
+      ],
+      "indirect_edges": [],
+      "return_sites": [
+        67837881,
+        67837943,
+        67837955
+      ],
+      "near_return_byte_assignments": [],
+      "named_literal_references": []
+    }
+  ],
+  "selected_call_result_consumers": [
+    {
+      "call_rva": 81629443,
+      "target_rva": 81647120,
+      "consumer_rva": 81629448,
+      "boundary_verified": true,
+      "low_return_byte_use": "test_low_return_byte"
+    },
+    {
+      "call_rva": 81632234,
+      "target_rva": 81647120,
+      "consumer_rva": 81632239,
+      "boundary_verified": true,
+      "low_return_byte_use": "zero_extend_low_return_byte"
+    },
+    {
+      "call_rva": 81636276,
+      "target_rva": 81647120,
+      "consumer_rva": 81636281,
+      "boundary_verified": true,
+      "low_return_byte_use": "test_low_return_byte"
+    },
+    {
+      "call_rva": 81669935,
+      "target_rva": 81647120,
+      "consumer_rva": 81669940,
+      "boundary_verified": true,
+      "low_return_byte_use": "test_low_return_byte"
+    },
+    {
+      "call_rva": 81821113,
+      "target_rva": 81647120,
+      "consumer_rva": 81821118,
+      "boundary_verified": true,
+      "low_return_byte_use": "test_low_return_byte"
+    }
+  ],
+  "runtime_validated": false,
+  "hooks_installed": false,
+  "limitations": [
+    "Chained unwind membership is not a complete control-flow or function-identity proof.",
+    "Linear decoding does not establish branch feasibility, argument layouts, or runtime values.",
+    "Nearby AL assignments and selected caller uses do not prove a complete return-type ABI.",
+    "Indirect targets and exception-handler paths are not resolved.",
+    "Only V1 unwind records are supported; selected seeds fail closed if unresolved.",
+    "No code, authentication, URL routing, or runtime state was modified."
+  ]
+}

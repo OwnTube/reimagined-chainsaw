@@ -1,10 +1,27 @@
 import struct
 import unittest
 
-from inspect_unwind_groups import parse_unwind_info, resolve_root
+from capstone import Cs, CS_ARCH_X86, CS_MODE_64
+from inspect_unwind_groups import (parse_unwind_info, resolve_root,
+                                   byte_constant_observation, classify_result_consumer)
 
 
 class UnwindMetadataTests(unittest.TestCase):
+    def decode(self, data):
+        decoder = Cs(CS_ARCH_X86, CS_MODE_64)
+        decoder.detail = True
+        return next(decoder.disasm(data, 0x1000))
+
+    def test_low_byte_assignments_are_distinct_from_full_register_writes(self):
+        self.assertEqual(byte_constant_observation(self.decode(b'\x30\xc0')), 0)
+        self.assertEqual(byte_constant_observation(self.decode(b'\xb0\x01')), 1)
+        self.assertIsNone(byte_constant_observation(self.decode(b'\x31\xc0')))
+
+    def test_low_byte_consumers_do_not_accept_full_register_tests(self):
+        self.assertEqual(classify_result_consumer(self.decode(b'\x84\xc0')), 'test_low_return_byte')
+        self.assertEqual(classify_result_consumer(self.decode(b'\x0f\xb6\xd8')), 'zero_extend_low_return_byte')
+        self.assertIsNone(classify_result_consumer(self.decode(b'\x48\x85\xc0')))
+
     def test_odd_slot_count_has_two_byte_padding_before_chain(self):
         parent = (0x1000, 0x1021, 0x3000)
         header = bytes((1 | (4 << 3), 0, 1, 0))

@@ -5,6 +5,14 @@ on:
     paths: ["rcc2026/**", ".github/workflows/rcc2026-windows.yml"]
   workflow_dispatch:
     inputs:
+      api:
+        description: Revalidate native API dumping for a new startup hypothesis
+        type: boolean
+        default: false
+      script:
+        description: Attempt RunScript only for a new execution hypothesis
+        type: boolean
+        default: false
       render:
         description: Attempt viewport capture; may fail if Studio needs interactive permission
         type: boolean
@@ -64,12 +72,13 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           ctest --test-dir ci-build --build-config Release --output-on-failure
       - name: Attempt native Studio API dump
+        if: github.event_name == 'workflow_dispatch' && inputs.api
         continue-on-error: true
         run: python dump_windows_api.py --studio ci-studio/RobloxStudioBeta.exe --output ci-output/api
       - name: Attempt native Studio RunScript
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' && (inputs.script || inputs.render)
         env:
-          REQUEST_RENDER: ${{ github.event_name == 'push' || inputs.render }}
+          REQUEST_RENDER: ${{ inputs.render }}
         run: |
           $probeArgs = @('windows_probe.py', '--studio', 'ci-studio/RobloxStudioBeta.exe', '--output', 'ci-output/runtime')
           if ($env:REQUEST_RENDER -eq 'true') { $probeArgs += '--render' }

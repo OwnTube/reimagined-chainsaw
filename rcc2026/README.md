@@ -6,7 +6,7 @@ The Windows workflow downloads vendor packages directly from Roblox, verifies th
 
 Only test source and configuration are committed. Roblox executables, proprietary decompiler output, account credentials, and cookies are not included. Upstream pattern-data and Luau licenses are included.
 
-The workflow runs on pushes to rcc2026-ci and can be manually dispatched. Results and failures are retained as a CI artifact for seven days.
+The workflow runs static/component checks on pushes to rcc2026-ci and can be manually dispatched. Native Studio execution requires an explicit manual input (`api`, `script`, `render`, or `server`) for a new hypothesis; static-only changes do not launch Studio. Results and failures are retained as a CI artifact for seven days.
 
 ## First Windows run: 2026-10-19
 
@@ -64,7 +64,7 @@ The next read-only experiment compares six upstream offline URL-adapter signatur
 
 The workflow also invokes the requested REA tool (`rea-agents` pinned to 6.7.0) to record independent PE resource identities, ranges, and hashes. This metadata-only operation does not need a native provider or execute Studio. Its file budget explicitly accommodates the 225 MB executable. The step is bounded and non-blocking so a package/provider failure cannot hide the other test evidence.
 
-Normal pushes run these static/component/API checks. The known sign-in-blocked server command is now opt-in via the manual `server` input rather than repeated on every push. RunScript remains opt-in through manual dispatch. A clean static-only CI run is not evidence of server hosting.
+At this checkpoint, normal pushes ran static/component/API checks. The known sign-in-blocked server command became opt-in via the manual `server` input rather than repeated on every push. RunScript remained opt-in through manual dispatch. The later chained-unwind checkpoint makes all native execution explicit (see the current workflow description above). A clean static-only CI run is not evidence of server hosting.
 
 ## Measured offline-adapter compatibility
 
@@ -96,10 +96,18 @@ Next analysis should follow the verified call at `0x04e07db9` from the HTTP-erro
 
 ## Chained-unwind recovery
 
-`inspect_unwind_groups.py` follows [Microsoft's documented chained-unwind format](https://learn.microsoft.com/en-us/cpp/build/exception-handling-x64). It validates the executable hash, resolves primary runtime-function records, groups their explicitly linked secondary fragments, and records selected control-flow locations without emitting code bytes. It rejects malformed trailers, unsupported versions/flags, absent chain records, cycles, and excessive nesting. Six new synthetic tests cover these boundaries; all twenty-five Python tests pass locally.
+`inspect_unwind_groups.py` follows [Microsoft's documented chained-unwind format](https://learn.microsoft.com/en-us/cpp/build/exception-handling-x64). It validates the executable hash, resolves primary runtime-function records, groups their explicitly linked secondary fragments, and records selected control-flow locations without emitting code bytes. Selected groups fail closed for malformed trailers, unsupported versions/flags, absent chain records, cycles, and excessive nesting; unsupported or unresolved entries elsewhere are counted in the report. Eight new synthetic tests cover metadata and low-byte observations; all twenty-seven Python tests pass locally.
 
 The exact image contains 411,984 exception-table entries. The first local scan resolved every chain using V1 metadata, with no unsupported entries. The earlier 33-byte candidate range is the primary entry of **five linked fragments totaling 342 bytes** (95 linearly decoded instructions). Its helper at `0x040b1f60` has four linked fragments totaling 164 bytes (47 instructions). This recovers more than the prologue without guessing where the function ends.
 
 The candidate's linked fragment at `0x04ddd73d` references a service-uninitialized error naming `HttpRbxApiService::isHttpCallAllowedToUrl`. This is static evidence connecting the candidate to HTTP URL permission/service initialization, **not proof that it controls Studio sign-in**. Modifying this candidate would not by itself establish accountless startup, rendering, or hosting. Its argument layouts and return semantics remain unvalidated; no hook was installed.
 
 The report distinguishes direct and unresolved indirect edges, verifies internal direct-branch targets against decoded instruction boundaries, and records the error literal's hash rather than its plaintext. Chained membership and linear decoding do not prove reachability, branch feasibility, or complete function identity; exception-handler paths are not followed. Windows CI now reproduces the new analysis with a two-minute limit, without rerunning the unchanged login-blocked server command.
+
+[Run 39209935842](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39209935842), commit `cf270952a50b73b3858f351462abe3d717f57b45`, passed on Windows on 2026-10-19: twenty-five tests, initial unwind-group analysis, REA metadata inspection, compiler/VM round-trip, and native API dumping (exit zero, 943 classes). Subsequent return-byte checks below are a new static hypothesis. Future push runs no longer launch even the already-validated API dump: each native mode requires its own explicit manual input. Requesting API dumping alone no longer also launches the known sign-in-blocked RunScript mode.
+
+### Historical return-type mismatch
+
+The two decoded normal return sequences have nearby explicit assignments of `AL=0` and `AL=1`. All five previously identified, boundary-verified direct callers immediately consume `AL`: four test that byte, and one zero-extends it. The [historical adapter source](https://github.com/noobwarrior-org/noobwarrior/blob/6f999f739b5e11febd270420657f4334979a54aa/Hook/LocalRcc/LocalRcc.cpp) instead declares `not_trusted_fn` as returning `char*` and returns a pointer to a status string from its hook. That pointer-return assumption is inconsistent with the low-byte result use observed in this build. Reusing the old hook would make a caller's result depend on pointer bits, not the pointed-to string.
+
+These observations support a Boolean-like low-byte result, not a complete recovered C++ signature or proof of runtime branch outcomes. The scanner emits only assignment locations/constants and consumer classifications; it does not print the decoded instruction stream. The durable [unwind and result-use report](evidence/unwind-groups-743.json) preserves the exact artifact identity and limitations. No historical hook has been applied.
