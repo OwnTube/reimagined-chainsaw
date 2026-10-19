@@ -1,0 +1,98 @@
+{
+  "independentClient": {
+    "playback": true,
+    "interactions": true
+  },
+  "capturedClient": {
+    "customElementDefined": true,
+    "localTitleVisible": true,
+    "sameOrigin": true,
+    "localMediaResponse": true,
+    "media": {
+      "ok": true,
+      "paused": false,
+      "ended": false
+    },
+    "player": {
+      "errorVisible": false,
+      "errorClass": false
+    },
+    "watchBootstrap": {
+      "local": true,
+      "present": true,
+      "localAccount": true
+    },
+    "watchLocalTitleVisible": true,
+    "playback": true,
+    "controls": {
+      "ok": true,
+      "pause": true,
+      "seek": true,
+      "resume": true
+    },
+    "localAccountVisible": true,
+    "nativeLikes": {
+      "unlike": true,
+      "like": true,
+      "persisted": true
+    },
+    "nativeComments": {
+      "visible": true,
+      "localAuthor": true,
+      "created": true,
+      "liveInsert": true,
+      "persisted": true
+    },
+    "nativeSubscriptions": {
+      "subscribe": true,
+      "persisted": true,
+      "feed": true,
+      "guide": true,
+      "excludesUnfollowed": true,
+      "channel": true,
+      "excludesOtherCreator": true,
+      "unsubscribe": true
+    },
+    "guestLocalSignIn": true,
+    "localAccountHandoff": true,
+    "nativeAccountMenu": {
+      "opened": true,
+      "localIdentity": true,
+      "ownChannel": true
+    },
+    "nativeSearch": {
+      "submitted": true,
+      "localResult": true,
+      "excludesNonmatch": true,
+      "reload": true,
+      "watchNavigation": true
+    },
+    "nativeChannelHeader": {
+      "title": true,
+      "handle": true,
+      "subscriberCount": true,
+      "readyVideoCount": true
+    },
+    "nativeLikedPlaylist": {
+      "guide": true,
+      "localVideo": true,
+      "excludesUnliked": true,
+      "reload": true,
+      "watchNavigation": true,
+      "unlikeRemoves": true,
+      "pagination": true,
+      "compactLayout": true
+    },
+    "nativeCommentAuthor": {
+      "navigation": true,
+      "localChannel": true
+    },
+    "nativeCommentVotes": {
+      "like": true,
+      "persisted": true,
+      "dislike": true,
+      "clear": true,
+      "localCounts": true
+    }
+  }
+}
