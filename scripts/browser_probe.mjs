@@ -91,7 +91,7 @@ try {
   diagnostics.capturedClient.nativeApi=[];
   page.on('response',async response=>{
     const path=new URL(response.url()).pathname;
-    if(!['/youtubei/v1/like/like','/youtubei/v1/like/removelike','/youtubei/v1/subscription/subscribe','/youtubei/v1/subscription/unsubscribe','/youtubei/v1/comment/create_comment'].includes(path))return;
+    if(!['/youtubei/v1/like/like','/youtubei/v1/like/removelike','/youtubei/v1/subscription/subscribe','/youtubei/v1/subscription/unsubscribe','/youtubei/v1/comment/create_comment','/youtubei/v1/account/account_menu'].includes(path))return;
     const entry={path,status:response.status(),gzip:response.request().headers()['content-encoding']==='gzip'};
     diagnostics.capturedClient.nativeApi.push(entry);
     if(response.status()>=400)try{const data=await response.json();entry.error=typeof data.error==='string'?data.error.slice(0,120):null;}catch{}
@@ -107,6 +107,21 @@ try {
     await checkpoint('official-home-inspected');
     await page.screenshot({path:'evidence/official-experimental.png',fullPage:true,timeout:10000});
     if(diagnostics.capturedClient.status==='home-rendered'){
+      try {
+        await page.getByRole('button',{name:'MewTube @'+username,exact:true}).click({timeout:8000});
+        const menu=page.locator('ytd-multi-page-menu-renderer:visible').first();
+        await menu.getByText('@'+username,{exact:true}).waitFor({timeout:8000});
+        diagnostics.capturedClient.nativeAccountMenu={opened:true,localIdentity:true};
+        await page.screenshot({path:'evidence/official-account-menu.png',fullPage:true,timeout:10000});
+        await menu.getByText('Your channel',{exact:true}).click({timeout:8000});
+        const viewer=(await (await context.get('/api/me')).json()).user;
+        await page.waitForURL(url=>url.pathname==='/channel/'+viewer.id,{timeout:8000});
+        await page.locator('yt-page-header-view-model').getByText('@'+username,{exact:true}).waitFor({timeout:8000});
+        diagnostics.capturedClient.nativeAccountMenu.ownChannel=true;
+      }catch(error){diagnostics.capturedClient.nativeAccountMenu={...diagnostics.capturedClient.nativeAccountMenu,ok:false,error:error.message.slice(0,300)};}
+      await page.goto(origin+'/official');
+      await page.getByText('Runner test video',{exact:true}).first().waitFor({timeout:10000});
+      await checkpoint('official-account-menu-inspected');
       try{
         await page.getByText('Runner test video',{exact:true}).first().click({timeout:10000});
         const officialVideo=page.locator('ytd-app #movie_player video').first();
@@ -277,7 +292,7 @@ try {
         guestPage.on('response',response=>{if(response.status()>=400 && diagnostics.capturedClient.guestFailedPaths.length<30)
           diagnostics.capturedClient.guestFailedPaths.push(response.status()+' '+new URL(response.url()).pathname.slice(0,160));});
         try {
-          await guestPage.goto(origin+'/official?v='+id);
+          await guestPage.goto(origin+'/watch?v='+id);
           const guestApp=guestPage.locator('ytd-app');
           const guestLike=guestApp.getByRole('button',{name:/^(Like|Unlike) this video$/})
             .or(guestApp.getByRole('link',{name:/^(Like|Unlike) this video$/})).first();

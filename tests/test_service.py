@@ -317,6 +317,25 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(stored[0]['username'], 'native_commenter', 'Body author IDs must not impersonate another account')
         self.assertEqual(stored[0]['id'], model['commentId'])
 
+    def test_12_native_account_menu_uses_only_local_identity(self):
+        path = '/youtubei/v1/account/account_menu'
+        self.assertEqual(self.request(path, {}, client=urllib.request.build_opener())[0], 401)
+        user = self.account('local_menu_viewer')
+        status, result, _ = self.request(path, raw=gzip.compress(b'{}'), headers={'Content-Encoding':'gzip'})
+        self.assertEqual(status, 200)
+        popup = result['actions'][0]['openPopupAction']
+        self.assertEqual(popup['popupType'], 'DROPDOWN')
+        menu = popup['popup']['multiPageMenuRenderer']
+        header = menu['header']['activeAccountHeaderRenderer']
+        self.assertEqual(header['accountName']['simpleText'], user['username'])
+        self.assertEqual(header['channelHandle']['simpleText'], '@'+user['username'])
+        links = menu['sections'][0]['multiPageMenuSectionRenderer']['items']
+        destinations = [item['compactLinkRenderer']['navigationEndpoint']['commandMetadata']['webCommandMetadata']['url'] for item in links]
+        self.assertEqual(destinations, ['/channel/'+user['id'], '/feed/subscriptions'])
+        self.assertNotIn('google', json.dumps(result).lower())
+        self.assertNotIn('password', json.dumps(result).lower())
+        self.assertEqual(self.request(path, {}, headers={'Origin':'https://evil.test'})[0], 403)
+
     def test_05_reject_nonvideo_and_playlists(self):
         self.account('invalid_upload')
         for raw in (b'not a video', b'#EXTM3U\n#EXTINF:1\nfile:///etc/passwd\n'):

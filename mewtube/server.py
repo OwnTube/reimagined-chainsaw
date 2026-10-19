@@ -233,6 +233,9 @@ class Handler(BaseHTTPRequestHandler):
             body = self.json_body()
             operation = path.removeprefix('/youtubei/v1/')
             with db() as c:
+                if operation == 'account/account_menu':
+                    user = self.user(c, True)
+                    return self.send(innertube.account_menu(user))
                 if operation == 'comment/create_comment':
                     user = self.user(c, True)
                     self.limit('comment', 20)

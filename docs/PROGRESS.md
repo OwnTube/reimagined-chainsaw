@@ -4,7 +4,11 @@ Product requirement clarified: use the actual captured YouTube frontend/player, 
 
 Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, draft PR #1. Do not merge or change repository visibility.
 
-## Current verified native checkpoint: October 19, 2026, 13:25 UTC
+## Current native checkpoint: October 19, 2026, 13:39 UTC
+
+Newest browser evidence: `0b2d076`, run `39261704710`, artifact `12190078436`. Comment posting, native channel name/handle/counts, local playback/controls, likes, subscriptions/filtering and local-account handoff pass; search submission/filtering/reload pass, with the final watch-title locator corrected in the next commit `d5af6e8`. That follow-up also makes the actual captured UI the default and removes custom DOM overlay injection. Inspect its runner before claiming final search watch-navigation/default/overlay proof.
+
+Current local candidate: native account menu, based on schema-only analysis of the supplied HAR. Authenticated native masthead buttons now request `/account/account_menu`; the backend returns the actual client's multiPageMenuRenderer/activeAccountHeaderRenderer/compactLinkRenderer contracts using exclusively local identity and local channel/subscription destinations. Guests receive 401 from the menu API; guest sign-in remains the explicitly unfinished development utility flow. No Google menu items, account switching, settings or native sign-out are claimed. The new browser probe opens the actual native menu, checks the local handle and follows its own-channel link. **23 Python methods and four JS suites pass locally** (all four suites were checked on the prior acceptance change; bridge/acceptance and syntax were rerun here). Native menu rendering is pending runner proof. Supplied HARs are never committed or replayed.
 
 ### Native composer verified
 

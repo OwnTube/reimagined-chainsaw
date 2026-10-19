@@ -114,8 +114,31 @@ def channel_header(c, channel):
                                {'text': {'content': str(ready) + (' video' if ready == 1 else ' videos')}}]}], 'delimiter': '•'}}}}}}
 
 
+def account_menu(user):
+    links = [('Your channel', 'ACCOUNT_BOX', channel_endpoint(user['id'])),
+             ('Subscriptions', 'SUBSCRIPTIONS', browse_endpoint('FEsubscriptions', '/feed/subscriptions'))]
+    return {'responseContext': {}, 'actions': [{'openPopupAction': {
+        'popupType': 'DROPDOWN', 'popup': {'multiPageMenuRenderer': {
+            'style': 'MULTI_PAGE_MENU_STYLE_TYPE_SYSTEM',
+            'header': {'activeAccountHeaderRenderer': {
+                'accountName': text(user['username']), 'channelHandle': text('@' + user['username']),
+                'manageAccountTitle': {'runs': [{'text': 'View your channel', 'navigationEndpoint': channel_endpoint(user['id'])}]}}},
+            'sections': [{'multiPageMenuSectionRenderer': {'items': [
+                {'compactLinkRenderer': {'title': text(label), 'icon': {'iconType': icon}, 'navigationEndpoint': endpoint}}
+                for label, icon, endpoint in links]}}]}}}}]}
+
+
+def account_menu_endpoint():
+    return {'commandMetadata': {'webCommandMetadata': {'sendPost': True, 'apiUrl': '/youtubei/v1/account/account_menu'}},
+            'signalServiceEndpoint': {'signal': 'GET_ACCOUNT_MENU', 'actions': [{'openPopupAction': {
+                'popupType': 'DROPDOWN', 'beReused': True,
+                'popup': {'multiPageMenuRenderer': {'style': 'MULTI_PAGE_MENU_STYLE_TYPE_SYSTEM', 'showLoadingSpinner': True}}}}]}}
+
+
 def response(c, operation, body, origin, user=None):
     context = {'responseContext': {'serviceTrackingParams': [], 'mainAppWebResponseContext': {'loggedOut': True}}}
+    if operation == 'account/account_menu':
+        return account_menu(user) if user else None
     if operation == 'player':
         v = video(c, body.get('videoId', ''))
         if not v or v['status'] != 'ready':

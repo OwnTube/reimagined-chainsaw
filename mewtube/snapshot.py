@@ -188,6 +188,10 @@ def shell(c, origin, watch_id=None, search_query=None, user=None, browse_id=''):
                     'text': {'runs': [{'text': 'MewTube @' + user['username'] if user else 'MewTube account'}]},
                     'navigationEndpoint': {'urlEndpoint': {'url': account_url},
                         'commandMetadata': {'webCommandMetadata': {'url': account_url}}}}}]
+                if user:
+                    button = topbar['topbarButtons'][0]['buttonRenderer']
+                    button.pop('navigationEndpoint')
+                    button['serviceEndpoint'] = innertube.account_menu_endpoint()
                 initial['topbar'] = {'desktopTopbarRenderer': topbar}
         except (ValueError, AttributeError, TypeError):
             pass
