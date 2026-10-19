@@ -7,6 +7,7 @@ from pathlib import Path
 import subprocess
 import sys
 from windows_probe import STUDIO_SHA256
+from windows_diagnostics import capture_startup
 
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--studio',type=Path,required=True)
@@ -25,10 +26,13 @@ with (out/'process.log').open('wb') as log:
     p=subprocess.Popen([str(studio),'--fullApi',str(api)],cwd=studio.parent,stdout=log,stderr=subprocess.STDOUT)
     try:result['exit_code']=p.wait(timeout=120)
     except subprocess.TimeoutExpired:
+        capture_startup(out, p.pid)
         p.terminate()
         try:p.wait(timeout=10)
         except subprocess.TimeoutExpired:p.kill();p.wait(timeout=10)
         result['error']='timeout'
+    else:
+        capture_startup(out, p.pid)
 if api.exists():
     try:
         data=json.loads(api.read_text(encoding='utf-8-sig'))

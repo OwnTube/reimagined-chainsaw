@@ -122,6 +122,8 @@ def main():
         try:
             code = process.wait(timeout=args.timeout)
         except subprocess.TimeoutExpired:
+            from windows_diagnostics import capture_startup
+            capture_startup(out, process.pid)
             process.terminate()
             try:
                 process.wait(timeout=10)
@@ -129,6 +131,8 @@ def main():
                 process.kill()
                 process.wait(timeout=10)
             raise RuntimeError('Studio timed out; logs retained in '+str(out))
+    from windows_diagnostics import capture_startup
+    capture_startup(out, process.pid)
     if code:
         raise RuntimeError('Studio exited with code '+str(code)+'; logs retained in '+str(out))
     if not script_output.exists():

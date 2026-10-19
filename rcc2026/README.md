@@ -22,4 +22,6 @@ The workflow runs on pushes to rcc2026-ci and can be manually dispatched. Result
 
 The API dump step uses `continue-on-error`, so its displayed step conclusion can be success even when its result JSON reports a timeout. The overall run failed at RunScript. No native engine render, game hosting, or client join has been validated. The compiler test uses the upstream standalone VM; it does not prove Roblox wire-bytecode compatibility.
 
-The failure evidence is available in the run's `studio-743-windows-evidence` artifact until 2026-10-26. Desktop screenshots and additional native Studio logs were not collected; collecting and publishing those requires separate approval.
+The failure evidence is available in the run's `studio-743-windows-evidence` artifact until 2026-10-26. Desktop screenshots and additional native Studio logs were not collected in the first run.
+
+The user subsequently approved collecting and publishing startup screenshots and Studio logs from the disposable Windows runner. The next probe captures the desktop, titles of windows owned by its Studio process, and the ten most recent native Studio logs before terminating a timed-out process. Desktop diagnostics are labeled separately and never count as engine-render evidence. No account sign-in is performed.
