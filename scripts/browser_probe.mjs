@@ -3,7 +3,7 @@ import { chromium, request } from 'playwright';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { randomBytes } from 'node:crypto';
 import assert from 'node:assert/strict';
-import {probePlayback} from './playback_probe.mjs';
+import {probePlayback,acceptOfficialPlayback} from './playback_probe.mjs';
 
 const origin = process.env.PUBLIC_ORIGIN || 'http://localhost:3000';
 await mkdir('evidence', {recursive:true});
@@ -91,21 +91,21 @@ try {
         diagnostics.capturedClient.media=await bounded(officialVideo.evaluate(probePlayback,{timeoutMs:10000,stableMs:1200}),12000,'Official playback probe');
         diagnostics.capturedClient.player=await bounded(page.evaluate(()=>{
           const root=document.querySelector('ytd-app #movie_player');
-          const error=root?.querySelector('.ytp-error');
-          const visible=!!error && getComputedStyle(error).display!=='none' && error.getBoundingClientRect().height>0;
-          let state=null,videoId=null,status=null;
+          const error=Array.from(document.querySelectorAll('ytd-app .ytp-error,ytd-app #error-screen,ytd-app yt-playability-error-supported-renderers')).find(node=>
+            getComputedStyle(node).display!=='none' && getComputedStyle(node).visibility!=='hidden' && node.getBoundingClientRect().height>0);
+          const visible=!!error;
+          let state=null,videoId=null,status=null,reason=null;
           try{state=root?.getPlayerState?.() ?? null;}catch{}
           try{videoId=root?.getVideoData?.()?.video_id ?? null;}catch{}
-          try{status=root?.getPlayerResponse?.()?.playabilityStatus?.status ?? null;}catch{}
-          return {state,videoId,playabilityStatus:status,errorVisible:visible,errorText:visible?error.textContent.trim().slice(0,250):null,
+          try{const playability=root?.getPlayerResponse?.()?.playabilityStatus;status=playability?.status ?? null;reason=playability?.reason?.slice(0,250) ?? null;}catch{}
+          return {state,videoId,playabilityStatus:status,playabilityReason:reason,errorVisible:visible,errorText:visible?error.textContent.trim().slice(0,250):null,
             errorClass:root?.classList.contains('ytp-error') || root?.classList.contains('ytp-error-mode') || false};
         }),3000,'Official player state');
         const watchUrl=new URL(page.url());
         diagnostics.capturedClient.watchPath=watchUrl.pathname;
         const player=diagnostics.capturedClient.player;
-        diagnostics.capturedClient.playback=diagnostics.capturedClient.media.ok && watchUrl.origin===origin &&
-          watchUrl.pathname==='/watch' && watchUrl.searchParams.get('v')===id && !!diagnostics.capturedClient.localMediaResponse &&
-          [1,0].includes(player.state) && player.videoId===id && !player.errorVisible && !player.errorClass;
+        diagnostics.capturedClient.playback=acceptOfficialPlayback({media:diagnostics.capturedClient.media,player,
+          watchUrl:page.url(),origin,videoId:id,localMediaResponse:diagnostics.capturedClient.localMediaResponse});
         if(!diagnostics.capturedClient.playback)diagnostics.capturedClient.watchError=diagnostics.capturedClient.media.reason ||
           (player.errorVisible ? player.errorText : 'Player state, watch identity or local media response did not pass');
       }catch(error){diagnostics.capturedClient.playback=false;diagnostics.capturedClient.watchError=error.message.slice(0,500);}

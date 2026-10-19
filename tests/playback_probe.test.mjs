@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {probePlayback} from '../scripts/playback_probe.mjs';
+import {probePlayback,acceptOfficialPlayback} from '../scripts/playback_probe.mjs';
 
 const fixture=overrides=>({readyState:0,networkState:2,paused:true,ended:false,currentTime:0,
   duration:NaN,currentSrc:'http://localhost:3000/media/abcdefghijk/video.mp4?private=omit',
@@ -20,4 +20,11 @@ assert.equal(shortBurst.ok,false,'A single advancing sample must not pass a stab
 const rejected=await probePlayback(fixture({error:{code:4},play:()=>Promise.reject(new Error('Unsupported source'))}),{timeoutMs:30});
 assert.equal(rejected.mediaError,4);
 assert.equal(rejected.ok,false);
+const official={media:{ok:true},player:{state:1,videoId:'abcdefghijk',playabilityStatus:'OK',errorVisible:false,errorClass:false},
+  watchUrl:'http://localhost:3000/watch?v=abcdefghijk',origin:'http://localhost:3000',videoId:'abcdefghijk',localMediaResponse:true};
+assert.equal(acceptOfficialPlayback(official),true);
+assert.equal(acceptOfficialPlayback({...official,player:{...official.player,playabilityStatus:'ERROR'}}),false,
+  'An advancing underlying video cannot override an ERROR player response');
+assert.equal(acceptOfficialPlayback({...official,player:{...official.player,errorVisible:true}}),false);
+assert.equal(acceptOfficialPlayback({...official,watchUrl:'http://localhost:3000/'}),false);
 console.log('Playback probe handles pending, stalled, rejected and progressing media without leaking URL queries');

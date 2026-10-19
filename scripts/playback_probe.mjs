@@ -1,4 +1,11 @@
 /* Self-contained so Playwright can serialize this function into the page. */
+export function acceptOfficialPlayback({media,player,watchUrl,origin,videoId,localMediaResponse}) {
+  const url=new URL(watchUrl);
+  return !!media?.ok && url.origin===origin && url.pathname==='/watch' && url.searchParams.get('v')===videoId &&
+    !!localMediaResponse && [1,0].includes(player?.state) && player.videoId===videoId &&
+    player.playabilityStatus==='OK' && !player.errorVisible && !player.errorClass;
+}
+
 export async function probePlayback(video, {timeoutMs=8000, minTime=0.1, stableMs=0}={}) {
   const snapshot = () => ({
     readyState:video.readyState, networkState:video.networkState,

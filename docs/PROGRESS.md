@@ -49,3 +49,9 @@ Browser artifact `12162898931` from run `39200490739` was uploaded at 04:40:00 U
 The watch screenshot nevertheless shows “Something went wrong. Please try again later.” with error 282054944. Therefore the probe is tightened again: require a stability interval, actual wrapper state playing/ended, matching video ID, and no visible/error-class overlay. It also records player state, playability status and overlay text. A short fake-video burst followed by a stall now has regression coverage. The next browser result should identify whether the wrapper error persists and its state; investigate its player/bootstrap contract before implementing local-account mutations.
 
 Evidence: https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39200490739/artifacts/12162898931
+
+## Acceptance correction from run 39200829376
+
+The sustained-media probe reached time 1.404131 s with readyState 4, wrapper state 1 and the correct local ID, but `getPlayerResponse().playabilityStatus.status` was **ERROR**. The screenshot still displayed error 282054944. This confirms that video-element progress and wrapper state alone cannot establish usable playback. The probe now also requires an OK player response and checks visible application-level playability-error renderers outside #movie_player. A pure acceptance regression rejects ERROR responses even when the underlying video advances. The next artifact records the response reason and overlay text for diagnosis.
+
+The remaining blocker is the wrapper/bootstrap playability contract, not delivery or decoding of the local MP4. Investigate which player response/configuration replaces the injected OK bootstrap; do not begin claiming stable official playback or full feature parity.
