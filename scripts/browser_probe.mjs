@@ -106,7 +106,7 @@ try {
           diagnostics.capturedClient.likedContinuationResponses.push({status:response.status()});
       }catch{}
     }
-    if(!['/youtubei/v1/like/like','/youtubei/v1/like/removelike','/youtubei/v1/subscription/subscribe','/youtubei/v1/subscription/unsubscribe','/youtubei/v1/comment/create_comment','/youtubei/v1/account/account_menu'].includes(path))return;
+    if(!['/youtubei/v1/like/like','/youtubei/v1/like/removelike','/youtubei/v1/subscription/subscribe','/youtubei/v1/subscription/unsubscribe','/youtubei/v1/comment/create_comment','/youtubei/v1/comment/perform_comment_action','/youtubei/v1/account/account_menu'].includes(path))return;
     const entry={path,status:response.status(),gzip:response.request().headers()['content-encoding']==='gzip'};
     diagnostics.capturedClient.nativeApi.push(entry);
     if(response.status()>=400)try{const data=await response.json();entry.error=typeof data.error==='string'?data.error.slice(0,120):null;}catch{}
@@ -258,6 +258,41 @@ try {
           await page.mouse.wheel(0,-900);
         }catch(error){diagnostics.capturedClient.nativeComments={...diagnostics.capturedClient.nativeComments,ok:false,error:error.message.slice(0,300)};}
         await checkpoint('official-comments-inspected');
+        try {
+          const thread=()=>page.locator('ytd-comment-thread-renderer').filter({hasText:'Created through the captured client'}).first();
+          const voted=async()=> (await (await context.get('/api/videos/'+id)).json()).comments.find(comment=>comment.text==='Created through the captured client');
+          const waitVote=async value=>{
+            let current;
+            for(let i=0;i<30;i++) {
+              current=await voted();
+              if(current.myVote===value)break;
+              await page.waitForTimeout(100);
+            }
+            assert.equal(current.myVote,value);
+            assert.equal(current.likes,value===1?1:0);
+          };
+          await thread().getByRole('button',{name:'Like this comment',exact:true}).click({timeout:8000});
+          await waitVote(1);
+          diagnostics.capturedClient.nativeCommentVotes={like:true};
+          await page.reload();
+          const unlike=thread().getByRole('button',{name:'Unlike this comment',exact:true});
+          await unlike.waitFor({timeout:8000});
+          assert.equal(await unlike.getAttribute('aria-pressed'),'true');
+          diagnostics.capturedClient.nativeCommentVotes.persisted=true;
+          await thread().getByRole('button',{name:'Dislike this comment',exact:true}).click({timeout:8000});
+          await waitVote(-1);
+          diagnostics.capturedClient.nativeCommentVotes.dislike=true;
+          await page.reload();
+          await thread().getByRole('button',{name:'Remove dislike from this comment',exact:true}).click({timeout:8000});
+          await waitVote(0);
+          diagnostics.capturedClient.nativeCommentVotes.clear=true;
+          await thread().getByRole('button',{name:'Like this comment',exact:true}).click({timeout:8000});
+          await waitVote(1);
+          diagnostics.capturedClient.nativeCommentVotes.localCounts=true;
+          await page.waitForTimeout(500);
+          await page.screenshot({path:'evidence/official-comment-votes.png',fullPage:true,timeout:10000});
+        }catch(error){diagnostics.capturedClient.nativeCommentVotes={...diagnostics.capturedClient.nativeCommentVotes,ok:false,error:error.message.slice(0,300)};}
+        await checkpoint('official-comment-votes-inspected');
         try {
           const viewer=(await (await context.get('/api/me')).json()).user;
           await page.getByRole('link',{name:'@'+username,exact:true}).first().click({timeout:8000});

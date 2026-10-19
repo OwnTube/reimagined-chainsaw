@@ -239,6 +239,28 @@ class Handler(BaseHTTPRequestHandler):
                 if operation == 'account/account_menu':
                     user = self.user(c, True)
                     return self.send(innertube.account_menu(user))
+                if operation == 'comment/perform_comment_action':
+                    user = self.user(c, True)
+                    self.limit('comment-vote', 60)
+                    actions = body.get('actions')
+                    if not isinstance(actions, list) or len(actions) != 1 or not isinstance(actions[0], str):
+                        raise Error(400, 'Expected one local comment vote action')
+                    target = re.fullmatch(re.escape(comments.VOTE_PREFIX) + '(' + ID + r'):(like|dislike|clear)', actions[0])
+                    row = c.execute('SELECT video_id FROM comments WHERE id=?', (target[1],)).fetchone() if target else None
+                    if not target:
+                        raise Error(400, 'Unsupported comment action')
+                    v = video(c, row['video_id']) if row else None
+                    if not v or v['status'] != 'ready':
+                        raise Error(404, 'Comment unavailable')
+                    if target[2] == 'clear':
+                        c.execute('DELETE FROM comment_votes WHERE user_id=? AND comment_id=?', (user['id'], target[1]))
+                    else:
+                        value = 1 if target[2] == 'like' else -1
+                        c.execute('''INSERT INTO comment_votes VALUES(?,?,?)
+                            ON CONFLICT(user_id,comment_id) DO UPDATE SET value=excluded.value''', (user['id'], target[1], value))
+                    c.commit()
+                    _, framework = comments.section(c, v, user, target[1])
+                    return self.send({'responseContext': {}, 'frameworkUpdates': framework})
                 if operation == 'comment/create_comment':
                     user = self.user(c, True)
                     self.limit('comment', 20)
@@ -340,8 +362,12 @@ class Handler(BaseHTTPRequestHandler):
                         raise Error(404, 'Not found')
                     v['liked'] = bool(u and c.execute('SELECT 1 FROM likes WHERE user_id=? AND video_id=?', (u['id'], v['id'])).fetchone())
                     v['subscribed'] = bool(u and c.execute('SELECT 1 FROM subscriptions WHERE user_id=? AND channel_id=?', (u['id'], v['owner'])).fetchone())
-                    comments = c.execute('''SELECT co.id,co.text,co.created,u.username FROM comments co
-                                           JOIN users u ON u.id=co.user_id WHERE video_id=? ORDER BY co.created DESC LIMIT 100''', (v['id'],)).fetchall()
+                    comments = c.execute('''SELECT co.id,co.text,co.created,u.username,
+                        (SELECT count(*) FROM comment_votes cv WHERE cv.comment_id=co.id AND cv.value=1) likes,
+                        coalesce((SELECT value FROM comment_votes cv WHERE cv.comment_id=co.id AND cv.user_id=?),0) myVote
+                        FROM comments co JOIN users u ON u.id=co.user_id
+                        WHERE video_id=? ORDER BY co.created DESC,co.id DESC LIMIT 100''',
+                        (u['id'] if u else '', v['id'])).fetchall()
                     return self.send({'video': v, 'comments': [dict(r) for r in comments]})
                 raise Error(404, 'Not found')
         # Mutations use fresh transactions so streaming uploads do not lock the DB.

@@ -1,12 +1,19 @@
 """Local native comment entities, authored from the observed guest contract.
 
 Entity keys identify local UI records, not credentials or upstream tracking data.
-Only top-level creation is supported; replies and voting remain unsupported.
+Top-level creation and local voting are supported; replies remain unsupported.
 """
 import base64
 from datetime import datetime, timezone
 
 CREATE_PREFIX = 'mewtube-comment-v1:'
+VOTE_PREFIX = 'mewtube-comment-vote-v1:'
+
+
+def vote_command(comment_id, action):
+    return {'innertubeCommand': {
+        'commandMetadata': {'webCommandMetadata': {'sendPost': True, 'apiUrl': '/youtubei/v1/comment/perform_comment_action'}},
+        'performCommentActionEndpoint': {'action': VOTE_PREFIX + comment_id + ':' + action}}}
 
 
 def varint(value):
@@ -27,8 +34,11 @@ def entity_key(identifier, entity_type):
 def section(c, video, user, comment_id=None):
     from .innertube import channel_endpoint
     predicate = ' AND co.id=?' if comment_id is not None else ''
-    arguments = (video['id'], comment_id) if comment_id is not None else (video['id'],)
-    rows = c.execute('''SELECT co.id,co.text,co.created,co.user_id,u.username FROM comments co
+    arguments = (user['id'] if user else '', video['id']) + ((comment_id,) if comment_id is not None else ())
+    rows = c.execute('''SELECT co.id,co.text,co.created,co.user_id,u.username,
+        (SELECT count(*) FROM comment_votes cv WHERE cv.comment_id=co.id AND cv.value=1) likes,
+        coalesce((SELECT value FROM comment_votes cv WHERE cv.comment_id=co.id AND cv.user_id=?),0) vote
+        FROM comments co
         JOIN users u ON u.id=co.user_id WHERE co.video_id=?''' + predicate +
         ' ORDER BY co.created DESC,co.id DESC LIMIT 100', arguments).fetchall()
     mutations, threads = [], []
@@ -39,8 +49,10 @@ def section(c, video, user, comment_id=None):
 
     put('commentSharedEntityPayload', {'key': shared,
         'strings': {'expandText': 'Read more', 'collapseText': 'Show less', 'replyButtonText': ''},
-        'toolbarShared': {'likeButtonA11y': 'Comment voting unavailable',
-                          'replyButtonA11y': 'Replies unavailable'}})
+        'toolbarShared': {'unlikeButtonA11y': 'Unlike this comment',
+            'dislikeCommentButtonA11y': 'Dislike this comment', 'undislikeButtonA11y': 'Remove dislike from this comment',
+            'disabledLikeCommand': not bool(user), 'disabledDislikeCommand': not bool(user),
+            'replyButtonA11y': 'Replies unavailable'}})
     thumbnail = '/media/' + video['id'] + '/thumb.jpg'
     for row in rows:
         key, surface = entity_key(row['id'], 40), entity_key(row['id'] + '_surface', 79)
@@ -53,7 +65,11 @@ def section(c, video, user, comment_id=None):
                 'avatarThumbnailUrl': thumbnail, 'isVerified': False,
                 'isCurrentUser': bool(user and user['id'] == row['user_id']),
                 'isCreator': row['user_id'] == video['owner']},
-            'toolbar': {}})
+            'toolbar': {'likeButtonA11y': 'Like this comment',
+                'likeCountLiked': str(row['likes'] + int(row['vote'] != 1)),
+                'likeCountNotliked': str(row['likes'] - int(row['vote'] == 1)) if row['likes'] - int(row['vote'] == 1) else '',
+                'likeInactiveTooltip': 'Like', 'likeActiveTooltip': 'Unlike',
+                'dislikeInactiveTooltip': 'Dislike', 'dislikeActiveTooltip': 'Remove dislike'}})
         put('commentSurfaceEntityPayload', {'key': surface, 'inlineReadMoreButton': {'isExpanded': True},
             'relativeNestingLevel': 0, 'avatar': {'avatarViewModel': {
                 'image': {'sources': [{'url': thumbnail, 'width': 80, 'height': 80}],
@@ -61,9 +77,11 @@ def section(c, video, user, comment_id=None):
                 'endpoint': {'innertubeCommand': channel_endpoint(row['user_id'])},
                 'accessibilityText': '@' + row['username']}}})
         put('engagementToolbarStateEntityPayload', {'key': toolbar,
-            'likeState': 'TOOLBAR_LIKE_STATE_INDIFFERENT', 'heartState': 'TOOLBAR_HEART_STATE_UNHEARTED'})
-        # No actions/endpoints are emitted for unsupported voting or replies.
-        put('engagementToolbarSurfaceEntityPayload', {'key': toolbar_surface})
+            'likeState': {-1:'TOOLBAR_LIKE_STATE_DISLIKED', 0:'TOOLBAR_LIKE_STATE_INDIFFERENT', 1:'TOOLBAR_LIKE_STATE_LIKED'}[row['vote']],
+            'heartState': 'TOOLBAR_HEART_STATE_UNHEARTED'})
+        actions = {'likeCommand': vote_command(row['id'], 'like'), 'unlikeCommand': vote_command(row['id'], 'clear'),
+                   'dislikeCommand': vote_command(row['id'], 'dislike'), 'undislikeCommand': vote_command(row['id'], 'clear')} if user else {}
+        put('engagementToolbarSurfaceEntityPayload', {'key': toolbar_surface, **actions})
         threads.append({'commentThreadRenderer': {'commentViewModel': {'commentViewModel': {
             'commentId': row['id'], 'commentKey': key, 'sharedKey': shared,
             'commentSurfaceKey': surface, 'toolbarStateKey': toolbar, 'toolbarSurfaceKey': toolbar_surface}}}})

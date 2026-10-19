@@ -18,6 +18,7 @@ class CommentContractTests(unittest.TestCase):
         self.addCleanup(c.close)
         c.executescript('CREATE TABLE users(id TEXT,username TEXT);'
                        'CREATE TABLE comments(id TEXT,text TEXT,created INT,user_id TEXT,video_id TEXT);')
+        c.execute('CREATE TABLE comment_votes(user_id TEXT,comment_id TEXT,value INT)')
         c.execute('INSERT INTO users VALUES(?,?)', ('author00001', 'local_author'))
         c.execute('INSERT INTO comments VALUES(?,?,?,?,?)',
                   (identifier, '</script><script>not executable</script>', 1, 'author00001', 'localvid001'))
@@ -41,7 +42,11 @@ class CommentContractTests(unittest.TestCase):
         self.assertNotIn('createCommentEndpoint', json.dumps(framework))
         for i in range(101):
             c.execute('INSERT INTO comments VALUES(?,?,?,?,?)', (f'bound{i:06}', 'Bounded item', i+2, 'author00001', 'localvid001'))
-        bounded, _ = section(c, {'id':'localvid001', 'owner':'author00001'}, None)
+        bounded, guest_entities = section(c, {'id':'localvid001', 'owner':'author00001'}, None)
         self.assertEqual(len(bounded['itemSectionRenderer']['contents']), 100)
         self.assertEqual(bounded['itemSectionRenderer']['header']['commentsHeaderRenderer']['countText']['simpleText'], '102 comments')
         self.assertNotIn('createRenderer', bounded['itemSectionRenderer']['header']['commentsHeaderRenderer'])
+        self.assertNotIn('performCommentActionEndpoint', json.dumps(guest_entities))
+        shared = guest_entities['entityBatchUpdate']['mutations'][0]['payload']['commentSharedEntityPayload']['toolbarShared']
+        self.assertTrue(shared['disabledLikeCommand'])
+        self.assertTrue(shared['disabledDislikeCommand'])

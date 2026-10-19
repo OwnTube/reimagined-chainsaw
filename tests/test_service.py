@@ -19,7 +19,7 @@ import urllib.request
 ROOT = Path(__file__).resolve().parents[1]
 
 
-class ServiceTests(unittest.TestCase):
+class ServiceCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tmp = tempfile.TemporaryDirectory()
@@ -91,6 +91,7 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(data['video']['status'], 'ready', data)
         return data['video']
 
+class ServiceTests(ServiceCase):
     def test_01_guest_and_csrf(self):
         self.assertEqual(self.request('/api/me')[1], {'user': None})
         self.assertEqual(self.request('/auth-return.js')[0], 200)

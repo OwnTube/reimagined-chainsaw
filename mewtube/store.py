@@ -33,6 +33,10 @@ def init():
         CREATE TABLE IF NOT EXISTS comments (
           id TEXT PRIMARY KEY, user_id TEXT REFERENCES users(id),
           video_id TEXT REFERENCES videos(id) ON DELETE CASCADE, text TEXT NOT NULL, created INTEGER);
+        CREATE TABLE IF NOT EXISTS comment_votes (
+          user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+          comment_id TEXT REFERENCES comments(id) ON DELETE CASCADE,
+          value INTEGER NOT NULL CHECK(value IN (-1,1)), PRIMARY KEY(user_id,comment_id));
         CREATE TABLE IF NOT EXISTS reports (
           id TEXT PRIMARY KEY, user_id TEXT REFERENCES users(id),
           video_id TEXT REFERENCES videos(id) ON DELETE CASCADE, reason TEXT, created INTEGER);
@@ -40,6 +44,7 @@ def init():
           path TEXT PRIMARY KEY, count INTEGER NOT NULL DEFAULT 1);
         CREATE INDEX IF NOT EXISTS video_feed ON videos(status, created DESC);
         CREATE INDEX IF NOT EXISTS comment_video ON comments(video_id, created);
+        CREATE INDEX IF NOT EXISTS comment_vote_count ON comment_votes(comment_id,value);
         ''')
 
 

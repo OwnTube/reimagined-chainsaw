@@ -4,7 +4,15 @@ Product requirement clarified: use the actual captured YouTube frontend/player, 
 
 Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, draft PR #1. Do not merge or change repository visibility.
 
-## Current native checkpoint: October 19, 2026, 14:07 UTC
+## Current native checkpoint: October 19, 2026, 14:13 UTC
+
+**Complete native flow is green again:** `eab7388`, run `39266756826`, artifact `12192784081` uploaded 14:13:52 UTC. acceptanceFailures=[], pageErrors=[], compactLayout/pagination/renderedCards=41/reload/watchNavigation/unlikeRemoves are all successful, as are native comment-author links and all prior flows. The fresh playlist screenshot was inspected and shared. The leading-dash cleanup issue is resolved; the earlier 14:07 failure below is historical.
+
+### Candidate: native comment voting
+
+The captured engagement-toolbar handler reads like/unlike/dislike/undislike innertubeCommand fields from engagementToolbarSurfaceEntityPayload and derives state/counts from the linked entities. The performCommentActionEndpoint builder sends actions (or one action wrapped as an array). The local candidate follows that contract; no replica controls are introduced. An additive comment_votes table stores one +1/-1 vote per local user/comment with cascade deletion and a count index. A local vote envelope permits only like/dislike/clear for an existing ready video's comment, authorizes the local session, rate-limits writes and commits before returning native entity updates. Unknown/upstream actions, bulk actions, guests, cross-origin calls and unavailable comments are rejected. Body user IDs cannot select a voter. Guest toolbar controls are disabled and have no vote endpoints.
+
+**27 Python methods and four JS suites pass locally.** Tests cover gzip and idempotence, native state/entity results, positive totals, two-user isolation, clearing, unavailable parents and cascade deletion. The new vote integration class uses an isolated disposable service so production rate limits are not weakened for tests. The API exposes only aggregate positive counts and the requesting local user's vote. The browser will click the actual native controls, check persisted toggled state after reload, switch to Dislike, clear it, and save a screenshot with a local positive vote. Native comment-vote success is not yet claimed; inspect the next artifact.
 
 Latest diagnostic `337ed77`, run `39265841721`, artifact `12192607457` uploaded 14:07:42 UTC, confirms compact playlist layout, 41 native cards with continuation, and native comment-author navigation to the local channel. Both milestone screenshots were inspected and shared. **This run is not fully passing:** acceptanceFailures contains nativeLikedPlaylist.unlikeRemoves because fixture cleanup failed before that check. The last complete green native-flow evidence remains `5a81d4f` at 14:02 below.
 
