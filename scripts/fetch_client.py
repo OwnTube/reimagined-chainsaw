@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import html as html_lib
 import json
+import os
 import re
 import sys
 import time
@@ -19,9 +20,18 @@ UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chr
 MAX_FILE = 20 * 1024 * 1024
 
 
+def rewrite_origins(text, origin):
+    # Workers have their own fetch/XHR globals, so the window bridge alone cannot
+    # redirect hardcoded API origins inside worker bundles.
+    for source in ('https://www.youtube.com', 'https://youtubei.googleapis.com', 'https://m.youtube.com'):
+        text = text.replace(source, origin)
+        text = text.replace(source.replace('/', '\\/'), origin.replace('/', '\\/'))
+    return text
+
+
 def allowed(url):
     u = urllib.parse.urlsplit(url)
-    return u.scheme == 'https' and u.netloc == 'www.youtube.com' and u.path.startswith(('/s/desktop/', '/s/player/', '/s/_/ytmainappweb/')) and asset_name(url) is not None
+    return u.scheme == 'https' and u.netloc == 'www.youtube.com' and u.path.startswith(('/s/desktop/', '/s/player/', '/s/_/ytmainappweb/', '/s/i/')) and asset_name(url) is not None
 
 
 class Redirect(urllib.request.HTTPRedirectHandler):
@@ -42,7 +52,7 @@ def fetch(url):
 
 def references(content):
     # Absolute and root-relative static paths, including JS module loader references.
-    candidates = re.findall(r'(?:https://www\.youtube\.com)?/s/(?:desktop|player|_/ytmainappweb)/[^\s"\'<>`\\)]+', content)
+    candidates = re.findall(r'(?:https://www\.youtube\.com)?/s/(?:desktop|player|_/ytmainappweb|i)/[^\s"\'<>`\\)]+', content)
     return {urllib.parse.urljoin('https://www.youtube.com', html_lib.unescape(u)) for u in candidates}
 
 
@@ -51,6 +61,9 @@ def main():
     parser.add_argument('--latest', action='store_true', help='Replace an existing pinned guest build')
     parser.add_argument('--max-assets', type=int, default=120)
     args = parser.parse_args()
+    origin = os.environ.get('PUBLIC_ORIGIN', 'http://localhost:3000').rstrip('/')
+    if not re.fullmatch(r'https?://[A-Za-z0-9.\-\[\]:]+', origin):
+        raise SystemExit('PUBLIC_ORIGIN must be an HTTP(S) origin without a path, credentials or query.')
     client = DATA / 'client'
     if (client / 'index.html').exists() and not args.latest:
         print('A client is already pinned. Use --latest to replace it.')
@@ -59,6 +72,9 @@ def main():
     if 'ytInitialData' not in html or '<ytd-app' not in html:
         raise SystemExit('YouTube returned a consent/challenge/non-desktop page; no build was pinned.')
     pending = sorted(u for u in references(html) if allowed(u))
+    # Observed dynamic icon requests from the captured client's browser trace.
+    pending += ['https://www.youtube.com/s/i/youtube_outline_experimental/search/v15/24px.svg',
+                'https://www.youtube.com/s/i/youtube_outline_experimental/menu/v1/24px.svg']
     raw_assets = {}
     failures = []
     while pending and len(raw_assets) < args.max_assets:
@@ -81,7 +97,7 @@ def main():
         # Longer URLs first so path prefixes cannot consume another entry.
         for url, local in sorted(mapping.items(), key=lambda item: len(item[0]), reverse=True):
             text = text.replace(url, local).replace(url.removeprefix('https://www.youtube.com'), local)
-        return text
+        return rewrite_origins(text, origin)
 
     directory = client / 'assets'
     directory.mkdir(parents=True, exist_ok=True)
@@ -96,7 +112,7 @@ def main():
     staged = client / 'index.html.tmp'
     staged.write_text(rewrite(html))
     staged.replace(client / 'index.html')
-    (client / 'manifest.json').write_text(json.dumps({'capturedAt': int(time.time()), 'assets': entries,
+    (client / 'manifest.json').write_text(json.dumps({'capturedAt': int(time.time()), 'publicOrigin': origin, 'assets': entries,
         'failures': failures, 'remaining': len(pending), 'status': 'experimental-unverified'}, indent=2))
     print(f'Pinned {len(entries)} assets; {len(failures)} failures, {len(pending)} remaining. Experimental client: /official')
 

@@ -39,6 +39,15 @@
     banner.style.cssText = 'position:fixed;bottom:12px;left:12px;z-index:2147483647;background:#151515;color:#fff;padding:12px;border-radius:8px;font:14px system-ui';
     const link = document.createElement('a');
     link.href = '/'; link.textContent = 'MewTube · Experimental captured client · Open independent UI';
+    link.addEventListener('click', event => {event.preventDefault();event.stopImmediatePropagation();location.assign('/');});
     link.style.color = '#fff'; banner.append(link); document.body.append(banner);
+    document.addEventListener('click', event => {
+      const anchor = event.target.closest?.('a');
+      if (!anchor) return;
+      const url = new URL(anchor.href, location.href);
+      if (url.origin === location.origin && url.searchParams.get('signin') === '1') {
+        event.preventDefault();event.stopImmediatePropagation();location.assign('/?signin=1');
+      }
+    }, true);
   });
 })();

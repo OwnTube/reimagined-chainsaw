@@ -2,7 +2,7 @@
 
 A self-hosted video service and an **experimental backend for a locally captured YouTube web client**. Inspired by Xitter and Meowcord's architecture: capture a client per instance, serve assets locally, and answer its APIs from your own database.
 
-**Early alpha. The independent interface and HTTP service have been integration-tested. Full YouTube client compatibility has not been established.** `/official` serves a guest snapshot, replaces its home bootstrap with local videos, and redirects its transport to a small InnerTube API subset. Its renderer contracts need browser-driven refinement. This is an independent project, not affiliated with YouTube or Google.
+**Early alpha. The independent interface and HTTP service have been integration-tested. A GitHub runner rendered a local uploaded title through the captured client’s actual `ytd-app` components. Full YouTube client compatibility has not been established.** `/official` serves a guest snapshot, replaces its home bootstrap with local videos, and redirects its transport to a small InnerTube API subset. Its renderer contracts need browser-driven refinement. This is an independent project, not affiliated with YouTube or Google.
 
 ## Start it
 
@@ -41,7 +41,7 @@ docker compose exec mewtube python scripts/fetch_client.py
 # open http://localhost:3000/official
 ```
 
-This downloads only guest HTML and allowlisted static assets from YouTube. It does not use your Google login, proxy YouTube videos, or import YouTube accounts. Captures stay in ignored `data/client/` and must not be committed. `--latest` replaces the pin. A manifest records original and served SHA-256 hashes and failed downloads. The site CSP blocks external network access; missing assets deliberately fail rather than proxying arbitrary addresses.
+This downloads only guest HTML and allowlisted static assets from YouTube. It does not use your Google login, proxy YouTube videos, or import YouTube accounts. Captures stay in ignored `data/client/` and must not be committed. Capture uses `PUBLIC_ORIGIN` to rewrite hardcoded API origins for workers as well as the window transport; recapture after changing that origin. `--latest` replaces the pin. A manifest records original and served SHA-256 hashes and failed downloads. The site CSP blocks external network access; missing assets deliberately fail rather than proxying arbitrary addresses.
 
 The observed guest build used desktop `5d669aa8`, player `0229cd64`, and newer `/s/_/ytmainappweb/` main bundles. The local capture obtained **23 assets with zero reported download failures**. That count does not prove that every dynamically loaded module was discovered, or that the UI works.
 
@@ -59,12 +59,12 @@ The observed guest build used desktop `5d669aa8`, player `0229cd64`, and newer `
 
 ## Known limits
 
-- **Official client boot, navigation, and playback remain experimental.** No claim of parity with Xitter, Meowcord, or YouTube. Official-client sign-in, Studio, comments, likes, playlists, channel management, and subscriptions are not adapted yet. Use the independent interface for these supported local features.
+- **Official client navigation and playback remain experimental; rendering local content through its actual home components is verified.** No claim of parity with Xitter, Meowcord, or YouTube. Official-client sign-in, Studio, comments, likes, playlists, channel management, and subscriptions are not adapted yet. Use the independent interface for these supported local features.
 - No federation, live streaming, Shorts, adaptive bitrate/HLS/DASH, captions, notifications, email verification, password recovery, or private videos.
 - Uploads become public when processing finishes. View counts currently count authenticated play events and are not unique-view analytics.
 - A single process and one transcoder serve a small instance; not a production-scale video platform. No total storage quota, mature abuse controls, or resumable upload support yet.
-- The first GitHub Actions run verified real browser playback, likes, comments and mobile layout in the independent interface. Its official-client capture failed because of a Python launcher-name collision; the launcher is renamed and a fresh-process regression test added. A new CI run must verify that capture and actual official UI.
-- REA 6.7.0 was invoked locally, but aborted when process ownership inspection hit this container's broken `ps` implementation (`fatal library error, lookup self`). The CI workflow retries on Ubuntu; local partial observations do not establish a completed analysis.
+- The first GitHub Actions run verified real browser playback, likes, comments and mobile layout in the independent interface. A launcher-name collision was fixed and capture then succeeded on the runner. Run 39181319724 registered the actual YouTube custom elements and displayed the local uploaded title; its masthead remained a skeleton, and watch/player behavior needs further verification.
+- REA 6.7.0 was invoked locally, but aborted when process ownership inspection hit this container's broken `ps` implementation (`fatal library error, lookup self`). A subsequent Ubuntu run completed with partial coverage: 12 JavaScript files parsed and 1,371 findings, while large player/main-bundle analysis hit heap limits. Neither result establishes complete analysis.
 
 ## Configuration
 

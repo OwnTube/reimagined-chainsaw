@@ -174,6 +174,9 @@ class Handler(BaseHTTPRequestHandler):
         if path.startswith('/client-assets/') and self.command in ('GET', 'HEAD'):
             from .snapshot import asset_path
             return self.file(asset_path(path.removeprefix('/client-assets/')))
+        if path.startswith('/s/') and self.command in ('GET', 'HEAD'):
+            from .snapshot import original_asset
+            return self.file(original_asset(path))
         if path == '/official' and self.command in ('GET', 'HEAD'):
             from .snapshot import shell
             with db() as c:

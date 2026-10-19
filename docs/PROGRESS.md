@@ -9,14 +9,14 @@ Project: MewTube. Repository: `vibecodeforever/reimagined-chainsaw`, branch `fea
 - Captured a live guest YouTube page and 23 static files, including current modern main bundle URLs, with zero capture failures. Files are ignored and instance-local; fresh workers need to recapture.
 - Implemented independent interface, auth, uploads/transcoding/playback, search, channels, subscriptions, likes, comments, reports and host-granted operator role.
 - Implemented candidate InnerTube browse/search/player/next renderers, capture bootstrap replacement and fetch/XHR transport bridge.
-- Nine local test methods pass, including actual FFmpeg transcoding and byte-range reads. A send-before-commit race found by the tests was corrected in mutation response paths.
+- Ten local test methods pass, including actual FFmpeg transcoding and byte-range reads. A send-before-commit race found by the tests was corrected in mutation response paths.
 - First GitHub Actions run (39180980209) completed: HTTP tests and independent browser playback, likes, comments and mobile width checks passed. Screenshots inspected. Official client capture failed because scripts/operator.py shadowed Python stdlib operator in a fresh interpreter. Renamed it to scripts/manage_operator.py and added fresh-interpreter CLI startup regression coverage. REA in that run had no capture to analyze; it was not a successful analysis. Docker Compose build/start and HTTP/FFmpeg health were subsequently verified in run 39181455425 (container job).
 
 - Restart integration test now confirms session/video durability, queued-job recovery, and cleanup of partial HTTP uploads.
 - Six hourly continuation runs are scheduled for 01:29–06:29 UTC on October 19, 2026.
 
-- Fresh-client capture subsequently succeeded on the runner in run 39181319724. REA/browser results still need inspection.
-- The browser probe now separately records real YouTube custom-element registration, same-origin home rendering, and an attempted local-video watch/playback check. These diagnostics are not yet claimed as passed.
+- Run 39181319724 captured successfully, completed REA with partial coverage (12 parsed files, 1,371 findings; heap limitations on large bundles), and registered real ytd-app components displaying the local uploaded title. Screenshot inspected: header remained a skeleton. The next changes retain the guest masthead structure with a local account link, pin observed icon paths, and rewrite hardcoded API origins (including workers). These improvements still need CI verification.
+- The browser probe now requires actual `ytd-app #movie_player video` playback, preventing a full navigation into the independent interface from being counted as official-client success. Do not trust older generic-video watch probes for that claim.
 
 ## Next work, in priority order
 

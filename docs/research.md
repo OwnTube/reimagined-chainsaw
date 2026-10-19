@@ -46,3 +46,9 @@ npx --yes --package=rea-agents@6.7.0 rea analyze-javascript-application /absolut
 This does not modify agent configuration. It was attempted against the local captured assets. REA reached JavaScript artifact discovery, then failed because this container's procps process inspection cannot resolve itself. This is an environment blocker, not evidence of an analysis finding. A CI step repeats it on a standard Ubuntu runner.
 
 No upstream implementation code was copied into this project. The independent interface is a working path for exercising local accounts/videos while compatibility investigation proceeds.
+
+## Runner evidence
+
+GitHub Actions run 39181319724 completed the capture and REA command. REA reported 12 parsed JavaScript files, 1,371 findings, no parse failures, and heap/resource limitations affecting the large player and main bundles. Its evidence ID is `ev_5732d0257cb8612f7849286f1d62df08fca345a80d6a49726aed59b259cb447f`. This remains partial static evidence.
+
+The browser registered YouTube's real `ytd-app` custom element and displayed a locally uploaded test title, thumbnail and local owner through those components. The screenshot also exposed the absent masthead bootstrap: the header stayed a skeleton after the original topbar was discarded. The shell now preserves its guest structure while replacing the account destination with a local account link. Failed dynamic icon paths are captured explicitly and resolved only from the local manifest. Hardcoded API origins are also rewritten for worker realms, which do not inherit the window fetch/XHR patch. These fixes require a new browser run.

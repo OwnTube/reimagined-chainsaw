@@ -2,6 +2,7 @@
 import hashlib
 import json
 import re
+from urllib.parse import urlsplit
 from . import innertube
 from .store import DATA
 
@@ -10,6 +11,18 @@ def asset_path(name):
     if not re.fullmatch(r'[0-9a-f]{64}\.(js|css|png|jpg|webp|svg|woff2?|ico)', name):
         return DATA / 'client' / '__missing__'
     return DATA / 'client' / 'assets' / name
+
+
+def original_asset(path):
+    """Resolve dynamic root-relative requests only if the asset is already pinned."""
+    try:
+        manifest = json.loads((DATA / 'client' / 'manifest.json').read_text())
+        for entry in manifest['assets']:
+            if urlsplit(entry['url']).path == path:
+                return asset_path(entry['file'])
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return DATA / 'client' / '__missing__'
 
 
 def replace_json_assignment(html, name, value):
@@ -30,6 +43,21 @@ def shell(c, origin):
         return None
     html = target.read_text()
     initial = innertube.response(c, 'browse', {}, origin)
+    # Keep the guest masthead's renderer structure; replacing it with only feed
+    # contents leaves the actual client's header as a permanent loading skeleton.
+    match = re.search(r'(?:var\s+)?ytInitialData\s*=\s*', html)
+    if match:
+        try:
+            guest, _ = json.JSONDecoder().raw_decode(html[match.end():])
+            topbar = guest.get('topbar', {}).get('desktopTopbarRenderer')
+            if isinstance(topbar, dict):
+                topbar['topbarButtons'] = [{'buttonRenderer': {'style': 'STYLE_SUGGESTIVE', 'size': 'SIZE_SMALL',
+                    'text': {'runs': [{'text': 'MewTube account'}]},
+                    'navigationEndpoint': {'urlEndpoint': {'url': '/?signin=1'},
+                        'commandMetadata': {'webCommandMetadata': {'url': '/?signin=1'}}}}}]
+                initial['topbar'] = {'desktopTopbarRenderer': topbar}
+        except (ValueError, AttributeError, TypeError):
+            pass
     html = replace_json_assignment(html, 'ytInitialData', initial)
     html = replace_json_assignment(html, 'ytInitialPlayerResponse', {})
     # The bridge executes before captured inline code; all network APIs stay local.

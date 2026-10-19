@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 
 const origin = process.env.PUBLIC_ORIGIN || 'http://localhost:3000';
 await mkdir('evidence', {recursive:true});
-const diagnostics = {independentClient:{}, capturedClient:{status:'not-tested',errors:[],failedPaths:[]}};
+const diagnostics = {independentClient:{}, capturedClient:{status:'not-tested',errors:[],failedPaths:[],failedRequests:[]}};
 const context = await request.newContext({baseURL:origin,extraHTTPHeaders:{'X-MewTube':'1',Origin:origin}});
 const username = 'probe_' + randomBytes(4).toString('hex');
 const password = randomBytes(18).toString('hex');
@@ -50,8 +50,8 @@ try {
   await page.screenshot({path:'evidence/mobile.png',fullPage:true});
   diagnostics.independentClient.interactions=true;
   await page.setViewportSize({width:1440,height:1000});
-  page.on('pageerror', error=>diagnostics.capturedClient.errors.push(error.message.slice(0,300)));
-  page.on('requestfailed', req=>{try{diagnostics.capturedClient.failedPaths.push(new URL(req.url()).pathname.slice(0,250));}catch{}});
+  page.on('pageerror', error=>{if(diagnostics.capturedClient.errors.length<30)diagnostics.capturedClient.errors.push((error.stack||error.message).slice(0,1200));});
+  page.on('requestfailed', req=>{try{const url=new URL(req.url());diagnostics.capturedClient.failedPaths.push(url.pathname.slice(0,250));if(diagnostics.capturedClient.failedRequests.length<100)diagnostics.capturedClient.failedRequests.push({method:req.method(),origin:url.origin,path:url.pathname.slice(0,250),error:req.failure()?.errorText});}catch{}});
   page.on('response',response=>{if(response.status()>=400){try{diagnostics.capturedClient.failedPaths.push(`${response.status()} ${new URL(response.url()).pathname.slice(0,200)}`);}catch{}}});
   const captured=await page.goto(origin+'/official');
   if(captured.status()===200){
@@ -65,10 +65,11 @@ try {
     if(diagnostics.capturedClient.status==='home-rendered'){
       try{
         await page.getByText('Runner test video',{exact:true}).first().click({timeout:10000});
-        await page.locator('video').first().waitFor({state:'attached',timeout:15000});
-        await page.locator('video').first().evaluate(async v=>{v.muted=true;await v.play();});
-        await page.waitForFunction(()=>Array.from(document.querySelectorAll('video')).some(v=>v.currentTime>0.1),{},{timeout:15000});
-        diagnostics.capturedClient.playback=true;
+        const officialVideo=page.locator('ytd-app #movie_player video').first();
+        await officialVideo.waitFor({state:'attached',timeout:15000});
+        await officialVideo.evaluate(async v=>{v.muted=true;await v.play();});
+        await page.waitForFunction(()=>Array.from(document.querySelectorAll('ytd-app #movie_player video')).some(v=>v.currentTime>0.1),{},{timeout:15000});
+        diagnostics.capturedClient.playback=new URL(page.url()).origin===origin;
       }catch(error){diagnostics.capturedClient.playback=false;diagnostics.capturedClient.watchError=error.message.slice(0,500);}
       await page.screenshot({path:'evidence/official-watch-experimental.png',fullPage:true});
     }

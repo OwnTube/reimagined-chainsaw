@@ -4,6 +4,9 @@ from pathlib import Path
 import unittest
 import subprocess
 import sys
+import tempfile
+from unittest.mock import patch
+import mewtube.snapshot as snapshot
 from mewtube.snapshot import asset_name, replace_json_assignment, asset_path
 
 spec = importlib.util.spec_from_file_location('fetch_client', Path(__file__).resolve().parents[1] / 'scripts' / 'fetch_client.py')
@@ -12,6 +15,22 @@ spec.loader.exec_module(capture)
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_guest_masthead_preserved_and_account_link_is_local(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'client').mkdir()
+            original = {'topbar': {'desktopTopbarRenderer': {
+                'searchbox': {'fusionSearchboxRenderer': {'placeholderText': {'simpleText':'Search'}}},
+                'topbarButtons': [{'buttonRenderer': {'navigationEndpoint': {'urlEndpoint': {'url':'https://accounts.google.test/'}}}}]}}}
+            (root / 'client' / 'index.html').write_text('<html><head></head><script>var ytInitialData = '+json.dumps(original)+';</script></html>')
+            with patch.object(snapshot, 'DATA', root), patch.object(snapshot.innertube, 'response', return_value={'contents': {'local':True}}):
+                result = snapshot.shell(None, 'http://localhost:3000').decode()
+            self.assertIn('fusionSearchboxRenderer', result)
+            self.assertIn('/?signin=1', result)
+            self.assertNotIn('accounts.google.test', result)
+            self.assertIn('"local":true', result)
+            self.assertIn('src="/bridge.js"', result)
+
     def test_console_scripts_start_in_fresh_interpreters(self):
         root = Path(__file__).resolve().parents[1]
         for script in ('fetch_client.py', 'manage_operator.py'):
@@ -28,6 +47,11 @@ class SnapshotTests(unittest.TestCase):
         self.assertFalse(capture.allowed('https://www.youtube.com.evil.test/s/player/test.js'))
         self.assertFalse(capture.allowed('http://127.0.0.1/s/player/test.js'))
         self.assertEqual(asset_path('../../secret').name, '__missing__')
+        source = 'fetch("https://youtubei.googleapis.com/youtubei/v1/player");var x="https:\\/\\/www.youtube.com/youtubei/v1/guide";'
+        rewritten = capture.rewrite_origins(source, 'http://localhost:3000')
+        self.assertNotIn('googleapis.com', rewritten)
+        self.assertNotIn('www.youtube.com', rewritten)
+        self.assertIn('http://localhost:3000/youtubei/v1/player', rewritten)
 
     def test_bootstrap_replaced_without_script_injection(self):
         original = '<script>var ytInitialData = {"secret":"visitor-id", "nested":{"x":"};"}}; next();</script>'
