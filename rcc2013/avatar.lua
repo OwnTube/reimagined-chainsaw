@@ -48,7 +48,5 @@ joint("Right Shoulder", torso, rightArm, Vector3.new(1.5,0,0))
 joint("Left Hip", torso, leftLeg, Vector3.new(-0.5,-2,0))
 joint("Right Hip", torso, rightLeg, Vector3.new(0.5,-2,0))
 local humanoid = Instance.new("Humanoid")
-humanoid.NameDisplayDistance = 0
-humanoid.HealthDisplayDistance = 0
 humanoid.Parent = avatar
 print(marker .. "|R6_READY|6 body parts|Humanoid|Motor6D|bundled head and face")
