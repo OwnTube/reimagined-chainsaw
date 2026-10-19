@@ -81,6 +81,8 @@ class SnapshotTests(unittest.TestCase):
         def download(url):
             if url == 'https://www.youtube.com/' or '/watch?' in url:
                 return html.encode()
+            if '/results?' in url:
+                return html.replace('var ytInitialData={};', 'var ytInitialData={"contents":{"twoColumnSearchResultsRenderer":{}}};').encode()
             return b'var loaded=true;' if '/_/js/' in url else b'<svg/>'
         with tempfile.TemporaryDirectory() as tmp:
             with patch.object(capture, 'DATA', Path(tmp)), patch.object(capture, 'fetch', side_effect=download), \
@@ -93,6 +95,8 @@ class SnapshotTests(unittest.TestCase):
             self.assertNotIn('/client-assets/', shell)
             self.assertNotIn('www.youtube.com', shell)
             manifest = json.loads((Path(tmp) / 'client' / 'manifest.json').read_text())
+            self.assertTrue(manifest['searchTemplate'])
+            self.assertTrue((Path(tmp) / 'client' / 'search.html').is_file())
             entry = next(a for a in manifest['assets'] if a['url'] == modern)
             self.assertRegex(entry['file'], r'^[0-9a-f]{64}\.js$')
             self.assertTrue((Path(tmp) / 'client' / 'assets' / entry['file']).is_file())
@@ -150,18 +154,26 @@ class SnapshotTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / 'client').mkdir()
-            (root / 'client' / 'index.html').write_text('''<html><head></head><script>
+            (root / 'client' / 'search.html').write_text('''<html><head></head><script>
                 window['ytPageType']="browse"; window['ytCommand']={"browseEndpoint":{"browseId":"FEwhat_to_watch"}};
+                window['ytUrl']='\\/results?search_query=upstream';
                 var ytInitialData={"contents":{}};</script></html>''')
             query = 'Cats & <robots> 🐈'
             with patch.object(snapshot, 'DATA', root), patch.object(snapshot.innertube, 'response', return_value={'contents': {}}):
                 result = snapshot.shell(None, 'http://localhost:3000', search_query=query).decode()
             command = snapshot.read_json_assignment(result, 'ytCommand')
             self.assertEqual(command['searchEndpoint']['query'], query)
+            self.assertEqual(snapshot.read_json_assignment(result, 'ytUrl'), command['commandMetadata']['webCommandMetadata']['url'])
             self.assertEqual(snapshot.read_json_assignment(result, 'ytPageType'), 'search')
             self.assertEqual(command['commandMetadata']['webCommandMetadata']['webPageType'], 'WEB_PAGE_TYPE_SEARCH')
             self.assertNotIn('FEwhat_to_watch', result)
             self.assertNotIn('<robots>', result)
+            self.assertNotIn('search_query=upstream', result)
+            (root / 'client' / 'search.html').unlink()
+            (root / 'client' / 'index.html').write_text('<script>var ytInitialData={};</script>')
+            with patch.object(snapshot, 'DATA', root):
+                self.assertIsNone(snapshot.shell(None, 'http://localhost:3000', search_query=query),
+                                  'Missing search capture must not silently use a home template')
 
     def test_modern_bundle_and_restricted_hosts(self):
         url = 'https://www.youtube.com/s/_/ytmainappweb/_/js/k=build/m=kevlar_base_module,kevlar_main_module'

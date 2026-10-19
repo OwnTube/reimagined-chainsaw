@@ -247,6 +247,15 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(feed_ids('FEsubscriptions'), [video_id])
         self.assertEqual(feed_ids('FEsubscriptions', guest), [])
         self.assertEqual(feed_ids(owner), [video_id])
+        with sqlite3.connect(self.data / 'mewtube.sqlite3') as c:
+            c.execute("INSERT INTO videos(id,owner,title,status,created) VALUES(?,?,?,'failed',?)",
+                      ('subfailed01', owner, 'Not public', int(time.time())))
+        header = self.request('/youtubei/v1/browse', {'browseId':owner})[1]['header']['pageHeaderRenderer']['content']['pageHeaderViewModel']
+        self.assertEqual(header['title']['dynamicTextViewModel']['text']['content'], 'subscription_creator')
+        metadata = json.dumps(header['metadata'])
+        self.assertIn('@subscription_creator', metadata)
+        self.assertIn('1 subscriber', metadata)
+        self.assertIn('1 video', metadata, 'Failed videos must not be included in the public count')
         self.assertEqual(self.request('/youtubei/v1/browse', {'browseId':'missing0001'})[0], 501)
         next_data = self.request('/youtubei/v1/next', {'videoId':video_id})[1]
         secondary = next_data['contents']['twoColumnWatchNextResults']['results']['results']['contents'][1]['videoSecondaryInfoRenderer']

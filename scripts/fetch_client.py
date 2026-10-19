@@ -83,7 +83,7 @@ def allowed(url):
 class Redirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         parsed = urllib.parse.urlsplit(newurl)
-        guest_page = parsed.scheme == 'https' and parsed.netloc == 'www.youtube.com' and parsed.path in ('/', '/watch')
+        guest_page = parsed.scheme == 'https' and parsed.netloc == 'www.youtube.com' and parsed.path in ('/', '/watch', '/results')
         if not guest_page and not allowed(newurl):
             raise ValueError('Unexpected redirect; capture stopped: ' + urllib.parse.urlsplit(newurl).netloc)
         return super().redirect_request(req, fp, code, msg, headers, newurl)
@@ -133,7 +133,18 @@ def main():
         page_failures.append({'path': '/watch', 'error': type(e).__name__})
         watch_html = None
         print('Guest watch template unavailable:', type(e).__name__, flush=True)
-    pending = sorted(u for u in references(html + (watch_html or '')) if allowed(u))
+    search_html = None
+    try:
+        search_html = fetch('https://www.youtube.com/results?search_query=mewtube').decode('utf-8')
+        search_data = read_json_assignment(search_html, 'ytInitialData')
+        if (not isinstance(search_data, dict) or '<ytd-app' not in search_html or
+                'twoColumnSearchResultsRenderer' not in search_data.get('contents', {})):
+            raise ValueError('Guest search page did not contain a search bootstrap')
+    except Exception as e:
+        page_failures.append({'path': '/results', 'error': type(e).__name__})
+        search_html = None
+        print('Guest search template unavailable:', type(e).__name__, flush=True)
+    pending = sorted(u for u in references(html + (watch_html or '') + (search_html or '')) if allowed(u))
     # Observed dynamic icon requests from the captured client's browser trace.
     pending += ['https://fonts.gstatic.com/s/i/youtube_outline_experimental/search/v15/24px.svg',
                 'https://fonts.gstatic.com/s/i/youtube_outline_experimental/menu/v1/24px.svg']
@@ -183,9 +194,16 @@ def main():
         staged_watch.replace(client / 'watch.html')
     else:
         (client / 'watch.html').unlink(missing_ok=True)
+    if search_html:
+        staged_search = client / 'search.html.tmp'
+        staged_search.write_text(rewrite_origins(search_html, origin))
+        staged_search.replace(client / 'search.html')
+    else:
+        (client / 'search.html').unlink(missing_ok=True)
     (client / 'manifest.json').write_text(json.dumps({'capturedAt': int(time.time()), 'publicOrigin': origin,
         'assetRouting': 'preserved-build-paths', 'assets': entries,
         'watchTemplate': bool(watch_html), 'watchSourceId': WATCH_ID,
+        'searchTemplate': bool(search_html),
         'failures': failures, 'remaining': len(pending), 'status': 'experimental-unverified'}, indent=2))
     print(f'Pinned {len(entries)} assets; {len(failures)} failures, {len(pending)} remaining. Experimental client: /official')
 

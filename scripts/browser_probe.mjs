@@ -255,6 +255,12 @@ try {
           assert.equal(await page.getByText('Unsubscribed decoy',{exact:true}).first().isVisible(),false);
           diagnostics.capturedClient.nativeSubscriptions.channel=true;
           diagnostics.capturedClient.nativeSubscriptions.excludesOtherCreator=true;
+          const header=page.locator('yt-page-header-view-model');
+          await header.getByText(video.username,{exact:true}).first().waitFor({timeout:8000});
+          await header.getByText('@'+video.username,{exact:true}).first().waitFor({timeout:8000});
+          await header.getByText('1 subscriber',{exact:true}).first().waitFor({timeout:8000});
+          await header.getByText('1 video',{exact:true}).first().waitFor({timeout:8000});
+          diagnostics.capturedClient.nativeChannelHeader={title:true,handle:true,subscriberCount:true,readyVideoCount:true};
           await page.screenshot({path:'evidence/official-channel.png',fullPage:true,timeout:10000});
           await page.goto(origin+'/watch?v='+id);
           await page.locator('ytd-app').getByRole('button',{name:'Unsubscribe',exact:true}).first().click({timeout:8000});

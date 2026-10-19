@@ -20,6 +20,16 @@ The browser previously recorded failed native flags without necessarily failing 
 
 ### Earlier read-only evidence
 
+### Search reload failure isolated and current candidates (13:35 UTC)
+
+Run `39260846531`, commit `1f7c0d6`, artifact `12191910853` uploaded 13:32:58 UTC, has acceptanceFailures=[] and preserves all established native flows. The corrected search locator proves actual masthead submission, matching local result and nonmatch exclusion. Reload still fails: the inspected screenshot shows the local masthead/account with an empty content area. Search reload/watch navigation must not be reported as passing.
+
+The candidate capture pins a separate signed-out `/results` template, discovers its static references, records searchTemplate in the ignored manifest and fails closed if that template is missing. Shells replace its local search command, page type and URL, including safe decoding of observed single-quoted URL literals. Older pins require --latest. A current public guest channel header contract was also inspected: the old c4 header emitted by this backend is absent from this build. The new candidate pageHeaderRenderer/pageHeaderViewModel emits only the local name/handle, stored subscriber count and ready-video count; it does not claim banners, avatars, management or subscription actions in that header. HTTP tests exclude failed videos from the public count. Browser proof for both candidates is pending. **22 Python methods and four JS suites pass locally.**
+
+Two user-supplied HARs are analysis-only and stay outside the repository. The first has 117 entries and 105 response bodies, including native account_menu. The second is truncated at 19,900,000 characters; 63 complete entries can be inspected without altering the upload. Only schema names/counts have been extracted; captured requests are never replayed and Google-account data/credentials are never imported. The account menu's openPopupAction/multiPageMenuRenderer contract is a useful next analysis target for a local-only menu.
+
+### Earlier read-only evidence continued
+
 Run `39213121880`, commit `0db7e08`, browser artifact `12168313299` uploaded 07:01:11 UTC, confirms native local comment text and author rendering. Its comment screenshot was inspected: local creator/subscription controls, local title, comment count, author and text render through the actual captured UI. The unrelated-creator decoy is excluded from both native subscription and creator grids. Actual guide clicks, Subscribe/Unsubscribe and reload persistence pass. Playback, official controls, Like/Unlike, local bootstrap/title and guest sign-in return remain true. The channel screenshot establishes a basic filtered grid, not a finished channel banner/header or management UI.
 
 ### Candidate native top-level composer

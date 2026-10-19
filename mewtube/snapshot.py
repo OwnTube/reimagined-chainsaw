@@ -97,9 +97,9 @@ def assignment_pattern(name):
 def decode_assignment(source):
     """Decode JSON or JSON.parse(string-literal), never execute captured code."""
     parse = re.match(r'JSON\.parse\(\s*', source)
-    if not parse:
+    if not parse and not source.startswith("'"):
         return json.JSONDecoder().raw_decode(source)
-    position = parse.end()
+    position = parse.end() if parse else 0
     if position >= len(source) or source[position] not in ('"', "'"):
         raise ValueError('Expected a string literal')
     quote = source[position]
@@ -111,6 +111,8 @@ def decode_assignment(source):
         char = source[position]
         position += 1
         if char == quote:
+            if not parse:
+                return ''.join(chars), position
             close = re.match(r'\s*\)', source[position:])
             if not close:
                 raise ValueError('Only a single literal argument is supported')
@@ -161,7 +163,7 @@ def replace_json_assignment(html, name, value):
 
 
 def shell(c, origin, watch_id=None, search_query=None, user=None, browse_id=''):
-    target = DATA / 'client' / ('watch.html' if watch_id else 'index.html')
+    target = DATA / 'client' / ('watch.html' if watch_id else ('search.html' if search_query is not None else 'index.html'))
     if not target.is_file():
         return None
     html = target.read_text()
@@ -195,8 +197,11 @@ def shell(c, origin, watch_id=None, search_query=None, user=None, browse_id=''):
                        else innertube.browse_endpoint(browse_id or 'FEwhat_to_watch',
                             '/feed/subscriptions' if browse_id == 'FEsubscriptions' else '/'))
         html = replace_json_assignment(html, 'ytCommand', destination)
+        html = replace_json_assignment(html, 'ytUrl', destination['commandMetadata']['webCommandMetadata']['url'])
     elif operation == 'search':
-        html = replace_json_assignment(html, 'ytCommand', innertube.search_endpoint(search_query))
+        destination = innertube.search_endpoint(search_query)
+        html = replace_json_assignment(html, 'ytCommand', destination)
+        html = replace_json_assignment(html, 'ytUrl', destination['commandMetadata']['webCommandMetadata']['url'])
         html = replace_json_assignment(html, 'ytPageType', 'search')
     player = innertube.response(c, 'player', {'videoId': watch_id}, origin) if watch_id else {}
     html = replace_json_assignment(html, 'ytInitialPlayerResponse', player)

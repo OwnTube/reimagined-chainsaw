@@ -49,6 +49,8 @@ The captured client is explicitly adapted, not unmodified: its response-integrit
 
 ## Implemented
 
+New captures also pin a guest search-page template for native search reloads. Upgrade existing pins with `python scripts/fetch_client.py --latest`; a missing search template returns an explicit unavailable page instead of substituting a home shell.
+
 - Local registration, scrypt password hashes, opaque cookie sessions, sign-in/out.
 - Video upload, one durable processing queue, FFmpeg conversion to a progressive H.264/AAC MP4, and thumbnails. Maximum duration: one hour.
 - Home, title/description search, channel feeds, subscriptions, and creator studio.

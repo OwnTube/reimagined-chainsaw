@@ -31,7 +31,7 @@ def channel_endpoint(channel):
 def search_endpoint(query):
     return {'searchEndpoint': {'query': query}, 'commandMetadata': {'webCommandMetadata': {
         'url': '/results?' + urlencode({'search_query': query}),
-        'webPageType': 'WEB_PAGE_TYPE_SEARCH', 'apiUrl': '/youtubei/v1/search'}}}
+        'webPageType': 'WEB_PAGE_TYPE_SEARCH', 'rootVe': 4724, 'apiUrl': '/youtubei/v1/search'}}}
 
 
 def renderer(v):
@@ -103,6 +103,17 @@ def owner_info(c, v, user):
         'description': {'runs': [{'text': v['description']}]}}}
 
 
+def channel_header(c, channel):
+    subscribers = c.execute('SELECT count(*) FROM subscriptions WHERE channel_id=?', (channel['id'],)).fetchone()[0]
+    ready = c.execute("SELECT count(*) FROM videos WHERE owner=? AND status='ready'", (channel['id'],)).fetchone()[0]
+    return {'pageHeaderRenderer': {'pageTitle': channel['username'], 'content': {'pageHeaderViewModel': {
+        'title': {'dynamicTextViewModel': {'text': {'content': channel['username']}, 'maxLines': 2}},
+        'metadata': {'contentMetadataViewModel': {'metadataRows': [
+            {'metadataParts': [{'text': {'content': '@' + channel['username']}}]},
+            {'metadataParts': [{'text': {'content': str(subscribers) + (' subscriber' if subscribers == 1 else ' subscribers')}},
+                               {'text': {'content': str(ready) + (' video' if ready == 1 else ' videos')}}]}], 'delimiter': '•'}}}}}}
+
+
 def response(c, operation, body, origin, user=None):
     context = {'responseContext': {'serviceTrackingParams': [], 'mainAppWebResponseContext': {'loggedOut': True}}}
     if operation == 'player':
@@ -146,7 +157,7 @@ def response(c, operation, body, origin, user=None):
     if operation == 'browse':
         title = channel['username'] if channel else ('Subscriptions' if browse_id == 'FEsubscriptions' else 'Home')
         if channel:
-            context['header'] = {'c4TabbedHeaderRenderer': {'channelId': channel['id'], 'title': channel['username']}}
+            context['header'] = channel_header(c, channel)
         return {**context, 'contents': {'twoColumnBrowseResultsRenderer': {'tabs': [{'tabRenderer': {
             'selected': True, 'title': title, 'content': {'richGridRenderer': {
                 'contents': [{'richItemRenderer': {'content': item}} for item in items]}}}}]}}}
