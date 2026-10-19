@@ -57,12 +57,12 @@ The captured client is explicitly adapted, not unmodified: its response-integrit
 - Host-granted operators can inspect reports, remove videos, and inspect unknown client calls.
 - InnerTube-shaped `browse`, `search`, `player`, and `next` responses backed by local videos.
 - Instance-local guest client capture, current main-bundle URL handling, bootstrap replacement, and fetch/XHR transport adapter.
-- Captured watch Like/Unlike backed by local sessions, bounded gzip API decoding, persisted native toggle state, and guest local sign-in returning to the captured watch page (runner 39207390118).
+- Captured watch Like/Unlike backed by local sessions, bounded gzip API decoding, persisted native toggle state, and guest local sign-in returning to the captured watch page (runner 39207845799).
 - HTTP integration tests and a GitHub Actions browser/REA diagnostic workflow.
 
 ## Known limits
 
-- **Official home/watch rendering, local playback/controls, Like/Unlike persistence and local-account handoff pass runner tests (run 39207390118).** This remains experimental, not parity with Xitter, Meowcord, or YouTube. Sign-in uses MewTube's local auth dialog, not Google account emulation. Native Studio, comments, playlists, channel management and subscriptions are not adapted yet. Use the independent interface for those supported local features.
+- **Official home/watch rendering, local playback/controls, Like/Unlike persistence and local-account handoff pass runner tests (run 39207845799).** This remains experimental, not parity with Xitter, Meowcord, or YouTube. Sign-in uses MewTube's local auth dialog, not Google account emulation. Native Studio, comments, playlists, channel management and subscriptions are not adapted yet. Use the independent interface for those supported local features.
 - No federation, live streaming, Shorts, adaptive bitrate/HLS/DASH, captions, notifications, email verification, password recovery, or private videos.
 - Uploads become public when processing finishes. View counts currently count authenticated play events and are not unique-view analytics.
 - A single process and one transcoder serve a small instance; not a production-scale video platform. No total storage quota, mature abuse controls, or resumable upload support yet.

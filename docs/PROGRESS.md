@@ -2,33 +2,33 @@
 
 Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, draft PR #1. Do not merge or change repository visibility.
 
-## Current verified checkpoint: October 19, 2026, 06:01 UTC
+## Current verified checkpoint: October 19, 2026, 06:06 UTC
 
-**The actual captured client now passes local watch playback, controller, native Like/Unlike and local-account handoff tests.** The authoritative tested branch commit is `cc20e4e45479be924fe0b9f56f6ed4e32a5326d6`, run `39207390118`, browser artifact `12165814369`, uploaded at 06:01:24 UTC. Read this section before the investigation history below.
+**The actual captured client now passes local watch playback, controller, native Like/Unlike and local-account handoff tests.** The authoritative tested implementation commit is `6d1597d945c6e5308d400c3d6d35536af676f4b9`, run `39207845799`, browser artifact `12166318202`, uploaded at 06:06:08 UTC. Read this section before the investigation history below. The subsequent checkpoint/diagnostic-only update does not change successful playback or mutation behavior.
 
 Verified in that browser artifact:
 
-- Actual ytd-app watch heading displays the local title; local bootstrap marker and local account button are present. The underlying local MP4 advances to 1.326849 seconds of an 8.010998-second generated fixture, readyState 4, wrapper state 1, correct local ID, OK playability, no media error and no error overlay. Strict playback acceptance is true.
+- Actual ytd-app watch heading displays the local title; local bootstrap marker and local account button are present. The underlying local MP4 advances to 1.353968 seconds of an 8.010998-second generated fixture, readyState 4, wrapper state 1, correct local ID, OK playability, no media error and no error overlay. Strict playback acceptance is true.
 - Official pauseVideo, seekTo and playVideo all pass bounded controller checks.
 - Native Unlike and Like clicks each send **gzip requests** to the local endpoints and receive 200. SQLite state changes; after reload, the native button reflects persisted aria-pressed=true. This is actual official-client mutation evidence, not only HTTP tests.
 - The signed-in local username is visible. An isolated guest clicks the native sign-in link, reaches the independent local auth dialog, signs into the disposable generated local account and returns to the captured watch page. guestLocalSignIn and localAccountHandoff are true. No Google account is used or emulated.
-- Watch/mutation/guest screenshots were inspected. They show local titles and the native button. Reload transitions and guest layout are not polished: pinned asset requests hit 429 under the original shared 240/minute quota. Do not claim finished visual quality.
-- Container health and the service checks before static analysis pass. REA remains partial/resource-limited; a green workflow is not complete REA coverage.
+- Watch/mutation/guest screenshots were inspected. They show local titles, correctly styled masthead/player and native buttons in consistent viewports. The prior pinned-asset 429s are absent after the quota fix. This is still an early-alpha layout, not finished visual quality or broad build/format coverage.
+- All 17 Python methods, the three JS suites, capture, browser step and container health pass on the runner. REA was still running when browser evidence was inspected; existing analysis remains partial/resource-limited. Do not call the entire workflow or full static coverage complete based on those earlier steps.
 
-Evidence: https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39207390118/artifacts/12165814369
+Evidence: https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39207845799/artifacts/12166318202
 
-## Latest implementation and pending verification
+## Latest implementation
 
 The working implementation additionally supports literal JSON.parse bootstrap assignments (single/double-quoted strings and hex/Unicode escapes), decoded without executing JavaScript. Arbitrary expressions and revivers remain unsupported and fail closed. This extends bare/window-property/window-bracket JSON support. Unit tests cover escaping, preservation of surrounding script, invalid strings and unsupported expressions.
 
 The concrete 429 problem is fixed by charging the 240/minute static-download quota **only on cache misses**, under the cache lock. Immutable cached files no longer consume the outbound-download budget. File/count/cache limits and fixed-host/path restrictions remain intact. Tests prove warm-cache reads do not consume quota and denied cold misses do not fetch. Browser screenshots now use consistent viewports and allow a short bounded hydration transition.
 
-Latest local checks: **17 Python test methods pass**, including real HTTP/FFmpeg integration; bridge, bounded playback/control and auth-return JS suites all pass; JS syntax and git whitespace checks pass. The fresh runner result for these final parser/cache changes is still required. The previous authoritative runner proof above tested 16 Python methods plus the same three JS suites.
+Latest local checks: **17 Python test methods pass**, including real HTTP/FFmpeg integration; bridge, bounded playback/control and auth-return JS suites all pass; JS syntax and git whitespace checks pass. Fresh runner evidence above confirms these parser/cache changes preserve all native flows and remove cached-file 429s. Authentication-probe errors now redact the disposable password and retain only a bounded first line, excluding request/header call logs from those diagnostic fields; that diagnostic-only change is syntax checked.
 
 ## Next priority
 
-1. Inspect the next browser artifact first: require local watch title/bootstrap, OK player, advancing local media, controller success, native gzip Like/Unlike persistence, guest sign-in return, and no cached-file 429s. Keep media and mutation results separate. Do not rely on generic video-element progress or a green workflow.
-2. Expand native guide/subscription/channel-owner and comment compatibility using observed contracts. Native guide currently returns 501; native subscriptions/comments/Studio are not implemented. Local account handoff is not full YouTube account UI emulation.
+1. Expand native guide/subscription/channel-owner and comment compatibility using observed contracts. Native guide currently returns 501; native subscriptions/comments/Studio are not implemented. Local account handoff is not full YouTube account UI emulation.
+2. Preserve the strict regressions: local watch title/bootstrap, OK player, advancing local media, controller success, native gzip Like/Unlike persistence, guest sign-in return, and no cached-file 429s. Keep media and mutation results separate. Inspect browser artifacts before waiting for REA; do not rely on generic video-element progress or a green workflow.
 3. Keep unknown operations explicit. Blocked external fonts, probes, ads/BotGuard, cast paths and analytics calls do not justify a general proxy or access to Google accounts.
 4. Improve global storage quotas and transcoder isolation before untrusted large deployments.
 

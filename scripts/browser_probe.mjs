@@ -209,13 +209,13 @@ try {
           await guestPage.waitForURL(url=>url.origin===origin && url.pathname==='/official' && url.searchParams.get('v')===id,{timeout:10000});
           await guestPage.getByText('MewTube @'+username,{exact:true}).waitFor({timeout:10000});
           diagnostics.capturedClient.localAccountHandoff=true;
-        }catch(error){diagnostics.capturedClient.localAccountHandoff=false;diagnostics.capturedClient.guestSignInError=error.message.slice(0,300);}
+        }catch(error){diagnostics.capturedClient.localAccountHandoff=false;diagnostics.capturedClient.guestSignInError=error.message.replaceAll(password,'[redacted]').split('\n')[0].slice(0,300);}
         finally{await guestPage.close();}
         await checkpoint('official-guest-signin-inspected');
       }
     }
   }else diagnostics.capturedClient.status='capture-unavailable';
-}catch(error){diagnostics.error=error.message;process.exitCode=1;}
+}catch(error){diagnostics.error=error.message.replaceAll(password,'[redacted]').split('\n')[0].slice(0,300);process.exitCode=1;}
 finally{
   diagnostics.capturedClient.failedPaths=[...new Set(diagnostics.capturedClient.failedPaths)].slice(0,100);
   await checkpoint('finished');
