@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark"><meta name="description" content="An independent home for your videos. Self-hosted, community-owned.">
+<title>MewTube</title><link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script></head>
+<body>
+<header><a class="brand" href="/" aria-label="MewTube home"><span class="mark">▶</span> MewTube<span class="instance">LOCAL</span></a>
+<form id="search" role="search"><input name="q" aria-label="Search videos" placeholder="Search your corner of the internet"><button aria-label="Search">⌕</button></form>
+<div class="header-actions"><a class="button" href="/studio">＋ Create</a><button id="account">Sign in</button></div></header>
+<aside><nav><a href="/">⌂ <span>Home</span></a><a href="/subscriptions">▤ <span>Subscriptions</span></a><a href="/studio">▣ <span>Your studio</span></a></nav>
+<div class="aside-bottom"><p>A little less algorithm.<br>A little more you.</p><a href="/official">Captured client ↗</a><a id="source" href="https://github.com/vibecodeforever/reimagined-chainsaw/tree/feat/mewtube" target="_blank" rel="noopener">Source code ↗</a></div></aside>
+<main id="main" tabindex="-1"><p>Loading your instance…</p></main>
+<div id="toast" role="status" aria-live="polite"></div>
+<dialog id="auth"><form id="auth-form"><div class="dialog-heading"><h2 id="auth-title">Welcome back</h2><button type="button" class="close" aria-label="Close">×</button></div>
+<p class="muted">Your account lives on this instance.</p><label>Username<input name="username" autocomplete="username" pattern="[a-zA-Z0-9_]{3,24}" minlength="3" maxlength="24" required></label>
+<label>Password<input name="password" type="password" autocomplete="current-password" minlength="10" maxlength="200" required></label>
+<p id="auth-error" class="error" role="alert"></p><button class="primary" type="submit">Sign in</button><button type="button" id="auth-switch">New here? Create an account</button></form></dialog>
+</body></html>

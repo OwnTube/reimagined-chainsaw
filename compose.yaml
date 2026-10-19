@@ -1,0 +1,18 @@
+services:
+  mewtube:
+    build: .
+    restart: unless-stopped
+    init: true
+    ports:
+      - "127.0.0.1:${HOST_PORT:-3000}:3000"
+    environment:
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:3000}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-500}
+      SIGNUPS: ${SIGNUPS:-1}
+    volumes:
+      - mewtube-data:/app/data
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 256
+volumes:
+  mewtube-data:

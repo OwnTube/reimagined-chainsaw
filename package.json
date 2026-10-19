@@ -1,0 +1,7 @@
+{
+  "name": "mewtube-browser-evidence",
+  "private": true,
+  "type": "module",
+  "scripts": {"test:browser": "node scripts/browser_probe.mjs"},
+  "devDependencies": {"playwright": "1.64.1"}
+}

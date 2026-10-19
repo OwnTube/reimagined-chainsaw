@@ -1,0 +1,55 @@
+name: Verify MewTube
+on:
+  push:
+    branches: [feat/mewtube]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  service:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: HTTP integration tests
+        run: python -m unittest discover -s tests -v
+      - name: JavaScript syntax
+        run: node --check web/app.js && node --check web/bridge.js
+      - name: Install browser test dependencies
+        run: npm install --ignore-scripts && npx playwright install --with-deps chromium
+      - name: Capture a guest client
+        continue-on-error: true
+        run: python scripts/fetch_client.py
+      - name: REA static analysis
+        continue-on-error: true
+        timeout-minutes: 4
+        run: |
+          mkdir -p evidence
+          npx --yes --package=rea-agents@6.7.0 rea analyze-javascript-application "$PWD/data/client/assets" --json > evidence/rea.json
+      - name: Browser and playback evidence
+        run: |
+          mkdir -p evidence
+          ffmpeg -v error -y -f lavfi -i testsrc2=size=640x360:rate=24 -f lavfi -i sine=frequency=440 -t 3 -c:v libx264 -pix_fmt yuv420p -c:a aac evidence/sample.mp4
+          python -m mewtube.server > evidence/server.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://localhost:3000/healthz && break; sleep 1; done
+          npm run test:browser
+      - name: Upload diagnostics (no downloaded client or credentials)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mewtube-evidence
+          path: |
+            evidence/*.png
+            evidence/browser.json
+            evidence/server.log
+            evidence/rea.json
+          retention-days: 3
