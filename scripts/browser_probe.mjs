@@ -88,12 +88,26 @@ try {
         const officialVideo=page.locator('ytd-app #movie_player video').first();
         await officialVideo.waitFor({state:'attached',timeout:15000});
         await checkpoint('official-player-attached');
-        diagnostics.capturedClient.media=await bounded(officialVideo.evaluate(probePlayback,{timeoutMs:8000}),10000,'Official playback probe');
+        diagnostics.capturedClient.media=await bounded(officialVideo.evaluate(probePlayback,{timeoutMs:10000,stableMs:1200}),12000,'Official playback probe');
+        diagnostics.capturedClient.player=await bounded(page.evaluate(()=>{
+          const root=document.querySelector('ytd-app #movie_player');
+          const error=root?.querySelector('.ytp-error');
+          const visible=!!error && getComputedStyle(error).display!=='none' && error.getBoundingClientRect().height>0;
+          let state=null,videoId=null,status=null;
+          try{state=root?.getPlayerState?.() ?? null;}catch{}
+          try{videoId=root?.getVideoData?.()?.video_id ?? null;}catch{}
+          try{status=root?.getPlayerResponse?.()?.playabilityStatus?.status ?? null;}catch{}
+          return {state,videoId,playabilityStatus:status,errorVisible:visible,errorText:visible?error.textContent.trim().slice(0,250):null,
+            errorClass:root?.classList.contains('ytp-error') || root?.classList.contains('ytp-error-mode') || false};
+        }),3000,'Official player state');
         const watchUrl=new URL(page.url());
         diagnostics.capturedClient.watchPath=watchUrl.pathname;
+        const player=diagnostics.capturedClient.player;
         diagnostics.capturedClient.playback=diagnostics.capturedClient.media.ok && watchUrl.origin===origin &&
-          watchUrl.pathname==='/watch' && watchUrl.searchParams.get('v')===id && !!diagnostics.capturedClient.localMediaResponse;
-        if(!diagnostics.capturedClient.playback)diagnostics.capturedClient.watchError=diagnostics.capturedClient.media.reason || 'Watch identity or local media response missing';
+          watchUrl.pathname==='/watch' && watchUrl.searchParams.get('v')===id && !!diagnostics.capturedClient.localMediaResponse &&
+          [1,0].includes(player.state) && player.videoId===id && !player.errorVisible && !player.errorClass;
+        if(!diagnostics.capturedClient.playback)diagnostics.capturedClient.watchError=diagnostics.capturedClient.media.reason ||
+          (player.errorVisible ? player.errorText : 'Player state, watch identity or local media response did not pass');
       }catch(error){diagnostics.capturedClient.playback=false;diagnostics.capturedClient.watchError=error.message.slice(0,500);}
       await checkpoint('official-watch-inspected');
       await page.screenshot({path:'evidence/official-watch-experimental.png',fullPage:true,timeout:10000});

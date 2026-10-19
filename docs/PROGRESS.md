@@ -6,7 +6,7 @@ Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, 
 
 The independent service works: local accounts, streaming uploads, FFmpeg MP4 conversion/thumbnails, range playback, search, channels, subscriptions, likes, comments, reports and host-granted operator controls. Docker Compose build/start and HTTP/FFmpeg health passed on GitHub Actions. Actual YouTube home components display a local uploaded title, thumbnail, creator and view count. The latest inspected screenshot also shows the real masthead and local MewTube account button.
 
-**Official YouTube watch playback is not verified.** Never substitute independent-interface playback, an attached video element, or API tests for that claim.
+**Stable official YouTube watch playback is not verified.** Run 39200490739 (commit 6a045d2) now proves that the actual `ytd-app #movie_player video` receives the local MP4 and advances: readyState 4, no HTMLMediaElement error, time 0.168607 s, duration 3.018005 s, local media HTTP response. However, its screenshot shows a YouTube wrapper error overlay (282054944). The previous single-sample playback=true result is insufficient and must not be reported as stable success.
 
 ## Latest investigation and fixes (October 19, 2026)
 
@@ -41,3 +41,11 @@ Local verification after the fixes: **13 Python test methods pass**, including r
 ## Boundaries
 
 No Google account or personal credentials are needed or authorized. Never commit downloaded clients, cookies, raw HARs, secrets, user uploads, SQLite data, node_modules or evidence artifacts. Do not globally alter agent configuration. Use connected GitHub tools and expected-head checks for writes; avoid conflicting changes if another worker has advanced this branch. Update this checkpoint with concrete commits/checks and honest limits.
+
+## Fresh runner result and stricter acceptance
+
+Browser artifact `12162898931` from run `39200490739` was uploaded at 04:40:00 UTC on October 19. The module-loader `Uc` exception is gone (`errors: []`). Actual YouTube home and watch components, masthead, local account button, title and description render. The local MP4 reaches the actual official media element and its clock advances. The independent browser checks and Docker health also pass.
+
+The watch screenshot nevertheless shows “Something went wrong. Please try again later.” with error 282054944. Therefore the probe is tightened again: require a stability interval, actual wrapper state playing/ended, matching video ID, and no visible/error-class overlay. It also records player state, playability status and overlay text. A short fake-video burst followed by a stall now has regression coverage. The next browser result should identify whether the wrapper error persists and its state; investigate its player/bootstrap contract before implementing local-account mutations.
+
+Evidence: https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39200490739/artifacts/12162898931

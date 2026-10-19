@@ -15,6 +15,8 @@ assert.equal(played.ok,true);
 const stalled=await probePlayback(fixture({play:()=>Promise.resolve()}),{timeoutMs:30});
 assert.equal(stalled.ok,false);
 assert.match(stalled.reason,/no progress/);
+const shortBurst=await probePlayback(fixture({play(){this.currentTime=.2;return Promise.resolve();}}),{timeoutMs:60,stableMs:20});
+assert.equal(shortBurst.ok,false,'A single advancing sample must not pass a stability check');
 const rejected=await probePlayback(fixture({error:{code:4},play:()=>Promise.reject(new Error('Unsupported source'))}),{timeoutMs:30});
 assert.equal(rejected.mediaError,4);
 assert.equal(rejected.ok,false);

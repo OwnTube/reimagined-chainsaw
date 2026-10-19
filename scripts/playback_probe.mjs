@@ -1,5 +1,5 @@
 /* Self-contained so Playwright can serialize this function into the page. */
-export async function probePlayback(video, {timeoutMs=8000, minTime=0.1}={}) {
+export async function probePlayback(video, {timeoutMs=8000, minTime=0.1, stableMs=0}={}) {
   const snapshot = () => ({
     readyState:video.readyState, networkState:video.networkState,
     paused:video.paused, ended:video.ended, currentTime:video.currentTime,
@@ -19,6 +19,11 @@ export async function probePlayback(video, {timeoutMs=8000, minTime=0.1}={}) {
       await new Promise(resolve=>setTimeout(resolve,Math.min(100,Math.max(1,deadline-performance.now()))));
     }
     if(video.currentTime<=minTime) throw new Error('Playback made no progress before deadline');
+    if(stableMs>0) {
+      const before=video.currentTime;
+      await new Promise(resolve=>setTimeout(resolve,Math.min(stableMs,Math.max(0,deadline-performance.now()))));
+      if(video.currentTime<=before && !video.ended) throw new Error('Playback stalled during stability check');
+    }
     return {ok:true,...snapshot()};
   } catch(error) {
     video.pause();
