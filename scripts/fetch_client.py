@@ -13,7 +13,7 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from mewtube.snapshot import asset_name
+from mewtube.snapshot import asset_name, read_json_assignment, assignment_pattern
 from mewtube.store import DATA
 
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36'
@@ -46,7 +46,7 @@ def adapt_local_player(text, origin):
     if '.mainAppWebResponseContext' not in prefix or '.trackingParam' not in prefix or 'MISSING' not in prefix:
         return text, 0
     arg = declaration.group(1)
-    guard = ('if(window.location.origin===' + json.dumps(origin) + '&&' + arg + '&&' +
+    guard = ('if(typeof window!=="undefined"&&window.location.origin===' + json.dumps(origin) + '&&' + arg + '&&' +
              arg + '.playabilityStatus&&' + arg + '.playabilityStatus.status==="OK"&&' +
              arg + '.responseContext&&' + arg + '.responseContext.mainAppWebResponseContext&&' +
              arg + '.responseContext.mainAppWebResponseContext.' + marker + '===true)return 1;')
@@ -117,14 +117,16 @@ def main():
         print('A client is already pinned. Use --latest to replace it.')
         return
     html = fetch('https://www.youtube.com/').decode('utf-8')
-    if 'ytInitialData' not in html or '<ytd-app' not in html:
+    if not isinstance(read_json_assignment(html, 'ytInitialData'), dict) or '<ytd-app' not in html:
         raise SystemExit('YouTube returned a consent/challenge/non-desktop page; no build was pinned.')
     watch_html = None
     page_failures = []
     try:
         watch_html = fetch('https://www.youtube.com/watch?v=' + WATCH_ID).decode('utf-8')
-        if 'ytInitialPlayerResponse' not in watch_html or '<ytd-app' not in watch_html:
+        if (not isinstance(read_json_assignment(watch_html, 'ytInitialPlayerResponse'), dict) or
+                not isinstance(read_json_assignment(watch_html, 'ytInitialData'), dict) or '<ytd-app' not in watch_html):
             raise ValueError('Guest watch page did not contain the player bootstrap')
+        print('Watch bootstrap assignment forms:', [m.group() for m in assignment_pattern('ytInitialData').finditer(watch_html)], flush=True)
     except Exception as e:
         page_failures.append({'path': '/watch', 'error': type(e).__name__})
         watch_html = None

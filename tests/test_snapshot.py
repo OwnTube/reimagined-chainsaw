@@ -17,6 +17,21 @@ spec.loader.exec_module(capture)
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_window_bootstrap_forms_and_unknown_format_fail_closed(self):
+        for assignment in ('window["ytInitialData"]', "window [ 'ytInitialData' ]", 'window.ytInitialData', 'let ytInitialData'):
+            source = '<script>'+assignment+' = {"title":"Upstream sample"};</script>'
+            self.assertEqual(snapshot.read_json_assignment(source, 'ytInitialData'), {'title':'Upstream sample'})
+            replaced = replace_json_assignment(source, 'ytInitialData', {'title':'Local </script> title'})
+            self.assertNotIn('Upstream sample', replaced)
+            self.assertEqual(replaced.count('</script>'), 1)
+            self.assertEqual(snapshot.read_json_assignment(replaced, 'ytInitialData'), {'title':'Local </script> title'})
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'client').mkdir()
+            (root / 'client' / 'index.html').write_text('<script>window["ytInitialData"]=JSON.parse("{}");</script>')
+            with patch.object(snapshot, 'DATA', root):
+                self.assertIsNone(snapshot.shell(None, 'http://localhost:3000'))
+
     def test_local_player_adapter_is_scoped_and_preserves_original_gate(self):
         # Synthetic contract fixture, not downloaded client code.
         gate = ('var check=function(R){var context=R.responseContext.mainAppWebResponseContext;'
@@ -39,6 +54,9 @@ class SnapshotTests(unittest.TestCase):
         local.playabilityStatus.status='OK';window.location.origin='https://www.youtube.com';
         assert.throws(()=>check(local),/282054944_a/);
         assert.equal(check({responseContext:{mainAppWebResponseContext:{trackingParam:'original'}}}),7);
+        delete global.window;
+        assert.equal(check({responseContext:{mainAppWebResponseContext:{trackingParam:'original'}}}),7);
+        assert.throws(()=>check(unmarked),/282054944_a/);
         '''
         subprocess.run(['node', '-e', script], check=True, timeout=10)
 

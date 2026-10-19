@@ -86,8 +86,24 @@ def dynamic_asset(path, origin):
             return missing
 
 
+def assignment_pattern(name):
+    key = re.escape(name)
+    return re.compile(r'(?<![\w$])(?:(?:var|let|const)\s+)?(?:' + key +
+                      r'|window\s*(?:\.\s*' + key + r'|\[\s*["\']' + key + r'["\']\s*\]))\s*=\s*')
+
+
+def read_json_assignment(html, name):
+    for match in assignment_pattern(name).finditer(html):
+        try:
+            value, _ = json.JSONDecoder().raw_decode(html[match.end():])
+            return value
+        except ValueError:
+            continue
+    return None
+
+
 def replace_json_assignment(html, name, value):
-    pattern = re.compile(r'(?:var\s+)?' + re.escape(name) + r'\s*=\s*')
+    pattern = assignment_pattern(name)
     for match in reversed(list(pattern.finditer(html))):
         try:
             _, end = json.JSONDecoder().raw_decode(html[match.end():])
@@ -103,14 +119,18 @@ def shell(c, origin, watch_id=None, search_query=None, user=None):
     if not target.is_file():
         return None
     html = target.read_text()
+    guest = read_json_assignment(html, 'ytInitialData')
+    if not isinstance(guest, dict) or (watch_id and not isinstance(read_json_assignment(html, 'ytInitialPlayerResponse'), dict)):
+        # Never serve an unrecognized bootstrap containing upstream titles,
+        # actions or account destinations alongside our local media response.
+        return None
     operation = 'next' if watch_id else ('search' if search_query is not None else 'browse')
     initial = innertube.response(c, operation, {'videoId': watch_id, 'query': search_query or ''}, origin, user)
+    initial['mewtubeLocalBootstrap'] = True
     # Keep the guest masthead's renderer structure; replacing it with only feed
     # contents leaves the actual client's header as a permanent loading skeleton.
-    match = re.search(r'(?:var\s+)?ytInitialData\s*=\s*', html)
-    if match:
+    if guest:
         try:
-            guest, _ = json.JSONDecoder().raw_decode(html[match.end():])
             topbar = guest.get('topbar', {}).get('desktopTopbarRenderer')
             if isinstance(topbar, dict):
                 account_url = innertube.sign_in_url(watch_id)

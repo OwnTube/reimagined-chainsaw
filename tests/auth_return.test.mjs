@@ -8,6 +8,6 @@ assert.equal(target('/official'),'/official');
 assert.equal(target('/official?v=abcdefghijk'),'/official?v=abcdefghijk');
 for(const unsafe of ['https://evil.test/official','//evil.test/official','/official?next=https://evil.test',
   '/official?v=short','/official?v=abcdefghijk&extra=1','/official#fragment','/official/../admin',
-  '/admin','javascript:alert(1)','%2Fofficial','\\evil.test\\official'])assert.equal(target(unsafe),null);
+  '/admin','javascript:alert(1)','%2Fofficial','\\evil.test\\official','/official\n','/official\r'])assert.equal(target(unsafe),null);
 assert.equal(context.window.mewtubeAuthReturn(''),null);
 console.log('Authentication returns permit only the exact local captured-client home/watch routes');

@@ -134,9 +134,16 @@ try {
         }),3000,'Official player state');
         const watchUrl=new URL(page.url());
         diagnostics.capturedClient.watchPath=watchUrl.pathname;
+        diagnostics.capturedClient.watchBootstrap=await page.evaluate(()=>({
+          local:window.ytInitialData?.mewtubeLocalBootstrap===true,
+          present:!!window.ytInitialData,
+          localAccount:JSON.stringify(window.ytInitialData?.topbar || {}).includes('MewTube')
+        }));
+        diagnostics.capturedClient.watchLocalTitleVisible=await page.locator('ytd-app h1').getByText('Runner test video',{exact:true}).first().isVisible().catch(()=>false);
         const player=diagnostics.capturedClient.player;
         diagnostics.capturedClient.playback=acceptOfficialPlayback({media:diagnostics.capturedClient.media,player,
-          watchUrl:page.url(),origin,videoId:id,localMediaResponse:diagnostics.capturedClient.localMediaResponse});
+          watchUrl:page.url(),origin,videoId:id,localMediaResponse:diagnostics.capturedClient.localMediaResponse,
+          localTitleVisible:diagnostics.capturedClient.watchLocalTitleVisible});
         if(diagnostics.capturedClient.playback) {
           diagnostics.capturedClient.controls=await bounded(page.locator('ytd-app #movie_player').first()
             .evaluate(probeOfficialControls,{timeoutMs:2500}),8500,'Official player controls');
