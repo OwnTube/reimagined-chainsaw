@@ -1,0 +1,70 @@
+name: Pinned Studio Windows research probe
+on:
+  push:
+    branches: [rcc2026-ci]
+    paths: ["rcc2026/**", ".github/workflows/rcc2026-windows.yml"]
+  workflow_dispatch:
+    inputs:
+      render:
+        description: Attempt viewport capture; may fail if Studio needs interactive permission
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: rcc2026
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.12'
+      - name: Install research dependencies
+        run: python -m pip install -r requirements.txt Pillow
+      - name: Run evidence-processing tests
+        run: python -m unittest -v test_probe.py
+      - name: Assemble the pinned official Studio release
+        run: |
+          New-Item -ItemType Directory -Path ci-output
+          python fetch_pinned_studio.py --destination ci-studio
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item ci-studio/assembly-report.json ci-output/assembly-report.json
+      - name: Record static Windows executable evidence
+        run: python inspect_studio.py ci-studio/RobloxStudioBeta.exe --output ci-output/studio-static.json
+      - name: Build pinned compiler component on Windows
+        run: |
+          git clone --depth 1 --branch 0.743 https://github.com/luau-lang/luau.git ci-luau
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $sourcePath = (Resolve-Path ci-luau).Path
+          cmake -S . -B ci-build "-DRCC_LUAU_SOURCE_DIR=$sourcePath"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --build ci-build --config Release --target rcc-compiler-smoke --parallel 2
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ctest --test-dir ci-build --build-config Release --output-on-failure
+      - name: Attempt native Studio API dump
+        continue-on-error: true
+        run: python dump_windows_api.py --studio ci-studio/RobloxStudioBeta.exe --output ci-output/api
+      - name: Attempt native Studio RunScript
+        env:
+          REQUEST_RENDER: ${{ github.event_name == 'push' || inputs.render }}
+        run: |
+          $probeArgs = @('windows_probe.py', '--studio', 'ci-studio/RobloxStudioBeta.exe', '--output', 'ci-output/runtime')
+          if ($env:REQUEST_RENDER -eq 'true') { $probeArgs += '--render' }
+          python @probeArgs
+      - name: Preserve results and failures
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: studio-743-windows-evidence
+          path: |
+            rcc2026/ci-output/
+            rcc2026/ci-build/Testing/Temporary/LastTest.log
+          retention-days: 7
+          if-no-files-found: warn

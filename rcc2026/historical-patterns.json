@@ -1,0 +1,90 @@
+[
+  {
+    "id": "noobwarrior-01",
+    "group": "LuaVM::compile",
+    "pattern": "33 C0 48 C7 41 18 0F 00 00 00 48 89 01 48 89 41 10 88 01 48 8B C1 C3",
+    "source": "noobwarrior/Hook/LocalRcc/LocalRcc.cpp",
+    "source_commit": "6f999f739b5e11febd270420657f4334979a54aa",
+    "upstream_comment": "2023M"
+  },
+  {
+    "id": "noobwarrior-02",
+    "group": "LuaVM::compile",
+    "pattern": "33 C0 48 C7 41 18 0F 00 00 00 48 89 01 48 89 41 10 88 01 48 8B C1",
+    "source": "noobwarrior/Hook/LocalRcc/LocalRcc.cpp",
+    "source_commit": "6f999f739b5e11febd270420657f4334979a54aa",
+    "upstream_comment": "pre-2023M (ambiguous)"
+  },
+  {
+    "id": "noobwarrior-03",
+    "group": "Replicator::deserializeItem outer/inner pair",
+    "pattern": "48 89 5C 24 08 48 89 74 24 18 48 89 54 24 10 55 57 41 54 41 56 41 57 48 8D 6C 24 D0 48 81 EC 30 01 00 00 45 8B F9 49 8B F0 48 8B FA 4C 8B F1 45 33 E4",
+    "source": "noobwarrior/Hook/LocalRcc/LocalRcc.cpp",
+    "source_commit": "6f999f739b5e11febd270420657f4334979a54aa",
+    "upstream_comment": "0.574"
+  },
+  {
+    "id": "noobwarrior-04",
+    "group": "Replicator::deserializeItem outer/inner pair",
+    "pattern": "48 89 5C 24 08 48 89 54 24 10 55 56 57 41 54 41 55 41 56 41 57 48 8D 6C 24 ? 48 81 EC C0 00 00 00 45 8B F9 4D 8B F0 48 8B FA 48 8B F1 45 33 E4",
+    "source": "noobwarrior/Hook/LocalRcc/LocalRcc.cpp",
+    "source_commit": "6f999f739b5e11febd270420657f4334979a54aa",
+    "upstream_comment": "0.712"
+  },
+  {
+    "id": "noobwarrior-05",
+    "group": "Replicator::deserializeItem outer/inner pair",
+    "pattern": "48 89 5C 24 08 48 89 54 24 10 55 56 57 41 54 41 55 41 56 41 57 48 8D 6C 24 ? 48 81 EC B0 00 00 00 45 8B F9 4D 8B F0 48 8B FA 48 8B F1 45 33 E4",
+    "source": "noobwarrior/Hook/LocalRcc/LocalRcc.cpp",
+    "source_commit": "6f999f739b5e11febd270420657f4334979a54aa",
+    "upstream_comment": "modern fallback"
+  },
+  {
+    "id": "noobwarrior-06",
+    "group": "Replicator::deserializeItem outer/inner pair",
+    "pattern": "48 89 5C 24 08 48 89 54 24 10 55 56 57 41 56 41 57 48 8D 6C 24 C9 48 81 EC C0 00 00 00 4D 8B F0 48 8B F2 48 8B D1 33 DB",
+    "source": "noobwarrior/Hook/LocalRcc/LocalRcc.cpp",
+    "source_commit": "6f999f739b5e11febd270420657f4334979a54aa",
+    "upstream_comment": "0.574"
+  },
+  {
+    "id": "noobwarrior-07",
+    "group": "Replicator::deserializeItem outer/inner pair",
+    "pattern": "48 89 5C 24 ? 48 89 74 24 ? 48 89 54 24 ? 55 57 41 56 48 8B EC 48 83 EC 40 49 8B F8",
+    "source": "noobwarrior/Hook/LocalRcc/LocalRcc.cpp",
+    "source_commit": "6f999f739b5e11febd270420657f4334979a54aa",
+    "upstream_comment": "adjacent 2023 builds"
+  },
+  {
+    "id": "noobwarrior-08",
+    "group": "Replicator::deserializeItem outer/inner pair",
+    "pattern": "48 89 5C 24 08 48 89 54 24 10 55 56 57 41 54 41 55 41 56 41 57 48 8D 6C 24 ? 48 81 EC D0 00 00 00 45 8B F9 4D 8B F0 48 8B FA 48 8B F1 45 33 E4",
+    "source": "noobwarrior/Hook/LocalRcc/LocalRcc.cpp",
+    "source_commit": "6f999f739b5e11febd270420657f4334979a54aa",
+    "upstream_comment": "0.719 candidate"
+  },
+  {
+    "id": "noobwarrior-09",
+    "group": "LogService::processRemoteEvent",
+    "pattern": "48 89 5C 24 18 4C 89 4C 24 20 48 89 4C 24 08 55 56 57 41 54 41 55 41 56 41 57 48 8B EC 48 83 EC 70 49 8B D9 4D 8B E8 4C 8B FA 45 33 E4 44 89 65 48 48 3B 15 ? ? ? ? 74 2E 48 3B 15 ? ? ? ? 74 25",
+    "source": "noobwarrior/Hook/LocalRcc/LocalRcc.cpp",
+    "source_commit": "6f999f739b5e11febd270420657f4334979a54aa",
+    "upstream_comment": ""
+  },
+  {
+    "id": "noobwarrior-10",
+    "group": "NetworkSchema::generateSchemaDefinitionPacket",
+    "pattern": "C6 44 24 ? 06 EB ? 48 3B 15",
+    "source": "noobwarrior/Hook/LocalRcc/LocalRcc.cpp",
+    "source_commit": "6f999f739b5e11febd270420657f4334979a54aa",
+    "upstream_comment": "2023 (matches 0.574)"
+  },
+  {
+    "id": "noobwarrior-11",
+    "group": "NetworkSchema::generateSchemaDefinitionPacket",
+    "pattern": "C6 44 24 ? 06 EB ? 48 8D 05",
+    "source": "noobwarrior/Hook/LocalRcc/LocalRcc.cpp",
+    "source_commit": "6f999f739b5e11febd270420657f4334979a54aa",
+    "upstream_comment": "2022"
+  }
+]
