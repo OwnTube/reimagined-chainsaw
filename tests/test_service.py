@@ -181,6 +181,39 @@ class ServiceTests(unittest.TestCase):
             self.assertNotIn('/etc/', v['error'])
             self.assertEqual(self.request(f"/media/{v['id']}/video.mp4")[0], 404)
 
+    def test_06_restart_preserves_sessions_and_recovers_jobs(self):
+        owner = self.account('durable')
+        v = self.upload('Survives a restart')
+        partial_id, queued_id = 'partial0001', 'queued00001'
+        (self.data / 'incoming' / partial_id).write_bytes(b'partial body')
+        (self.data / 'incoming' / queued_id).write_bytes(self.fixture.read_bytes())
+        with sqlite3.connect(self.data / 'mewtube.sqlite3') as c:
+            for vid, status in ((partial_id, 'uploading'), (queued_id, 'processing')):
+                c.execute('INSERT INTO videos(id,owner,title,status,created) VALUES(?,?,?,?,?)',
+                          (vid, owner['id'], 'Recovery fixture', status, int(time.time())))
+        self.process.terminate()
+        self.process.wait(timeout=10)
+        type(self).process = subprocess.Popen([sys.executable, '-m', 'mewtube.server'], cwd=ROOT,
+            env={**os.environ, 'DATA_DIR':str(self.data), 'PORT':str(self.port),
+                 'BIND':'127.0.0.1', 'PUBLIC_ORIGIN':self.origin}, stdout=self.log, stderr=self.log)
+        for _ in range(100):
+            try:
+                if self.request('/healthz')[0] == 200:
+                    break
+            except OSError:
+                pass
+            time.sleep(.05)
+        self.assertEqual(self.request('/api/me')[1]['user']['username'], 'durable')
+        self.assertEqual(self.request('/api/videos/' + v['id'])[1]['video']['status'], 'ready')
+        self.assertEqual(self.request('/api/videos/' + partial_id)[1]['video']['status'], 'failed')
+        self.assertFalse((self.data / 'incoming' / partial_id).exists())
+        for _ in range(100):
+            queued = self.request('/api/videos/' + queued_id)[1]['video']
+            if queued['status'] != 'processing':
+                break
+            time.sleep(.1)
+        self.assertEqual(queued['status'], 'ready', queued)
+
 
 if __name__ == '__main__':
     unittest.main()
