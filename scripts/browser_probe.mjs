@@ -3,7 +3,7 @@ import { chromium, request } from 'playwright';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { randomBytes } from 'node:crypto';
 import assert from 'node:assert/strict';
-import {probePlayback,acceptOfficialPlayback} from './playback_probe.mjs';
+import {probePlayback,acceptOfficialPlayback,probeOfficialControls} from './playback_probe.mjs';
 
 const origin = process.env.PUBLIC_ORIGIN || 'http://localhost:3000';
 await mkdir('evidence', {recursive:true});
@@ -119,6 +119,14 @@ try {
         const player=diagnostics.capturedClient.player;
         diagnostics.capturedClient.playback=acceptOfficialPlayback({media:diagnostics.capturedClient.media,player,
           watchUrl:page.url(),origin,videoId:id,localMediaResponse:diagnostics.capturedClient.localMediaResponse});
+        if(diagnostics.capturedClient.playback) {
+          diagnostics.capturedClient.controls=await bounded(page.locator('ytd-app #movie_player').first()
+            .evaluate(probeOfficialControls,{timeoutMs:2500}),8500,'Official player controls');
+          if(!diagnostics.capturedClient.controls.ok) {
+            diagnostics.capturedClient.playback=false;
+            diagnostics.capturedClient.media.reason=diagnostics.capturedClient.controls.reason;
+          }
+        }
         if(!diagnostics.capturedClient.playback)diagnostics.capturedClient.watchError=diagnostics.capturedClient.media.reason ||
           (player.errorVisible ? player.errorText : 'Player state, watch identity or local media response did not pass');
       }catch(error){diagnostics.capturedClient.playback=false;diagnostics.capturedClient.watchError=error.message.slice(0,500);}

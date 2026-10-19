@@ -4,6 +4,10 @@ Repository: `vibecodeforever/reimagined-chainsaw`. Work only on `feat/mewtube`, 
 
 ## Newest checkpoint: local response-integrity adapter (05:29 UTC continuation)
 
+**Basic captured-client playback is now verified.** Run `39205467552` at commit `0c2c417` produced browser artifact `12165159132` at 05:38:17 UTC on October 19. The actual `ytd-app #movie_player video` advanced to 1.307446 s, readyState 4, no media error, wrapper state 1, matching local video ID and local MP4 HTTP response. Playability is OK, no visible/error-class overlay, and strict acceptance is true. Its saved watch screenshot was inspected: generated color bars, official controls, local title/description and masthead are visible, with no error screen. This is one fixture/build, not full YouTube compatibility. Container health passed; REA remained in progress when the browser artifact was read.
+
+Follow-up verification exercises the actual official controller's pauseVideo, seekTo and playVideo with bounded state/media checks. Its fixture is extended to eight seconds. The new runner result is pending. All 14 Python methods, both JavaScript regression suites, syntax and whitespace checks pass locally. The adapter was also executed against the actual ignored pinned main-bundle gate: marked local OK returns success; unmarked missing-metadata responses retain the original failure.
+
 Started from branch head `944d906` in a fresh checkout; no in-progress Actions runs or newer branch writes were observed. Run `39201145405`, artifact `12163986946`, correctly reports official playback **false**: local media advances to 1.307733 s, but the wrapper mutates playability to ERROR and displays 282054944. Its container and independent checks passed.
 
 A fresh guest-only pin (33 assets, zero failures) allowed static inspection of the actual main bundle. The function associated with diagnostic `282054944_a` requires `responseContext.mainAppWebResponseContext.trackingParam`, decodes its build-specific tracking envelope, and compares response fields. Missing metadata returns failure; its caller replaces playability with ERROR, removes videoDetails and installs the exact observed error renderer. This explains why decoding worked while the application rejected our response. No upstream video media or account was accessed.
@@ -12,13 +16,13 @@ The capture pipeline now inserts a small, explicit local-backend adapter at that
 
 The regression executes a synthetic gate in Node and checks marked local success, unmarked failure, ERROR failure, other-origin failure, original behavior and idempotence. Both observed main bundles match exactly one gate. Expanded sanitized browser diagnostics record response/playability key names and plain error reason, never complete responses or tracking payloads. Fresh runner playback evidence remains required before claiming this fixes playback.
 
-Next: inspect the new browser artifact for playability OK, no error overlay, local media progress and matching official watch identity; inspect its screenshot. Only then move to native-client account/mutation compatibility. Do not confuse a green workflow or synthetic gate test with official playback success.
+Next: inspect the official-controller regression's new browser artifact, then implement local-account/mutation compatibility using observed native contracts. Do not confuse a green workflow or synthetic gate test with official playback success.
 
 ## Current status
 
 The independent service works: local accounts, streaming uploads, FFmpeg MP4 conversion/thumbnails, range playback, search, channels, subscriptions, likes, comments, reports and host-granted operator controls. Docker Compose build/start and HTTP/FFmpeg health passed on GitHub Actions. Actual YouTube home components display a local uploaded title, thumbnail, creator and view count. The latest inspected screenshot also shows the real masthead and local MewTube account button.
 
-**Stable official YouTube watch playback is not verified.** Run 39200490739 (commit 6a045d2) now proves that the actual `ytd-app #movie_player video` receives the local MP4 and advances: readyState 4, no HTMLMediaElement error, time 0.168607 s, duration 3.018005 s, local media HTTP response. However, its screenshot shows a YouTube wrapper error overlay (282054944). The previous single-sample playback=true result is insufficient and must not be reported as stable success.
+**Basic official watch playback is verified by the newest checkpoint above; full compatibility remains experimental.** Earlier run 39200490739 proved local media delivery but still displayed wrapper error 282054944. Historical progress-only results below must not be confused with the newer strict acceptance and screenshot evidence.
 
 ## Latest investigation and fixes (October 19, 2026)
 

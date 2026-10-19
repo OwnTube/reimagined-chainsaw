@@ -6,6 +6,31 @@ export function acceptOfficialPlayback({media,player,watchUrl,origin,videoId,loc
     player.playabilityStatus==='OK' && !player.errorVisible && !player.errorClass;
 }
 
+/* Exercise the official controller, not just HTMLMediaElement.play(). */
+export async function probeOfficialControls(root, {timeoutMs=4000}={}) {
+  const video=root.querySelector('video');
+  const waitFor=async predicate=>{
+    const deadline=performance.now()+timeoutMs;
+    while(!predicate()) {
+      if(performance.now()>=deadline)throw new Error('Official player control timed out');
+      await new Promise(resolve=>setTimeout(resolve,50));
+    }
+  };
+  try {
+    if(!video || !root.pauseVideo || !root.playVideo || !root.seekTo)throw new Error('Official player controller unavailable');
+    root.pauseVideo();
+    await waitFor(()=>video.paused && root.getPlayerState()===2);
+    root.seekTo(0,true);
+    await waitFor(()=>video.currentTime<0.25);
+    const before=video.currentTime;
+    root.playVideo();
+    await waitFor(()=>!video.paused && video.currentTime>before+0.15 && root.getPlayerState()===1);
+    return {ok:true,pause:true,seek:true,resume:true};
+  }catch(error) {
+    return {ok:false,reason:error.message};
+  }
+}
+
 export async function probePlayback(video, {timeoutMs=8000, minTime=0.1, stableMs=0}={}) {
   const snapshot = () => ({
     readyState:video.readyState, networkState:video.networkState,

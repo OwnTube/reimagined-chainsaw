@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {probePlayback,acceptOfficialPlayback} from '../scripts/playback_probe.mjs';
+import {probePlayback,acceptOfficialPlayback,probeOfficialControls} from '../scripts/playback_probe.mjs';
 
 const fixture=overrides=>({readyState:0,networkState:2,paused:true,ended:false,currentTime:0,
   duration:NaN,currentSrc:'http://localhost:3000/media/abcdefghijk/video.mp4?private=omit',
@@ -27,4 +27,14 @@ assert.equal(acceptOfficialPlayback({...official,player:{...official.player,play
   'An advancing underlying video cannot override an ERROR player response');
 assert.equal(acceptOfficialPlayback({...official,player:{...official.player,errorVisible:true}}),false);
 assert.equal(acceptOfficialPlayback({...official,watchUrl:'http://localhost:3000/'}),false);
+let controlState=1;
+const controlVideo={paused:false,currentTime:1};
+const controller={querySelector:()=>controlVideo,getPlayerState:()=>controlState,
+  pauseVideo(){controlVideo.paused=true;controlState=2;},seekTo(value){controlVideo.currentTime=value;},
+  playVideo(){controlVideo.paused=false;controlVideo.currentTime=.3;controlState=1;}};
+assert.deepEqual(await probeOfficialControls(controller,{timeoutMs:30}),{ok:true,pause:true,seek:true,resume:true});
+const brokenControl=await probeOfficialControls({...controller,pauseVideo(){}},{timeoutMs:30});
+assert.equal(brokenControl.ok,false);
+assert.match(brokenControl.reason,/timed out/);
+assert.equal((await probeOfficialControls({querySelector:()=>null},{timeoutMs:30})).ok,false);
 console.log('Playback probe handles pending, stalled, rejected and progressing media without leaking URL queries');

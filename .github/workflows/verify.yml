@@ -58,7 +58,7 @@ jobs:
         timeout-minutes: 5
         run: |
           mkdir -p evidence
-          ffmpeg -v error -y -f lavfi -i testsrc2=size=640x360:rate=24 -f lavfi -i sine=frequency=440 -t 3 -c:v libx264 -pix_fmt yuv420p -c:a aac evidence/sample.mp4
+          ffmpeg -v error -y -f lavfi -i testsrc2=size=640x360:rate=24 -f lavfi -i sine=frequency=440 -t 8 -c:v libx264 -pix_fmt yuv420p -c:a aac evidence/sample.mp4
           python -m mewtube.server > evidence/server.log 2>&1 &
           for i in $(seq 1 30); do curl -fsS http://localhost:3000/healthz && break; sleep 1; done
           npm run test:browser
