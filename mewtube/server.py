@@ -191,7 +191,8 @@ class Handler(BaseHTTPRequestHandler):
             if watch_id and not re.fullmatch(ID, watch_id):
                 raise Error(400, 'Invalid video ID')
             with db() as c:
-                content = shell(c, ORIGIN, watch_id, query.get('search_query', [None])[0] if path == '/results' else None)
+                content = shell(c, ORIGIN, watch_id, query.get('search_query', [None])[0] if path == '/results' else None,
+                                self.user(c))
             if content is None:
                 raise Error(503, 'Captured client page unavailable. Run python scripts/fetch_client.py --latest. Independent UI: /?native=1')
             return self.send(content, headers={'Set-Cookie':'mewtube_client=official; Path=/; SameSite=Lax; HttpOnly'}, content_type='text/html; charset=utf-8')
@@ -204,7 +205,22 @@ class Handler(BaseHTTPRequestHandler):
             body = self.json_body()
             operation = path.removeprefix('/youtubei/v1/')
             with db() as c:
-                result = innertube.response(c, operation, body, ORIGIN)
+                if operation in ('like/like', 'like/removelike'):
+                    user = self.user(c, True)
+                    target = body.get('target')
+                    video_id = target.get('videoId') if isinstance(target, dict) else None
+                    if not isinstance(video_id, str) or not re.fullmatch(ID, video_id):
+                        raise Error(400, 'Invalid like target')
+                    v = video(c, video_id)
+                    if not v or v['status'] != 'ready':
+                        raise Error(404, 'Video not found')
+                    if operation == 'like/like':
+                        c.execute('INSERT OR IGNORE INTO likes VALUES(?,?)', (user['id'], video_id))
+                    else:
+                        c.execute('DELETE FROM likes WHERE user_id=? AND video_id=?', (user['id'], video_id))
+                    c.commit()
+                    return self.send({'responseContext': {}})
+                result = innertube.response(c, operation, body, ORIGIN, self.user(c))
                 if result is None:
                     c.execute('INSERT INTO unknown_calls(path) VALUES(?) ON CONFLICT(path) DO UPDATE SET count=count+1', (operation[:200],))
             if result is None:

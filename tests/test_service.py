@@ -149,6 +149,32 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(self.request('/api/videos/' + v['id'] + '/delete', {})[0], 200)
         self.assertEqual(self.request(path)[0], 404)
 
+    def test_08_captured_like_uses_local_session_and_persists(self):
+        self.account('native_liker')
+        v = self.upload('Native mutation fixture')
+        body = {'target': {'videoId': v['id']}}
+        guest = urllib.request.build_opener()
+        self.assertEqual(self.request('/youtubei/v1/like/like', body, client=guest)[0], 401)
+        self.assertEqual(self.request('/youtubei/v1/like/like', body,
+            headers={'Origin':'https://evil.test'})[0], 403)
+        for invalid in ({}, {'target': []}, {'target': {'videoId': 123}}, {'target': {'videoId':'../secret'}}):
+            self.assertEqual(self.request('/youtubei/v1/like/like', invalid)[0], 400)
+        self.assertEqual(self.request('/youtubei/v1/like/like', {'target': {'videoId':'___________'}})[0], 404)
+        def native_button(client=None):
+            result = self.request('/youtubei/v1/next', {'videoId':v['id']}, client=client)[1]
+            primary = result['contents']['twoColumnWatchNextResults']['results']['results']['contents'][0]['videoPrimaryInfoRenderer']
+            return primary['videoActions']['menuRenderer']['topLevelButtons'][0]['toggleButtonRenderer']
+        self.assertFalse(native_button()['isToggled'])
+        self.assertIn('defaultNavigationEndpoint', native_button(guest))
+        for _ in range(2):
+            self.assertEqual(self.request('/youtubei/v1/like/like', body)[0], 200)
+        self.assertEqual(self.request('/api/videos/'+v['id'])[1]['video']['likes'], 1)
+        self.assertTrue(native_button()['isToggled'])
+        for _ in range(2):
+            self.assertEqual(self.request('/youtubei/v1/like/removelike', body)[0], 200)
+        self.assertFalse(self.request('/api/videos/'+v['id'])[1]['video']['liked'])
+        self.assertFalse(native_button()['isToggled'])
+
     def test_04_interactions_ownership_and_moderation(self):
         owner = self.account('owner')
         v = self.upload()

@@ -132,6 +132,42 @@ try {
       }catch(error){diagnostics.capturedClient.playback=false;diagnostics.capturedClient.watchError=error.message.slice(0,500);}
       await checkpoint('official-watch-inspected');
       await page.screenshot({path:'evidence/official-watch-experimental.png',fullPage:true,timeout:10000});
+      if(diagnostics.capturedClient.playback) {
+        try {
+          const nativeLike=()=>page.locator('ytd-video-primary-info-renderer ytd-toggle-button-renderer').first().getByRole('button').first();
+          await nativeLike().click({timeout:8000});
+          let current=(await (await context.get('/api/videos/'+id)).json()).video;
+          for(let i=0;i<30 && current.liked;i++) {
+            await page.waitForTimeout(100);
+            current=(await (await context.get('/api/videos/'+id)).json()).video;
+          }
+          assert.equal(current.liked,false,'Native unlike must reach the local authenticated API');
+          await page.reload();
+          await nativeLike().click({timeout:8000});
+          for(let i=0;i<30 && !current.liked;i++) {
+            await page.waitForTimeout(100);
+            current=(await (await context.get('/api/videos/'+id)).json()).video;
+          }
+          assert.equal(current.liked,true,'Native like must persist in the same local account');
+          await page.reload();
+          await nativeLike().waitFor({timeout:8000});
+          assert.equal(await nativeLike().getAttribute('aria-pressed'),'true','Reloaded native button must reflect persisted like');
+          diagnostics.capturedClient.localAccountVisible=await page.getByText('MewTube @'+username,{exact:true}).isVisible();
+          diagnostics.capturedClient.nativeLikes={unlike:true,like:true,persisted:true};
+          await page.screenshot({path:'evidence/official-mutations.png',fullPage:true,timeout:10000});
+        }catch(error){diagnostics.capturedClient.nativeLikes={ok:false,error:error.message.slice(0,300)};}
+        await checkpoint('official-mutations-inspected');
+        const guestPage=await browser.newPage();
+        try {
+          await guestPage.goto(origin+'/official?v='+id);
+          await guestPage.locator('ytd-video-primary-info-renderer ytd-toggle-button-renderer').first().getByRole('button').first().click({timeout:10000});
+          await guestPage.waitForURL(url=>url.origin===origin && url.searchParams.get('signin')==='1',{timeout:8000});
+          await guestPage.locator('#auth[open]').waitFor({timeout:5000});
+          diagnostics.capturedClient.guestLocalSignIn=true;
+        }catch(error){diagnostics.capturedClient.guestLocalSignIn=false;diagnostics.capturedClient.guestSignInError=error.message.slice(0,300);}
+        finally{await guestPage.close();}
+        await checkpoint('official-guest-signin-inspected');
+      }
     }
   }else diagnostics.capturedClient.status='capture-unavailable';
 }catch(error){diagnostics.error=error.message;process.exitCode=1;}

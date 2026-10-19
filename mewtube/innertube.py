@@ -22,7 +22,29 @@ def renderer(v):
         'navigationEndpoint': endpoint(v)}}
 
 
-def response(c, operation, body, origin):
+def like_button(c, v, user):
+    liked = bool(user and c.execute('SELECT 1 FROM likes WHERE user_id=? AND video_id=?',
+                                   (user['id'], v['id'])).fetchone())
+    def command(enabled):
+        return {'commandMetadata': {'webCommandMetadata': {'sendPost': True,
+                    'apiUrl': '/youtubei/v1/like/' + ('like' if enabled else 'removelike')}},
+                'likeEndpoint': {'status': 'LIKE' if enabled else 'INDIFFERENT', 'target': {'videoId': v['id']}}}
+    button = {'style': {'styleType': 'STYLE_TEXT'}, 'size': {'sizeType': 'SIZE_DEFAULT'},
+              'isToggled': liked, 'isDisabled': False, 'targetId': 'mewtube-like',
+              'defaultIcon': {'iconType': 'LIKE'}, 'toggledIcon': {'iconType': 'LIKE'},
+              'defaultText': text(v['likes']), 'toggledText': text(v['likes']),
+              'defaultTooltip': 'Like', 'toggledTooltip': 'Unlike',
+              'accessibility': {'label': 'Like this video'},
+              'toggledAccessibility': {'label': 'Unlike this video'}}
+    if user:
+        button.update(defaultServiceEndpoint=command(True), toggledServiceEndpoint=command(False))
+    else:
+        button['defaultNavigationEndpoint'] = {'urlEndpoint': {'url': '/?signin=1'},
+            'commandMetadata': {'webCommandMetadata': {'url': '/?signin=1'}}}
+    return {'toggleButtonRenderer': button}
+
+
+def response(c, operation, body, origin, user=None):
     context = {'responseContext': {'serviceTrackingParams': [], 'mainAppWebResponseContext': {'loggedOut': True}}}
     if operation == 'player':
         v = video(c, body.get('videoId', ''))
@@ -50,7 +72,8 @@ def response(c, operation, body, origin):
                 'contents': [{'richItemRenderer': {'content': item}} for item in items]}}}}]}}}
     if operation == 'next':
         v = video(c, body.get('videoId', ''))
-        main = [] if not v else [{'videoPrimaryInfoRenderer': {'title': {'runs': [{'text': v['title']}]}}},
+        main = [] if not v else [{'videoPrimaryInfoRenderer': {'title': {'runs': [{'text': v['title']}]},
+                    'videoActions': {'menuRenderer': {'topLevelButtons': [like_button(c, v, user)]}}}},
                                 {'videoSecondaryInfoRenderer': {'description': {'runs': [{'text': v['description']}]}}}]
         return {**context, 'contents': {'twoColumnWatchNextResults': {'results': {'results': {'contents': main}},
                    'secondaryResults': {'secondaryResults': {'results': items}}}}}

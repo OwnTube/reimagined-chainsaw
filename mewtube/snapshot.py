@@ -98,13 +98,13 @@ def replace_json_assignment(html, name, value):
     return html
 
 
-def shell(c, origin, watch_id=None, search_query=None):
+def shell(c, origin, watch_id=None, search_query=None, user=None):
     target = DATA / 'client' / ('watch.html' if watch_id else 'index.html')
     if not target.is_file():
         return None
     html = target.read_text()
     operation = 'next' if watch_id else ('search' if search_query is not None else 'browse')
-    initial = innertube.response(c, operation, {'videoId': watch_id, 'query': search_query or ''}, origin)
+    initial = innertube.response(c, operation, {'videoId': watch_id, 'query': search_query or ''}, origin, user)
     # Keep the guest masthead's renderer structure; replacing it with only feed
     # contents leaves the actual client's header as a permanent loading skeleton.
     match = re.search(r'(?:var\s+)?ytInitialData\s*=\s*', html)
@@ -114,7 +114,7 @@ def shell(c, origin, watch_id=None, search_query=None):
             topbar = guest.get('topbar', {}).get('desktopTopbarRenderer')
             if isinstance(topbar, dict):
                 topbar['topbarButtons'] = [{'buttonRenderer': {'style': 'STYLE_SUGGESTIVE', 'size': 'SIZE_SMALL',
-                    'text': {'runs': [{'text': 'MewTube account'}]},
+                    'text': {'runs': [{'text': 'MewTube @' + user['username'] if user else 'MewTube account'}]},
                     'navigationEndpoint': {'urlEndpoint': {'url': '/?signin=1'},
                         'commandMetadata': {'webCommandMetadata': {'url': '/?signin=1'}}}}}]
                 initial['topbar'] = {'desktopTopbarRenderer': topbar}
