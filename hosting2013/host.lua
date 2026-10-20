@@ -6,6 +6,10 @@ local stage = "services"
 local ok, problem = pcall(function()
     local world = game:GetService("Workspace")
     local players = game:GetService("Players")
+    -- Keep the owned character when the client completes RequestCharacter;
+    -- the default loader otherwise replaces it with an online appearance.
+    players.CharacterAutoLoads = false
+    print(marker .. "|CUSTOM_CHARACTER_LOADING|" .. tostring(players.CharacterAutoLoads))
     local run = game:GetService("RunService")
     -- Establish the server role before connecting server-only RemoteEvents.
     stage = "NetworkServer creation"

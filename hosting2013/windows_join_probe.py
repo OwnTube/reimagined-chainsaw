@@ -15,6 +15,7 @@ import sys
 import threading
 import time
 from urllib.parse import urlsplit
+import xml.etree.ElementTree as ET
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'rcc2013'))
 from windows_probe import collect_logs, resize_viewport, windows_for_pid, write_scene
@@ -82,7 +83,8 @@ def main():
     if player:
         report['scope'] = 'unmodified 2013 Studio host and standalone Player on loopback'
         report['player_sha256'] = specs['player']['executable_sha256']
-        report['client_launch_profile'] = '-t 0 -a 0 -j loopback /game/join.ashx'
+        report['client_launch_profile'] = '-t 0 -a loopback /Login/Negotiate.ashx -j loopback /game/join.ashx'
+        report['player_configuration'] = 'copied AppSettings.xml BaseUrl points only to the owned loopback backend'
     backend_requests = []
     backend, backend_thread = None, None
     processes, streams = {}, []
@@ -114,8 +116,10 @@ def main():
                 def do_GET(self):
                     path = urlsplit(self.path).path
                     backend_requests.append({'method':'GET','path':path})
-                    content = source.encode('utf-8') if path=='/game/join.ashx' else b'Not found'
-                    self.send_response(200 if path=='/game/join.ashx' else 404)
+                    if path=='/game/join.ashx':content,status = source.encode('utf-8'),200
+                    elif path=='/Login/Negotiate.ashx':content,status = b'ok',200
+                    else:content,status = b'Not found',404
+                    self.send_response(status)
                     self.send_header('Content-Type','text/plain; charset=utf-8')
                     self.send_header('Content-Length',str(len(content)))
                     self.end_headers();self.wfile.write(content)
@@ -123,8 +127,15 @@ def main():
             backend = ThreadingHTTPServer(('127.0.0.1',0),JoinHandler)
             backend_thread = threading.Thread(target=backend.serve_forever,daemon=True)
             backend_thread.start()
-            url = 'http://127.0.0.1:'+str(backend.server_port)+'/game/join.ashx'
-            command = [str(deployment/player.name),'-t','0','-a','0','-j',url]
+            base = 'http://127.0.0.1:'+str(backend.server_port)
+            config = deployment/'AppSettings.xml'
+            settings = ET.parse(config)
+            base_node = settings.getroot().find('BaseUrl')
+            if base_node is None:raise RuntimeError('Pinned Player BaseUrl setting missing')
+            base_node.text = base
+            settings.write(config,encoding='utf-8',xml_declaration=True)
+            report['player_appsettings_sha256'] = hashlib.sha256(config.read_bytes()).hexdigest()
+            command = [str(deployment/player.name),'-t','0','-a',base+'/Login/Negotiate.ashx','-j',base+'/game/join.ashx']
         else:
             command = [str(deployment/studio.name),'-ide','-testMode','-fileLocation',str(place),'-script',source]
         process = subprocess.Popen(command,
