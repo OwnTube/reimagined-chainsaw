@@ -55,7 +55,8 @@ local ok, problem = pcall(function()
         end
     end)
     stage = "PlayerConnect"
-    local player = network:PlayerConnect(0, "127.0.0.1", port, 0, 30)
+    -- This build has an explicit local-test branch for the hostname localhost.
+    local player = network:PlayerConnect(0, "localhost", port, 0, 30)
     print(marker .. "|PLAYER_CONNECT_RETURNED|" .. tostring(player))
     stage = "RunService start"
     run:Run()

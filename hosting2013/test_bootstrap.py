@@ -13,6 +13,7 @@ class BootstrapTests(unittest.TestCase):
         self.assertIn('"|REPLICATED_TOKEN|"',client)
         self.assertIn('"|REPLICATED_MOVEMENT|"',client)
         self.assertIn('local port = 53640',client)
+        self.assertIn('network:PlayerConnect(0, "localhost", port, 0, 30)',client)
         self.assertNotIn('__RCC_',client+host)
 
 
