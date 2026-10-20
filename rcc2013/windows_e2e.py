@@ -96,7 +96,7 @@ def main():
                         # Reference profile image is 150x200 with alpha bounds
                         # (16,12,147,171). Allow small mesh/AA differences.
                         expected=(48,36,441,513)
-                        if max(abs(a-e) for a,e in zip((x,y,r,b),expected))>24:
+                        if max(abs(a-e) for a,e in zip((x,y,r,b),expected))>10:
                             raise RuntimeError('Native portrait silhouette does not match reference framing bounds')
                 if name=='headshot':
                     camera=result['result']['camera']

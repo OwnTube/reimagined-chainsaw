@@ -21,4 +21,4 @@ HEADSHOT_CAMERA=revival_headshot()
 # Fitted against the owner's 150x200 profile thumbnail using the bundled R6
 # silhouette. A reconstruction from an image cannot uniquely recover the
 # original camera. This is not ThumbnailGenerator's internal transform.
-FULL_BODY_CAMERA={'position':[-2.44,5.06,-4.92], 'target':[0,2.5,0], 'fov':61}
+FULL_BODY_CAMERA={'position':[-2.44,5.06,-4.92], 'target':[0,2.4,0], 'fov':58}
