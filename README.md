@@ -10,6 +10,11 @@ Archive hashes identify tested bytes, not independently verified vendor
 provenance. Executables are downloaded at runtime and are not committed.
 The 2026 project remains on its separate `rcc2026-ci` branch.
 
+The separate [local joining probe](docs/local-joining.md) now also tests an
+owned game between two native 2013 Studio processes, including admission,
+replicated scene data, character movement, and a RemoteEvent reply. The JSON
+thumbnail API remains a separate renderer; it is not a public game backend.
+
 ## Thumbnail types
 
 | API `type` | Subject | Output |
@@ -169,13 +174,32 @@ Artifacts retain result JSON, returned PNGs, native matte passes, diagnostic
 screenshots, and redacted engine logs for seven days. A PNG or a mocked HTTP
 test alone does not establish engine rendering.
 
+## Local game joining
+
+[Run 39348329677](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39348329677),
+source `b09758b8aab8bb4145a5805459fef70072a32007`, verified an owned game between
+two separate unmodified 2013 Studio processes. The host owned its UDP port;
+the client was admitted and received the server-only token and scene. The
+host's beacon movement reached the client, the client's RemoteEvent reply
+reached the host, and client-initiated character walking was observed on both
+peers. Both Windows control tests passed and both native viewports were
+captured. See [commands, engine evidence, and limits](docs/local-joining.md).
+
+The separately pinned standalone Player is **not verified**: even after a
+runtime-only BaseUrl override and real local negotiation URL, native URL-trust
+checks prevented it from requesting the owned join script. Its result records
+no backend requests and no admission. This experimental step is optional in
+CI; a green workflow does not override its failed result. The bounded test
+cleans up its peers and does not leave an externally accessible game server.
+
 ## Limits
 
 This is a JSON wrapper around Studio's visible viewport, not a legacy RCC SOAP
 implementation or headless renderer. A foreground desktop is required; the
 executable is not patched. Static fixture rendering does not establish account
-appearance, clothing, accessory, animation, arbitrary body-scale, or game-joining
-support. Player was downloaded and identified but has not been launched for joining.
+appearance, clothing, accessory, animation, or arbitrary body-scale support.
+Game joining is tested independently in `hosting2013`; two-Studio evidence
+does not establish standalone RobloxPlayerBeta compatibility or public hosting.
 
 [The Funnel Method review](docs/funnel-method-review.md) tracks a separate
 hosting research path: its patch set targets a 2016 RCC with December 2013L
