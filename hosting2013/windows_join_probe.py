@@ -132,6 +132,9 @@ def main():
               'client_character_movement_validated':False,'standalone_player_join_validated':False,
               'launch_profile':'-ide -testMode -fileLocation distinct empty local places -script owned Lua','peers':{}}
     report['client_kind'] = 'standalone_player' if player else 'studio'
+    report['core_loader'] = args.core_loader
+    report['host_profile'] = args.host_profile
+    if args.host_profile!='test':report['launch_profile'] = '-ide -fileLocation empty local place -script owned Lua (without testMode)'
     if player:
         report['scope'] = 'unmodified 2013 Studio host and standalone Player on loopback'
         report['player_sha256'] = specs['player']['executable_sha256']

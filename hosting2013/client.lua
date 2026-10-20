@@ -32,14 +32,16 @@ local ok, problem = pcall(function()
         local capabilityOk, capability = pcall(function() return game:GetService("UserInputService").KeyboardEnabled end)
         print(marker .. "|KEYBOARD_CAPABILITY|" .. tostring(capabilityOk) .. "|" .. tostring(capability))
         local inputOk, inputProblem = pcall(function()
-            game:GetService("UserInputService").InputBegan:connect(function(input,processed)
-                if input.KeyCode==Enum.KeyCode.D then
-                    print(marker .. "|KEYBOARD_INPUT_RECEIVED|" .. tostring(processed))
+            game:GetService("UserInputService").InputBegan:connect(function(inputType,keyCode,...)
+                -- This pinned 2013 API predates the modern InputObject event.
+                print(marker .. "|INPUT_BEGAN|" .. tostring(inputType) .. "|" .. tostring(keyCode))
+                if keyCode==Enum.KeyCode.D then
+                    print(marker .. "|KEYBOARD_INPUT_RECEIVED")
                     local player = game:GetService("Players").LocalPlayer
                     local torso = player and player.Character and player.Character:FindFirstChild("Torso")
                     local signal = world:FindFirstChild("RccJoinSignal")
                     local value = world:FindFirstChild("RccServerToken")
-                    if torso and signal and value and atTarget and not processed then
+                    if torso and signal and value and atTarget then
                         keyboardStart = torso.Position
                         signal:FireServer(value.Value,"keyboard",0)
                     end
@@ -142,6 +144,16 @@ local ok, problem = pcall(function()
     local player = network:PlayerConnect(0, "localhost", port, 0, 30)
     print(marker .. "|PLAYER_CONNECT_RETURNED|" .. tostring(player))
     if loadCoreGui then
+        local chatOk,chatProblem = pcall(function() player:SetSuperSafeChat(false) end)
+        print(marker .. "|LOCAL_CHAT_MODE|" .. tostring(chatOk) .. "|" .. tostring(chatProblem) .. "|" .. tostring(player.ChatMode))
+        print(marker .. "|LOCAL_BACKPACK_PRESENT|" .. tostring(game:FindFirstChild("LocalBackpack")~=nil))
+        local controllerOk,controllerProblem = pcall(function()
+            local service = game:GetService("ControllerService")
+            for _,controller in pairs(service:GetChildren()) do
+                print(marker .. "|NATIVE_CONTROLLER|" .. controller.ClassName .. "|" .. controller.Name)
+            end
+        end)
+        print(marker .. "|CONTROLLER_INSPECTION|" .. tostring(controllerOk) .. "|" .. tostring(controllerProblem))
         print(marker .. "|CORE_GUI_AWAITING_NATIVE_LOADER")
     end
     stage = "RunService start"

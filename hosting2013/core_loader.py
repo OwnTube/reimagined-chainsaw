@@ -75,9 +75,9 @@ if game:GetService("CoreGui").Version>=3 then
     start("53878047",gui,"BackpackBuilder")
     local loadout = child(gui,"CurrentLoadout")
     local backpack = child(gui,"Backpack")
-    if game:GetService("CoreGui").Version>=7 then start("89449093",backpack,"BackpackManager") end
-    start("89449008",backpack,"BackpackGear")
-    start("53878057",loadout,"LoadoutScript")
+    if game:GetService("CoreGui").Version>=7 then start("89449093",backpack,"CoreScripts/BackpackScripts/BackpackManager") end
+    start("89449008",backpack,"CoreScripts/BackpackScripts/BackpackGear")
+    start("53878057",loadout,"CoreScripts/BackpackScripts/BackpackScript")
 end
 print(marker .. "|CORE_COMPAT_INITIALIZED")
 '''
