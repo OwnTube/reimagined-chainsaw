@@ -58,7 +58,8 @@ def main():
                             ('uploaded',{'place_id':place_id,'size':{'width':640,'height':360},
                                          'camera':{'position':[16,12,22],'target':[0,3,0],'fov':45}}),
                             ('full-body',{'type':'full_body','size':{'width':512,'height':512}}),
-                            ('headshot',{'type':'headshot','size':{'width':512,'height':512}})]:
+                            ('headshot',{'type':'headshot','size':{'width':512,'height':512}}),
+                            ('full-body-reference',{'type':'full_body','size':{'width':450,'height':600}})]:
             job=request('/v1/renders',config)['id']
             deadline=time.monotonic()+100
             while time.monotonic()<deadline:
@@ -74,7 +75,7 @@ def main():
             (out/(name+'-render.png')).write_bytes(image)
             if list(Image.open(io.BytesIO(image)).size)!=[config['size']['width'],config['size']['height']]:
                 raise RuntimeError('Returned PNG does not match requested native image size')
-            if name in ('full-body','headshot'):
+            if config.get('type') in ('full_body','headshot'):
                 if not result['result'].get('avatar_structure_validated') or not result['result'].get('avatar_gui_free'):
                     raise RuntimeError('R6 construction and GUI removal markers were not observed')
                 if not result['result'].get('avatar_body_meshes_validated'):
@@ -86,11 +87,17 @@ def main():
                 decoded=Image.open(io.BytesIO(image))
                 if decoded.mode!='RGBA' or decoded.getextrema()[3]!=(0,255):
                     raise RuntimeError('Player PNG must contain both transparent background and opaque player')
-                if any(decoded.getpixel(p)[3]!=0 for p in ((0,0),(511,0))):
+                if any(decoded.getpixel(p)[3]!=0 for p in ((0,0),(decoded.width-1,0))):
                     raise RuntimeError('Player thumbnail top corners must be fully transparent')
-                if name=='full-body':
+                if config['type']=='full_body':
                     x,y,r,b=decoded.getchannel('A').getbbox()
-                    if min(x,y,512-r,512-b)<8:raise RuntimeError('Full body must fit inside the frame')
+                    if min(x,y,decoded.width-r,decoded.height-b)<8:raise RuntimeError('Full body must fit inside the frame')
+                    if name=='full-body-reference':
+                        # Reference profile image is 150x200 with alpha bounds
+                        # (16,12,147,171). Allow small mesh/AA differences.
+                        expected=(48,36,441,513)
+                        if max(abs(a-e) for a,e in zip((x,y,r,b),expected))>24:
+                            raise RuntimeError('Native portrait silhouette does not match reference framing bounds')
                 if name=='headshot':
                     camera=result['result']['camera']
                     if camera['fov']!=30 or camera['position'][1]!=4.5 or camera['target']!=[0,4.5,0.1]:

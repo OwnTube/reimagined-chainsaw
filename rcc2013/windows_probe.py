@@ -12,7 +12,7 @@ import secrets
 import subprocess
 import time
 import xml.etree.ElementTree as ET
-from framing import HEADSHOT_CAMERA
+from framing import HEADSHOT_CAMERA, FULL_BODY_CAMERA
 
 
 def write_scene(path):
@@ -26,7 +26,7 @@ def write_scene(path):
 
 
 DEFAULT_CAMERA = {'position': [19,15,23], 'target': [0,2,0], 'fov': 50}
-AVATAR_CAMERA = {'position':[7,5,-10], 'target':[0,2.6,0], 'fov':35}
+AVATAR_CAMERA = FULL_BODY_CAMERA
 
 
 def plugin_source(marker, camera=None, default_blocks=True, scene='blocks', matte=None):
@@ -322,8 +322,11 @@ def render_scene(studio, output, place=None, camera=None, size=None, scene='bloc
     out=Path(output).resolve();out.mkdir(parents=True,exist_ok=False)
     camera=camera or (HEADSHOT_CAMERA if render_type=='headshot' else AVATAR_CAMERA)
     size=size or {'width':512,'height':512}
+    profile='custom'
+    if render_type=='headshot' and camera==HEADSHOT_CAMERA:profile='owner headshot.lua, no-accessory R6 equivalent'
+    elif render_type=='full_body' and camera==FULL_BODY_CAMERA:profile='owner profile-image silhouette reconstruction 2026-10-20'
     report={'type':render_type,'scene':'avatar','engine_render_validated':False,'passes':[],
-            'camera':camera,'camera_profile':'BubbaBlox v2 no-hat R6 equivalent' if render_type=='headshot' and camera==HEADSHOT_CAMERA else 'custom'}
+            'camera':camera,'camera_profile':profile}
     try:
         for matte in ('dark','light'):
             result=render_pass(studio,out/matte,None,camera,size,'avatar',matte,render_type)
