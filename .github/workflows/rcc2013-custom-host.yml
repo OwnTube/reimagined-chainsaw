@@ -1,0 +1,46 @@
+name: Independent RCC transport with native 2013 Player
+on:
+  push:
+    branches: [rcc2013-ci]
+    paths: ["server2013/**", ".github/workflows/rcc2013-custom-host.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  custom-transport:
+    runs-on: windows-2022
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - run: python -m pip install Pillow cryptography
+      - name: Test transport over owned sockets
+        run: python -m unittest discover -s server2013 -p test_transport.py -v
+      - name: Restore Player only; no Studio deployment
+        working-directory: rcc2013
+        run: python download.py --only player
+      - name: Release default IIS on disposable runner
+        shell: pwsh
+        run: |
+          $service = Get-Service W3SVC -ErrorAction SilentlyContinue
+          if ($service -and $service.Status -eq 'Running') {
+            'RCC2013_RESTART_IIS=1' >> $env:GITHUB_ENV
+            Stop-Service W3SVC -Force -ErrorAction Stop
+          }
+      - name: Verify native transport checkpoint without claiming a game join
+        run: python hosting2013/windows_join_probe.py --custom-host --player rcc2013/vendor/player/RobloxPlayerBeta.exe --player-profile local-signed --output server2013/output --timeout 25
+      - name: Preserve custom host and native Player observations
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: rcc2013-custom-transport-evidence
+          path: server2013/output/
+          retention-days: 7
+      - name: Restore IIS if previously running
+        if: always() && env.RCC2013_RESTART_IIS == '1'
+        shell: pwsh
+        run: Start-Service W3SVC

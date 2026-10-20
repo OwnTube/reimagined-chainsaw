@@ -115,7 +115,8 @@ def press_owned_key(pid, virtual_key, duration=1, method='system', activate=True
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--studio',type=Path,required=True)
+    parser.add_argument('--studio',type=Path)
+    parser.add_argument('--custom-host',action='store_true',help='Launch our independent Python transport, without Studio')
     parser.add_argument('--player',type=Path,help='Experiment with the pinned standalone Player instead of a second Studio')
     parser.add_argument('--player-profile',choices=('stock','local-signed'),default='stock')
     parser.add_argument('--host-profile',choices=('test','player','local-player'),default='test',help='Player-host profiles omit Studio testMode')
@@ -132,10 +133,13 @@ def main():
     if args.player_profile=='local-signed' and not args.player:parser.error('local-signed requires the standalone Player')
     if args.test_input and (not args.player or args.player_profile!='local-signed'):parser.error('Input testing requires the configured standalone Player')
     if args.record and not args.test_input:parser.error('Recording requires the standalone keyboard-validated test')
-    studio = args.studio.resolve(strict=True)
+    if not args.custom_host and not args.studio:parser.error('Reference host requires --studio')
+    if args.custom_host and (not args.player or args.player_profile!='local-signed'):parser.error('Custom host requires configured standalone Player')
+    if args.custom_host and (args.trace_transport or args.record or args.test_input):parser.error('Transport checkpoint does not yet provide a world or keyboard test')
+    studio = args.studio.resolve(strict=True) if args.studio else None
     specs = json.loads((Path(__file__).resolve().parents[1]/'rcc2013/packages.json').read_text())
-    digest = hashlib.sha256(studio.read_bytes()).hexdigest()
-    if digest != specs['studio']['executable_sha256']: raise ValueError('Studio identity mismatch')
+    digest = hashlib.sha256(studio.read_bytes()).hexdigest() if studio else None
+    if studio and digest != specs['studio']['executable_sha256']: raise ValueError('Studio identity mismatch')
     player = args.player.resolve(strict=True) if args.player else None
     if player and hashlib.sha256(player.read_bytes()).hexdigest() != specs['player']['executable_sha256']:
         raise ValueError('Standalone Player identity mismatch')
@@ -167,10 +171,19 @@ def main():
     recording = None
     executables = {}
     # Runtime copies are outside the evidence folder: never upload executables.
-    runtime = studio.parent.parent/('join-'+secrets.token_hex(6))
+    runtime = (player if args.custom_host else studio).parent.parent/('join-'+secrets.token_hex(6))
     runtime.mkdir()
     def launch(role):
         nonlocal backend, backend_thread, hosts_path, hosts_line
+        if role=='host' and args.custom_host:
+            peer=out/role;peer.mkdir()
+            stream=(peer/'process.log').open('wb');streams.append(stream)
+            script=Path(__file__).resolve().parents[1]/'server2013/server.py'
+            command=[sys.executable,str(script),'--port',str(port),'--output',str(peer),'--duration',str(min(180,args.timeout+30))]
+            process=subprocess.Popen(command,stdout=stream,stderr=subprocess.STDOUT)
+            processes[role]=process;executables[role]=Path(sys.executable)
+            report['peers'][role]={'pid':process.pid,'engine_marker_lines':[]}
+            return
         deployment = runtime/role
         standalone = role=='client' and player is not None
         shutil.copytree(player.parent if standalone else studio.parent,deployment)
@@ -196,11 +209,11 @@ def main():
             if args.player_profile=='local-signed':
                 from local_player import configure, LOCAL_DOMAIN
                 from core_assets import restore, restore_images
-                core_assets,core_manifest = restore(runtime/'core-assets')
+                core_assets,core_manifest = ({},{}) if args.custom_host else restore(runtime/'core-assets')
                 report['core_assets'] = core_manifest
-                core_images,image_manifest = restore_images(runtime/'core-images')
+                core_images,image_manifest = ({},{}) if args.custom_host else restore_images(runtime/'core-images')
                 report['core_images'] = image_manifest
-                source = source.replace('local loadCoreGui = false','local loadCoreGui = true')
+                if not args.custom_host:source = source.replace('local loadCoreGui = false','local loadCoreGui = true')
                 # The native local-RCC flag is consulted in the numeric-address
                 # branch; literal localhost follows a different handshake path.
                 source = source.replace('network:PlayerConnect(0, "localhost",','network:PlayerConnect(0, "127.0.0.1",')
@@ -208,7 +221,7 @@ def main():
                 signer,configuration = configure(deployment/player.name)
                 report['local_player_configuration'] = configuration
                 report['player_sha256'] = configuration['configured_sha256']
-                report['scope'] = 'unmodified 2013 Studio host and locally configured standalone 2013 Player'
+                report['scope'] = 'independent Python transport and native 2013 Player; no Studio host' if args.custom_host else 'unmodified 2013 Studio host and locally configured standalone 2013 Player'
                 settings_dir = deployment/'ClientSettings'
                 settings_dir.mkdir(exist_ok=True)
                 player_flags = {'FFlagDebugLocalRccServerConnection':'True','FLogCoreScripts':'1'}
@@ -302,6 +315,13 @@ def main():
         executables[role] = deployment/(player.name if standalone else studio.name)
         report['peers'][role] = {'pid':process.pid,'engine_marker_lines':[]}
     def observe(role):
+        if role=='host' and args.custom_host:
+            path=out/role/'server-result.json'
+            if path.exists():
+                state=json.loads(path.read_text())
+                report['custom_server']=state
+                return '|SERVER_READY|' if state['port']==port else ''
+            return ''
         collect_logs(out/role)
         # Native engine events rotate among worker-thread files. Preserve every
         # observed owned marker, including those no longer in the newest 12 logs.
@@ -335,6 +355,7 @@ def main():
         if not report['server_hosting_validated']:raise RuntimeError('Host process has no matching UDP endpoint')
         if recording:recording.event('Studio server ready with verified same-process UDP binding')
         try:
+            if args.custom_host:raise ValueError('Custom host has no Roblox engine memory profile')
             from native_profile import inspect
             report['host_native_profile'] = inspect(processes['host'],executables['host'])
         except Exception as error:report['host_native_profile_error'] = str(error)
@@ -356,6 +377,11 @@ def main():
                     ctypes.windll.user32.ShowWindow(wintypes.HWND(candidates[0]['handle']),3)
                     maximized=True
                     recording.event('owned standalone Player window maximized')
+            if args.custom_host:
+                state=report.get('custom_server',{})
+                report['custom_transport_handshake_validated'] = state.get('transport_handshake_observed',False) and '|CONNECTION_ACCEPTED' in client
+                if report['custom_transport_handshake_validated']:
+                    time.sleep(3);observe('host');observe('client');break
             if '|ERROR|' in host+client:raise RuntimeError('Peer Lua failed; inspect native evidence')
             if '|CONNECTION_FAILED|' in client:
                 # Retain a short diagnostic interval for asynchronous UI loading.
@@ -390,6 +416,14 @@ def main():
             elif not report.get('core_gui_validated',False):report['error'] = 'Archived CoreGui evidence incomplete before deadline'
             elif args.test_input and not report['keyboard_movement_validated']:report['error'] = 'Native keyboard movement was not verified on both peers'
             else:report['error'] = 'Character movement evidence incomplete before deadline'
+        if args.custom_host:
+            report['game_join_validated']=False
+            report['passed']=False
+            report['error']='Custom host transport experiment only: Roblox world replication and simulation are not implemented'
+            report['host_kind']='custom_python'
+            report['studio_launched']=False
+            report['probe_checkpoint']='transport handshake; full game join remains false'
+            report['probe_checkpoint_passed']=report.get('custom_transport_handshake_validated',False) and report['udp_port_bound_by_host']
         # A verified network round trip is separate from character locomotion.
         if not report['client_character_movement_validated']:
             report['movement_limitation'] = 'Character locomotion was not verified on both peers'
@@ -425,11 +459,12 @@ def main():
             peer = out/role
             try:
                 observe(role)
-                if process.poll() is None:
+                if process.poll() is None and not (args.custom_host and role=='host'):
                     try:
                         from native_profile import inspect
                         report['peers'][role]['native_profile'] = inspect(process,executables[role],bool(player and role=='client'))
                     except Exception as error:report['peers'][role]['native_profile_error'] = str(error)
+                if args.custom_host and role=='host':continue
                 records = windows_for_pid(process.pid) if player and role=='client' else resize_viewport(process.pid,{'width':640,'height':480})
                 report['peers'][role]['windows'] = records
                 user32 = ctypes.windll.user32
@@ -470,7 +505,7 @@ def main():
         shutil.rmtree(runtime,ignore_errors=True)
         (out/'result.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print(json.dumps(report,indent=2))
-    return 0 if report['passed'] else 1
+    return 0 if report.get('probe_checkpoint_passed',report['passed']) else 1
 
 
 if __name__ == '__main__':raise SystemExit(main())

@@ -57,10 +57,12 @@ def restore(name, spec, destination, cache):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--destination', type=Path, default=Path('vendor'))
+    parser.add_argument('--only',choices=('studio','player'),help='Restore one deployment only')
     parser.add_argument('--cache', type=Path, default=Path('cache'))
     args = parser.parse_args()
     args.cache.mkdir(parents=True, exist_ok=True)
     specs = json.loads(Path(__file__).with_name('packages.json').read_text())
+    if args.only:specs={args.only:specs[args.only]}
     with ThreadPoolExecutor(max_workers=2) as pool:
         results = list(pool.map(lambda pair: restore(*pair, args.destination, args.cache), specs.items()))
     print(json.dumps(results, indent=2))
