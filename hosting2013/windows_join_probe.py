@@ -58,7 +58,7 @@ def main():
     parser.add_argument('--studio',type=Path,required=True)
     parser.add_argument('--player',type=Path,help='Experiment with the pinned standalone Player instead of a second Studio')
     parser.add_argument('--player-profile',choices=('stock','local-signed'),default='stock')
-    parser.add_argument('--host-profile',choices=('test','player'),default='test',help='Player-host profile omits Studio testMode')
+    parser.add_argument('--host-profile',choices=('test','player','local-player'),default='test',help='Player-host profiles omit Studio testMode')
     parser.add_argument('--output',type=Path,default=Path('hosting2013/output'))
     parser.add_argument('--timeout',type=int,default=90)
     args = parser.parse_args()
@@ -172,6 +172,12 @@ def main():
             report['player_appsettings_sha256'] = hashlib.sha256(config.read_bytes()).hexdigest()
             command = [str(deployment/player.name),'-t','0','-a',base+'/Login/Negotiate.ashx','-j',base+'/game/join.ashx']
         else:
+            if role=='host' and args.host_profile=='local-player':
+                settings_dir = deployment/'ClientSettings'
+                settings_dir.mkdir(exist_ok=True)
+                local_flags = {'FFlagCheckNetworkSecurityKey':'False','FFlagCheckNetworkProtocolVersion':'True'}
+                (settings_dir/'ClientAppSettings.json').write_text(json.dumps(local_flags),encoding='utf-8')
+                report['host_local_flags'] = local_flags
             command = [str(deployment/studio.name),'-ide']
             if role!='host' or args.host_profile=='test':command.append('-testMode')
             command.extend(['-fileLocation',str(place),'-script',source])
@@ -213,7 +219,11 @@ def main():
         while time.monotonic()<deadline and all(p.poll() is None for p in processes.values()):
             host, client = observe('host'), observe('client')
             if '|ERROR|' in host+client:raise RuntimeError('Peer Lua failed; inspect native evidence')
-            if '|CONNECTION_FAILED|' in client:raise RuntimeError('Native client connection failed')
+            if '|CONNECTION_FAILED|' in client:
+                # Retain a short diagnostic interval for asynchronous UI loading.
+                time.sleep(8)
+                observe('host');observe('client')
+                raise RuntimeError('Native client connection failed')
             report['client_join_validated'] = '|PLAYER_ADDED|' in host and '|CONNECTION_ACCEPTED' in client and '|REPLICATED_TOKEN|'+token in client
             report['standalone_player_join_validated'] = bool(player) and report['client_join_validated']
             report['replicated_movement_validated'] = report['client_join_validated'] and '|REPLICATED_MOVEMENT|' in client and '|ROUNDTRIP_CONFIRMED|' in host
@@ -239,6 +249,12 @@ def main():
                 report['peers'][role]['windows'] = records
                 user32 = ctypes.windll.user32
                 user32.GetForegroundWindow.restype = wintypes.HWND
+                if player and role=='client':
+                    candidates = [w for w in records if w['visible'] and w['top_level']]
+                    if candidates:
+                        window = max(candidates,key=lambda w:max(0,w['rect'][2]-w['rect'][0])*max(0,w['rect'][3]-w['rect'][1]))
+                        user32.SetForegroundWindow(wintypes.HWND(window['handle']))
+                        time.sleep(0.5)
                 owner = wintypes.DWORD()
                 user32.GetWindowThreadProcessId(user32.GetForegroundWindow(),ctypes.byref(owner))
                 if owner.value != process.pid:raise RuntimeError('Owned peer is not foreground')

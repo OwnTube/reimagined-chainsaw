@@ -5,6 +5,8 @@ local token = __RCC_TOKEN__
 local stage = "services"
 local ok, problem = pcall(function()
     local world = game:GetService("Workspace")
+    local flagOk, flag = pcall(function() return settings():GetFFlag("CheckNetworkSecurityKey") end)
+    print(marker .. "|NETWORK_SECURITY_FLAG|" .. tostring(flagOk) .. "|" .. tostring(flag))
     local players = game:GetService("Players")
     -- Keep the owned character when the client completes RequestCharacter;
     -- the default loader otherwise replaces it with an online appearance.
