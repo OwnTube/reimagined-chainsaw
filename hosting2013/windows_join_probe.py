@@ -125,6 +125,9 @@ def main():
                 core_assets,core_manifest = restore(runtime/'core-assets')
                 report['core_assets'] = core_manifest
                 source = source.replace('local loadCoreGui = false','local loadCoreGui = true')
+                # The native local-RCC flag is consulted in the numeric-address
+                # branch; literal localhost follows a different handshake path.
+                source = source.replace('network:PlayerConnect(0, "localhost",','network:PlayerConnect(0, "127.0.0.1",')
                 (peer/'bootstrap.lua').write_text(source,encoding='utf-8')
                 signer,configuration = configure(deployment/player.name)
                 report['local_player_configuration'] = configuration
