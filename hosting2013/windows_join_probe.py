@@ -297,10 +297,10 @@ def main():
             report['replicated_movement_validated'] = report['client_join_validated'] and '|REPLICATED_MOVEMENT|' in client and '|ROUNDTRIP_CONFIRMED|' in host
             report['client_character_movement_validated'] = '|CLIENT_CHARACTER_MOVED|' in client and '|SERVER_CHARACTER_MOVED|' in host
             report['core_gui_validated'] = '|CORE_GUI_READY' in client
-            if report['replicated_movement_validated'] and report['client_character_movement_validated'] and (args.player_profile!='local-signed' or report['core_gui_validated']) and (not args.test_input or '|CLIENT_AT_WALK_TARGET' in client):break
+            if report['replicated_movement_validated'] and report['client_character_movement_validated'] and (args.player_profile!='local-signed' or report['core_gui_validated']) and (not args.test_input or '|CLIENT_WALK_STOPPED' in client):break
             time.sleep(1)
         report['keyboard_movement_validated'] = False
-        if args.test_input and player and report.get('core_gui_validated') and '|CLIENT_AT_WALK_TARGET' in client:
+        if args.test_input and player and report.get('core_gui_validated') and '|CLIENT_WALK_STOPPED' in client:
             time.sleep(1)
             press_owned_key(processes['client'].pid,0x44)
             report['keyboard_input_sent'] = True

@@ -96,10 +96,10 @@ local ok, problem = pcall(function()
             if not moved and torso.Position.X > 2 then
                 moved = true
                 print(marker .. "|CLIENT_CHARACTER_MOVED|" .. tostring(torso.Position))
-            end
-            if not atTarget and torso.Position.X>=9 then
+                local floor = world:FindFirstChild("RccOwnedFloor")
+                if floor then humanoid:MoveTo(torso.Position,floor) end
                 atTarget = true
-                print(marker .. "|CLIENT_AT_WALK_TARGET")
+                print(marker .. "|CLIENT_WALK_STOPPED")
             end
             if keyboardStart and not keyboardMoved then
                 local delta = torso.Position-keyboardStart
