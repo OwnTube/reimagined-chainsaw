@@ -53,7 +53,7 @@ def script_source(role, marker, port, token):
     return source.replace('__RCC_MARKER__',json.dumps(marker)).replace('__RCC_PORT__',str(port)).replace('__RCC_TOKEN__',json.dumps(token)).replace('__RCC_CORE_GUI__','false')
 
 
-def press_owned_key(pid, virtual_key, duration=1):
+def press_owned_key(pid, virtual_key, duration=1, method='system'):
     """Deliver one bounded key only while the owned Player is foreground."""
     records = windows_for_pid(pid)
     candidates = [w for w in records if w['visible'] and w['top_level'] and w['class']=='WINDOWSCLIENT']
@@ -66,10 +66,16 @@ def press_owned_key(pid, virtual_key, duration=1):
     user32.GetWindowThreadProcessId(user32.GetForegroundWindow(),ctypes.byref(owner))
     if owner.value!=pid:raise RuntimeError('Owned Player did not acquire keyboard focus')
     scan = user32.MapVirtualKeyW(virtual_key,0)
+    window = wintypes.HWND(candidates[0]['handle'])
+    user32.PostMessageW.argtypes = [wintypes.HWND,wintypes.UINT,wintypes.WPARAM,wintypes.LPARAM]
     try:
-        user32.keybd_event(virtual_key,scan,0,0)
+        if method=='message':
+            if not user32.PostMessageW(window,0x100,virtual_key,1|(scan<<16)):raise ctypes.WinError()
+        else:user32.keybd_event(virtual_key,scan,0,0)
         time.sleep(duration)
-    finally:user32.keybd_event(virtual_key,scan,2,0)
+    finally:
+        if method=='message':user32.PostMessageW(window,0x101,virtual_key,1|(scan<<16)|0xc0000000)
+        else:user32.keybd_event(virtual_key,scan,2,0)
 
 
 def main():
@@ -80,6 +86,7 @@ def main():
     parser.add_argument('--host-profile',choices=('test','player','local-player'),default='test',help='Player-host profiles omit Studio testMode')
     parser.add_argument('--core-loader',choices=('native','compat'),default='compat')
     parser.add_argument('--test-input',action='store_true',help='Send D only to the owned foreground Player after UI and walking pass')
+    parser.add_argument('--input-method',choices=('system','message'),default='system')
     parser.add_argument('--output',type=Path,default=Path('hosting2013/output'))
     parser.add_argument('--timeout',type=int,default=90)
     args = parser.parse_args()
@@ -302,8 +309,9 @@ def main():
         report['keyboard_movement_validated'] = False
         if args.test_input and player and report.get('core_gui_validated') and '|CLIENT_WALK_STOPPED' in client:
             time.sleep(1)
-            press_owned_key(processes['client'].pid,0x44)
+            press_owned_key(processes['client'].pid,0x44,method=args.input_method)
             report['keyboard_input_sent'] = True
+            report['keyboard_input_method'] = args.input_method
             input_deadline = time.monotonic()+8
             while time.monotonic()<input_deadline:
                 host,client = observe('host'),observe('client')

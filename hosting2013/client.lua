@@ -11,6 +11,12 @@ local ok, problem = pcall(function()
     local world = game:GetService("Workspace")
     local run = game:GetService("RunService")
     local network = game:GetService("NetworkClient")
+    if loadCoreGui then
+        local chatOk, chatProblem = pcall(function()
+            game:GetService("Players"):SetChatStyle(Enum.ChatStyle.ClassicAndBubble)
+        end)
+        print(marker .. "|CLASSIC_CHAT_CONFIGURED|" .. tostring(chatOk) .. "|" .. tostring(chatProblem))
+    end
     stage = "connection callbacks"
     network.ConnectionAccepted:connect(function(peer, replicator)
         print(marker .. "|CONNECTION_ACCEPTED")

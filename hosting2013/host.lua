@@ -99,6 +99,20 @@ local ok, problem = pcall(function()
         character.Head.face.Texture = "rbxasset://textures/face.png"
         character.Parent = world
         player.Character = character
+        local backpack = player:FindFirstChild("Backpack")
+        if not backpack then backpack=Instance.new("Backpack");backpack.Parent=player end
+        local tool = Instance.new("Tool")
+        tool.Name = "RCC Tool"
+        tool.TextureId = "rbxasset://textures/ui/Gear.png"
+        local handle = Instance.new("Part")
+        handle.Name = "Handle"
+        handle.FormFactor = Enum.FormFactor.Custom
+        handle.Size = Vector3.new(1,1,2)
+        handle.CanCollide = false
+        handle.BrickColor = BrickColor.new(23)
+        handle.Parent = tool
+        tool.Parent = backpack
+        print(marker .. "|OWNED_TOOL_CREATED")
         print(marker .. "|CHARACTER_CREATED")
         local moved = false
         run.Stepped:connect(function()
