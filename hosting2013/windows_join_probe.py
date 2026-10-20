@@ -52,7 +52,7 @@ def main():
               'studio_sha256':digest,'port':port,'server_hosting_validated':False,
               'client_join_validated':False,'replicated_movement_validated':False,
               'client_character_movement_validated':False,'standalone_player_join_validated':False,
-              'launch_profile':'-ide -fileLocation distinct empty local places -script owned Lua','peers':{}}
+              'launch_profile':'-ide -testMode -fileLocation distinct empty local places -script owned Lua','peers':{}}
     processes, streams = {}, []
     # Runtime copies are outside the evidence folder: never upload executables.
     runtime = studio.parent.parent/('join-'+secrets.token_hex(6))
@@ -75,7 +75,7 @@ def main():
         stream = (peer/'process.log').open('wb'); streams.append(stream)
         env = os.environ.copy()
         for key in ('QT_PLUGIN_PATH','QT_QPA_PLATFORM_PLUGIN_PATH'):env.pop(key,None)
-        process = subprocess.Popen([str(deployment/studio.name),'-ide','-fileLocation',str(place),'-script',source],
+        process = subprocess.Popen([str(deployment/studio.name),'-ide','-testMode','-fileLocation',str(place),'-script',source],
                                    cwd=deployment,env=env,stdout=stream,stderr=subprocess.STDOUT)
         processes[role] = process
         report['peers'][role] = {'pid':process.pid,'engine_marker_lines':[]}
