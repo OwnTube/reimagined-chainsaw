@@ -45,10 +45,14 @@ local function start(asset,parent,name)
     holder.Parent = parent
     Spawn(function()
         print(marker .. "|CORE_ASSET_STARTED|" .. tostring(asset))
-        local ok, problem = pcall(function() compile(asset,holder)() end)
+        -- Lua 5.1 cannot yield through pcall. Only protect compilation; the
+        -- native Spawn thread runs each archived script's waits directly.
+        local ok, problem = pcall(compile,asset,holder)
         if not ok then
             print(marker .. "|CORE_ASSET_FAILED|" .. tostring(asset) .. "|" .. tostring(problem))
+            return
         end
+        problem()
     end)
 end
 local function child(parent,name)

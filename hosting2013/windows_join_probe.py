@@ -53,6 +53,25 @@ def script_source(role, marker, port, token):
     return source.replace('__RCC_MARKER__',json.dumps(marker)).replace('__RCC_PORT__',str(port)).replace('__RCC_TOKEN__',json.dumps(token)).replace('__RCC_CORE_GUI__','false')
 
 
+def press_owned_key(pid, virtual_key, duration=1):
+    """Deliver one bounded key only while the owned Player is foreground."""
+    records = windows_for_pid(pid)
+    candidates = [w for w in records if w['visible'] and w['top_level'] and w['class']=='WINDOWSCLIENT']
+    if len(candidates)!=1:raise RuntimeError('Expected one owned Player game window')
+    user32 = ctypes.windll.user32
+    user32.GetForegroundWindow.restype = wintypes.HWND
+    user32.SetForegroundWindow(wintypes.HWND(candidates[0]['handle']))
+    time.sleep(0.5)
+    owner = wintypes.DWORD()
+    user32.GetWindowThreadProcessId(user32.GetForegroundWindow(),ctypes.byref(owner))
+    if owner.value!=pid:raise RuntimeError('Owned Player did not acquire keyboard focus')
+    scan = user32.MapVirtualKeyW(virtual_key,0)
+    try:
+        user32.keybd_event(virtual_key,scan,0,0)
+        time.sleep(duration)
+    finally:user32.keybd_event(virtual_key,scan,2,0)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--studio',type=Path,required=True)
@@ -60,12 +79,14 @@ def main():
     parser.add_argument('--player-profile',choices=('stock','local-signed'),default='stock')
     parser.add_argument('--host-profile',choices=('test','player','local-player'),default='test',help='Player-host profiles omit Studio testMode')
     parser.add_argument('--core-loader',choices=('native','compat'),default='compat')
+    parser.add_argument('--test-input',action='store_true',help='Send D only to the owned foreground Player after UI and walking pass')
     parser.add_argument('--output',type=Path,default=Path('hosting2013/output'))
     parser.add_argument('--timeout',type=int,default=90)
     args = parser.parse_args()
     if os.name != 'nt': parser.error('Native Windows required')
     if not 10 <= args.timeout <= 180: parser.error('Timeout must be 10..180 seconds')
     if args.player_profile=='local-signed' and not args.player:parser.error('local-signed requires the standalone Player')
+    if args.test_input and (not args.player or args.player_profile!='local-signed'):parser.error('Input testing requires the configured standalone Player')
     studio = args.studio.resolve(strict=True)
     specs = json.loads((Path(__file__).resolve().parents[1]/'rcc2013/packages.json').read_text())
     digest = hashlib.sha256(studio.read_bytes()).hexdigest()
@@ -276,12 +297,26 @@ def main():
             report['replicated_movement_validated'] = report['client_join_validated'] and '|REPLICATED_MOVEMENT|' in client and '|ROUNDTRIP_CONFIRMED|' in host
             report['client_character_movement_validated'] = '|CLIENT_CHARACTER_MOVED|' in client and '|SERVER_CHARACTER_MOVED|' in host
             report['core_gui_validated'] = '|CORE_GUI_READY' in client
-            if report['replicated_movement_validated'] and report['client_character_movement_validated'] and (args.player_profile!='local-signed' or report['core_gui_validated']):break
+            if report['replicated_movement_validated'] and report['client_character_movement_validated'] and (args.player_profile!='local-signed' or report['core_gui_validated']) and (not args.test_input or '|CLIENT_AT_WALK_TARGET' in client):break
             time.sleep(1)
+        report['keyboard_movement_validated'] = False
+        if args.test_input and player and report.get('core_gui_validated') and '|CLIENT_AT_WALK_TARGET' in client:
+            time.sleep(1)
+            press_owned_key(processes['client'].pid,0x44)
+            report['keyboard_input_sent'] = True
+            input_deadline = time.monotonic()+8
+            while time.monotonic()<input_deadline:
+                host,client = observe('host'),observe('client')
+                report['keyboard_movement_validated'] = '|CLIENT_KEYBOARD_MOVED|' in client and '|SERVER_KEYBOARD_MOVED|' in host
+                if report['keyboard_movement_validated']:break
+                time.sleep(0.5)
         report['network_test_passed'] = report['server_hosting_validated'] and report['replicated_movement_validated']
-        report['passed'] = report['network_test_passed'] and report['client_character_movement_validated'] and (args.player_profile!='local-signed' or report.get('core_gui_validated',False))
+        report['passed'] = report['network_test_passed'] and report['client_character_movement_validated'] and (args.player_profile!='local-signed' or report.get('core_gui_validated',False)) and (not args.test_input or report['keyboard_movement_validated'])
         if not report['passed']:
-            report['error'] = ('Archived CoreGui evidence incomplete before deadline' if report['network_test_passed'] else 'Join/replication evidence incomplete before deadline')
+            if not report['network_test_passed']:report['error'] = 'Join/replication evidence incomplete before deadline'
+            elif not report.get('core_gui_validated',False):report['error'] = 'Archived CoreGui evidence incomplete before deadline'
+            elif args.test_input and not report['keyboard_movement_validated']:report['error'] = 'Native keyboard movement was not verified on both peers'
+            else:report['error'] = 'Character movement evidence incomplete before deadline'
         # A verified network round trip is separate from character locomotion.
         if not report['client_character_movement_validated']:
             report['movement_limitation'] = 'Character locomotion was not verified on both peers'

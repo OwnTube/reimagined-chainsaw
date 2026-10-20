@@ -51,8 +51,14 @@ local ok, problem = pcall(function()
     signal.Name = "RccJoinSignal"
     signal.Parent = world
     stage = "server RemoteEvent callback"
+    local keyboardStart, keyboardPlayer, keyboardMoved = nil, nil, false
     signal.OnServerEvent:connect(function(player, reply, first, second)
         print(marker .. "|REMOTE_RECEIVED|" .. type(player) .. "|" .. tostring(reply) .. "|" .. tostring(first) .. "|" .. tostring(second))
+        if reply==token and first=="keyboard" then
+            local torso = player.Character and player.Character:FindFirstChild("Torso")
+            if torso then keyboardStart,keyboardPlayer = torso.Position,player end
+            return
+        end
         if reply == token and first ~= second and math.abs(first) == 6 and math.abs(second) == 6 then
             print(marker .. "|ROUNDTRIP_CONFIRMED|" .. tostring(player.userId))
         end
@@ -105,6 +111,17 @@ local ok, problem = pcall(function()
     local frames = 0
     run.Stepped:connect(function()
         frames = frames + 1
+        if keyboardStart and not keyboardMoved and keyboardPlayer.Character then
+            local torso = keyboardPlayer.Character:FindFirstChild("Torso")
+            if torso then
+                local delta = torso.Position-keyboardStart
+                local distance = Vector3.new(delta.X,0,delta.Z).magnitude
+                if distance>2 then
+                    keyboardMoved = true
+                    print(marker .. "|SERVER_KEYBOARD_MOVED|" .. tostring(distance))
+                end
+            end
+        end
         if frames % 120 == 0 then
             local x = math.floor(frames / 120) % 2 == 0 and -6 or 6
             beacon.CFrame = CFrame.new(x,2,-8)

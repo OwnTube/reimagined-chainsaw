@@ -21,6 +21,25 @@ local ok, problem = pcall(function()
         print(marker .. "|CONNECTION_FAILED|" .. tostring(code) .. "|" .. tostring(message))
     end)
     local first, acknowledged, walking, moved = nil, false, false, false
+    local atTarget, cameraConfigured, keyboardStart, keyboardMoved = false, false, nil, false
+    if loadCoreGui then
+        local inputOk, inputProblem = pcall(function()
+            game:GetService("UserInputService").InputBegan:connect(function(input,processed)
+                if input.KeyCode==Enum.KeyCode.D then
+                    print(marker .. "|KEYBOARD_INPUT_RECEIVED|" .. tostring(processed))
+                    local player = game:GetService("Players").LocalPlayer
+                    local torso = player and player.Character and player.Character:FindFirstChild("Torso")
+                    local signal = world:FindFirstChild("RccJoinSignal")
+                    local value = world:FindFirstChild("RccServerToken")
+                    if torso and signal and value and atTarget and not processed then
+                        keyboardStart = torso.Position
+                        signal:FireServer(value.Value,"keyboard",0)
+                    end
+                end
+            end)
+        end)
+        print(marker .. "|KEYBOARD_OBSERVER_READY|" .. tostring(inputOk) .. "|" .. tostring(inputProblem))
+    end
     local guiReported, guiFrames = false, 0
     run.Stepped:connect(function()
         if loadCoreGui and not guiReported then
@@ -78,12 +97,35 @@ local ok, problem = pcall(function()
                 moved = true
                 print(marker .. "|CLIENT_CHARACTER_MOVED|" .. tostring(torso.Position))
             end
+            if not atTarget and torso.Position.X>=9 then
+                atTarget = true
+                print(marker .. "|CLIENT_AT_WALK_TARGET")
+            end
+            if keyboardStart and not keyboardMoved then
+                local delta = torso.Position-keyboardStart
+                local distance = Vector3.new(delta.X,0,delta.Z).magnitude
+                if distance>2 then
+                    keyboardMoved = true
+                    print(marker .. "|CLIENT_KEYBOARD_MOVED|" .. tostring(distance))
+                end
+            end
             local camera = world.CurrentCamera
             if camera then
+                if loadCoreGui then
+                    if not cameraConfigured then
+                        camera.CameraSubject = humanoid
+                        camera.CameraType = Enum.CameraType.Follow
+                        camera.CoordinateFrame = CFrame.new(torso.Position+Vector3.new(0,7,14),torso.Position)
+                        camera.Focus = CFrame.new(torso.Position)
+                        camera.FieldOfView = 70
+                        cameraConfigured = true
+                    end
+                else
                 camera.CameraType = Enum.CameraType.Scriptable
                 camera.CoordinateFrame = CFrame.new(Vector3.new(18,14,24),Vector3.new(0,2,0))
                 camera.Focus = CFrame.new(0,2,0)
                 camera.FieldOfView = 50
+                end
             end
         end
     end)
