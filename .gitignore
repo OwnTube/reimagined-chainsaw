@@ -11,3 +11,6 @@ server2013/output/
 
 server2013/build/
 server2013/dist/
+
+server2013/render-output/
+RCCRenderWorker.spec

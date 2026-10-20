@@ -23,6 +23,8 @@
 #pragma comment(lib,"Ws2_32.lib")
 #pragma comment(lib,"Bcrypt.lib")
 
+static volatile LONG stopRequested=0;
+static BOOL WINAPI control(DWORD kind){if(kind==CTRL_C_EVENT||kind==CTRL_BREAK_EVENT||kind==CTRL_CLOSE_EVENT){InterlockedExchange(&stopRequested,1);return TRUE;}return FALSE;}
 using Bytes=std::vector<unsigned char>;
 namespace fs=std::filesystem;
 static const Bytes magic={0,255,255,0,254,254,254,254,253,253,253,253,18,52,86,120};
@@ -143,7 +145,7 @@ public:
     void run(unsigned seconds){
         std::cout<<"RCC2013 native service ready on 127.0.0.1:"<<port<<"\nTransport research: world replication is unfinished.\n"<<std::flush;
         uint64_t deadline=now()+uint64_t(seconds)*1000,lastSave=0;
-        while(seconds==0||now()<deadline){
+        while(!InterlockedCompareExchange(&stopRequested,0,0)&&(seconds==0||now()<deadline)){
             fd_set read;FD_ZERO(&read);FD_SET(udp,&read);timeval wait{0,100000};int ready=select(0,&read,nullptr,nullptr,&wait);if(ready==SOCKET_ERROR)throw std::runtime_error("UDP select");
             if(ready){unsigned char buffer[2048];sockaddr_in remote{};int len=sizeof(remote);int size=recvfrom(udp,reinterpret_cast<char*>(buffer),sizeof(buffer),0,reinterpret_cast<sockaddr*>(&remote),&len);if(size>0){try{datagram(Bytes(buffer,buffer+size),remote);}catch(const std::exception& e){event(std::string("protocol_error: ")+e.what());}}}
             for(auto& entry:pending){auto& p=entry.second;if(now()-p.sent<500)continue;if(p.attempts++>=8)throw std::runtime_error("unacknowledged control message");send(p.bytes);p.sent=now();}
@@ -165,6 +167,7 @@ struct Child {
 static unsigned number(const std::wstring& text,unsigned high){size_t end=0;auto n=std::stoul(text,&end);if(end!=text.size()||n>high)throw std::runtime_error("invalid numeric option");return n;}
 int wmain(int argc,wchar_t** argv){
     SetConsoleTitleW(L"RCC2013 Custom RCCService");
+    SetConsoleCtrlHandler(control,TRUE);
     WSADATA state{};if(WSAStartup(MAKEWORD(2,2),&state))return 2;
     try{
         wchar_t module[32768];if(!GetModuleFileNameW(nullptr,module,32768))throw std::runtime_error("module path");auto root=fs::path(module).parent_path();

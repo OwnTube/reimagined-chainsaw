@@ -200,11 +200,17 @@ class AssetStore:
             identity=db.execute('SELECT id FROM assets WHERE sha=?',(digest,)).fetchone()[0]
         return self.info(identity)
 
-    def content(self, identity, base):
+    def raw(self, identity):
         info=self.info(identity)
         if info is None:raise KeyError(identity)
         data=(self.root/info['sha256']).read_bytes()
         if hashlib.sha256(data).hexdigest()!=info['sha256']:raise ValueError('Stored asset digest mismatch')
+        return data
+
+    def content(self, identity, base):
+        info=self.info(identity)
+        if info is None:raise KeyError(identity)
+        data=self.raw(identity)
         if info['kind']=='model':
             data=re.sub(rb'rccasset://([1-9][0-9]*)',lambda m:(base+'/assets/'+m[1].decode()+'/content').encode(),data)
         digest=hashlib.sha256(data).hexdigest()

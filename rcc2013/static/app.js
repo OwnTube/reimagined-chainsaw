@@ -159,9 +159,9 @@ async function connect() {
     const health = await api('/health');
     presets = await api('/v1/presets');
     typeChanged();
-    el('connection').textContent = health.studio_present ? 'Worker available' : 'Studio deployment missing';
+    el('connection').textContent = health.worker_available || health.studio_present ? 'Worker available' : 'Worker unavailable';
     el('connection-dot').className = health.studio_present ? 'online' : '';
-    if (!health.studio_present) showError('Install the pinned Studio deployment with download.py before rendering.');
+    if (health.backend !== 'custom_software' && !health.studio_present) showError('Install the pinned Studio deployment with download.py before rendering.');
     await refreshHistory();
     const job = new URLSearchParams(location.search).get('job');
     if (job && /^[a-f0-9]{32}$/.test(job)) await watch(job);

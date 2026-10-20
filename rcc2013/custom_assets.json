@@ -1,0 +1,11 @@
+{
+  "files": {
+    "fonts/head.mesh": "c192daeba6265e9ab13a6d5132e9f1e496532e51708b1a5cb13e5ae917673976",
+    "fonts/torso.mesh": "1058d5e5bbe7a85cc62e4baae8bb1227a56a544a45c435d4e21dbf07b87bd64d",
+    "fonts/leftarm.mesh": "b1f38c5b61e898eca789b077b1667e92cfd074dd0ba59f438ad26b626bfd6f32",
+    "fonts/rightarm.mesh": "3dde93395c2e08ffc667429e00db4702ddc76897e9d9dc578ee17b44986ad1f0",
+    "fonts/leftleg.mesh": "4720fa1de039ba5730aa5565e86fd3b5ce47d790983866238466f19584e90efe",
+    "fonts/rightleg.mesh": "aa9801c634a33213260ba32ac3ba3264153fef3b705be7d9e8a5612eb0cecaba",
+    "textures/face.png": "1c39a070520754be49bed432b04cb315dcf63f3ce52658b32fb369d379c642ce"
+  }
+}

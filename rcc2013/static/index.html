@@ -15,12 +15,12 @@
     <div class="nav-label">WORKSPACE</div>
     <div class="nav-active"><span aria-hidden="true">▧</span> Render console <span class="nav-dot"></span></div>
     <section class="recent"><div class="nav-label">RECENT RENDERS <span id="job-count">0</span></div><div id="history"><p class="history-empty">Your render history will appear here.</p></div></section>
-    <div class="sidebar-foot"><span class="engine-dot"></span><span>November 2013 engine<small>Local Studio worker</small></span></div>
+    <div class="sidebar-foot"><span class="engine-dot"></span><span>RCC2013 renderer<small>Custom offscreen worker</small></span></div>
   </aside>
   <main>
     <header class="topbar"><div>WORKSPACE <span>/</span> RENDER CONSOLE</div><div class="connection"><i id="connection-dot"></i><span id="connection">Connecting</span></div></header>
     <div class="workspace">
-      <div class="page-heading"><div><p class="eyebrow">THE ORIGINAL LOOK, FRAME BY FRAME</p><h1>Render console</h1><p>Create a frame with the November 2013 Roblox engine.</p></div><span class="edition">2013 <span>ENGINE</span></span></div>
+      <div class="page-heading"><div><p class="eyebrow">CLASSIC SCENES, FRAME BY FRAME</p><h1>Render console</h1><p>Render classic avatars, items, and static game scenes.</p></div><span class="edition">2013 <span>ENGINE</span></span></div>
       <div class="layout">
         <form id="render-form" class="settings">
           <section><div class="section-title"><span>01</span><h2>Scene</h2></div>
@@ -33,16 +33,16 @@
             <div class="field-row"><label class="field-label" for="fov">Field of view</label><span>degrees</span></div><input id="fov" type="number" min="10" max="100" value="58" required>
           </section>
           <section><div class="section-title"><span>03</span><h2>Output</h2></div>
-            <label class="field-label" for="size">Image dimensions</label><select id="size"><option value="512,512">512 × 512 · square</option><option value="450,600">450 × 600 · portrait</option><option value="640,360">640 × 360 · widescreen</option><option value="800,450">800 × 450 · widescreen</option><option value="native">Current viewport</option></select>
+            <label class="field-label" for="size">Image dimensions</label><select id="size"><option value="512,512">512 × 512 · square</option><option value="450,600">450 × 600 · portrait</option><option value="640,360">640 × 360 · widescreen</option><option value="800,450">800 × 450 · widescreen</option><option value="native">Default dimensions</option></select>
             <p id="output-help" class="help">Transparent PNG · player only</p>
           </section>
-          <div class="form-footer"><p id="error" role="alert" hidden></p><button id="render-button" type="submit">Render image <span aria-hidden="true">↗</span></button><p>One scene at a time. Every frame, the real engine.</p></div>
+          <div class="form-footer"><p id="error" role="alert" hidden></p><button id="render-button" type="submit">Render image <span aria-hidden="true">↗</span></button><p>One scene at a time. Transparent subjects. No game interface.</p></div>
         </form>
         <section class="preview-card" aria-label="Render preview">
           <div class="preview-top"><h2 id="preview-title">Viewport</h2><span id="state" class="state">READY</span></div>
           <div id="preview" class="preview">
             <div id="placeholder"><div class="frame-icon" aria-hidden="true">▧</div><h3>Your next frame starts here.</h3><p>Choose a scene, set your camera, and hit render.</p></div>
-            <img id="render-image" alt="Rendered scene from the 2013 Roblox engine" hidden>
+            <img id="render-image" alt="Rendered RCC2013 scene" hidden>
           </div>
           <div class="preview-bottom"><div><strong id="image-info">No image yet</strong><span id="job-info">PNG output</span></div><a id="download" class="download" hidden download="rcc2013-render.png">Download PNG ↓</a></div>
           <details id="details" hidden><summary>Render details</summary><pre id="evidence"></pre></details>

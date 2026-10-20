@@ -1,4 +1,4 @@
-"""Local render-job API backed by the pinned 2013 Studio engine."""
+"""Custom RCC render-job API with an explicit Studio reference backend."""
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
@@ -48,8 +48,11 @@ def camera_spec(value, defaults=None):
 
 
 class Renderer:
-    def __init__(self, studio, root, engine=render_scene):
+    def __init__(self, studio, root, engine=render_scene, backend='studio-reference', content=None):
         self.studio, self.root, self.engine = Path(studio), Path(root).resolve(), engine
+        if backend not in ('custom','studio-reference'):raise ValueError('Unknown backend')
+        self.backend=backend
+        self.content=Path(content) if content else self.studio.parent/'content'
         self.root.mkdir(parents=True,exist_ok=True)
         (self.root/'places').mkdir(exist_ok=True)
         (self.root/'jobs').mkdir(exist_ok=True)
@@ -127,7 +130,10 @@ class Renderer:
         try:
             place = self.root/'places'/(request['place_id']+'.rbxl') if request.get('place_id') else None
             output=self.root/'jobs'/job
-            if request['type']=='item':
+            if self.backend=='custom':
+                from software_render import render
+                report=render(self.content,output,place,request['camera'],request['size'],request['scene'],request['type'],self.assets,request.get('asset_id'))
+            elif request['type']=='item':
                 asset=self.assets.info(request['asset_id']);sequence=self.assets.sequence
                 item={'url':self.delivery_base+'/assets/'+str(asset['id'])+'/content','parts':asset['metadata']['parts']}
                 report=render_scene(self.studio,output,None,request['camera'],request['size'],'item','item',item)
@@ -142,7 +148,8 @@ class Renderer:
             report.setdefault('type',request['type'])
             if report.get('engine_render_validated'):
                 report['png_sha256']=validate_png(output/'render.png',request['type'],request['size'],report)
-            state = 'succeeded' if report.get('engine_render_validated') else 'failed'
+            validated=report.get('custom_render_validated') if self.backend=='custom' else report.get('engine_render_validated')
+            state = 'succeeded' if validated else 'failed'
         except Exception as error:
             report,state = {'error':str(error),'engine_render_validated':False},'failed'
         with self.connect() as db:
@@ -166,7 +173,10 @@ class Renderer:
             raise ValueError('Image no longer matches the verified render')
         dimensions=job['result'].get('image_size')
         size={'width':dimensions[0],'height':dimensions[1]} if dimensions else None
-        validate_png(path,job['result'].get('type'),size,job['result'])
+        if job['result'].get('backend')=='custom_software':
+            from software_render import validate
+            validate(path,job['result'].get('type'),size,job['result'])
+        else:validate_png(path,job['result'].get('type'),size,job['result'])
         return data
 
     def recent(self):
@@ -222,6 +232,8 @@ def handler(renderer):
             if path in assets:
                 name,content_type = assets[path]
                 return self.send(200,(STATIC/name).read_bytes(),content_type)
+            if path=='/health' and renderer.backend=='custom':
+                return self.send(200,{'service':'RCC2013','backend':'custom_software','render_method':'original offscreen triangle rasterizer','studio_required':False,'worker_available':True,'avatar_assets_present':(renderer.content/'fonts/head.mesh').is_file(),'original_engine_parity_verified':False})
             if path=='/health':
                 return self.send(200,{'service':'RCC2013','engine':'Studio 2013.11.25.2',
                     'render_method':'native viewport capture','studio_present':renderer.studio.is_file()})
@@ -266,11 +278,13 @@ def handler(renderer):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--backend',choices=('custom','studio-reference'),default='custom')
+    parser.add_argument('--content',type=Path,default=Path('vendor/custom-content'))
     parser.add_argument('--studio',type=Path,default=Path('vendor/studio/RobloxStudioBeta.exe'))
     parser.add_argument('--data',type=Path,default=Path('data'))
     parser.add_argument('--port',type=int,default=64313)
     args=parser.parse_args()
-    renderer=Renderer(args.studio,args.data)
+    renderer=Renderer(args.studio,args.data,backend=args.backend,content=args.content)
     server=ThreadingHTTPServer(('127.0.0.1',args.port),handler(renderer))
     print('RCC2013 ready at http://127.0.0.1:'+str(server.server_port),flush=True)
     try:

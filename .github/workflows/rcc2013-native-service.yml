@@ -9,7 +9,7 @@ permissions:
 jobs:
   native-service:
     runs-on: windows-2022
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: '3.12'
-      - run: python -m pip install Pillow cryptography imageio-ffmpeg==0.6.0
+      - run: python -m pip install Pillow==11.3.0 numpy==2.2.6 pyinstaller==6.16.0 cryptography imageio-ffmpeg==0.6.0
       - name: Compile our native Windows service with the owner's icon
         shell: pwsh
         run: |
@@ -41,9 +41,19 @@ jobs:
           if ($buildExit -ne 0) { throw 'Native compilation failed' }
           & server2013/dist/RCCService.exe --help
           Get-FileHash server2013/dist/RCCService.exe -Algorithm SHA256
+      - name: Test custom renderer with process launches forbidden
+        working-directory: rcc2013
+        run: python -m unittest -v test_software_render.py
+      - name: Package the custom render worker with the same logo
+        run: python -m PyInstaller --noconfirm --clean --onefile --name RCCRenderWorker --icon server2013/native/rcc2013.ico --add-data "rcc2013/static;static" --hidden-import software_render --hidden-import numpy --paths rcc2013 --distpath server2013/dist --workpath server2013/build/worker rcc2013/server.py
       - name: Restore only the exact 2013 Player
         working-directory: rcc2013
         run: python download.py --only player
+      - name: Restore only renderer data into a separate runtime folder
+        working-directory: rcc2013
+        run: python restore_custom_assets.py --archive cache/player.zip --destination vendor/custom-content
+      - name: Verify all render types through the native EXE entry point
+        run: python server2013/windows_exe_render_probe.py --exe server2013/dist/RCCService.exe --content rcc2013/vendor/custom-content --output server2013/render-output
       - name: Release default IIS and prove Studio is absent
         shell: pwsh
         run: |
@@ -67,6 +77,8 @@ jobs:
           name: rcc2013-native-service
           path: |
             server2013/dist/RCCService.exe
+            server2013/dist/RCCRenderWorker.exe
+            server2013/render-output/
             server2013/output/
           retention-days: 7
       - name: Restore IIS if previously running
