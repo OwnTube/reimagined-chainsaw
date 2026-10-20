@@ -59,6 +59,7 @@ def main():
     parser.add_argument('--player',type=Path,help='Experiment with the pinned standalone Player instead of a second Studio')
     parser.add_argument('--player-profile',choices=('stock','local-signed'),default='stock')
     parser.add_argument('--host-profile',choices=('test','player','local-player'),default='test',help='Player-host profiles omit Studio testMode')
+    parser.add_argument('--core-loader',choices=('native','compat'),default='compat')
     parser.add_argument('--output',type=Path,default=Path('hosting2013/output'))
     parser.add_argument('--timeout',type=int,default=90)
     args = parser.parse_args()
@@ -175,7 +176,10 @@ def main():
                         content_type = 'image/png'
                     elif path in ('/game/studio.ashx','/game/visit.ashx'):
                         bootstrap = 'print('+json.dumps(markers[role]+'|CORE_BOOTSTRAP_READY')+')\n'
-                        if signer:
+                        if signer and args.core_loader=='compat':
+                            from core_loader import bootstrap as build_core_loader
+                            bootstrap += build_core_loader(core_assets,base,markers[role])
+                        elif signer:
                             bootstrap += ('local context=game:GetService("ScriptContext")\n'
                                           'print('+json.dumps(markers[role]+'|SCRIPTS_DISABLED_BEFORE|')+'..tostring(context.ScriptsDisabled))\n'
                                           'context.ScriptsDisabled=false\n'
