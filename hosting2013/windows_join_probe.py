@@ -92,6 +92,7 @@ def main():
     backend, backend_thread = None, None
     hosts_path, hosts_line = None, None
     processes, streams = {}, []
+    executables = {}
     # Runtime copies are outside the evidence folder: never upload executables.
     runtime = studio.parent.parent/('join-'+secrets.token_hex(6))
     runtime.mkdir()
@@ -192,6 +193,7 @@ def main():
         process = subprocess.Popen(command,
                                    cwd=deployment,env=env,stdout=stream,stderr=subprocess.STDOUT)
         processes[role] = process
+        executables[role] = deployment/(player.name if standalone else studio.name)
         report['peers'][role] = {'pid':process.pid,'engine_marker_lines':[]}
     def observe(role):
         collect_logs(out/role)
@@ -221,6 +223,10 @@ def main():
         report['udp_port_bound_by_host'] = udp_binding(processes['host'].pid,port)
         report['server_hosting_validated'] = report['udp_port_bound_by_host'] is True
         if not report['server_hosting_validated']:raise RuntimeError('Host process has no matching UDP endpoint')
+        try:
+            from native_profile import inspect
+            report['host_native_profile'] = inspect(processes['host'],executables['host'])
+        except Exception as error:report['host_native_profile_error'] = str(error)
         launch('client')
         deadline = time.monotonic()+args.timeout
         while time.monotonic()<deadline and all(p.poll() is None for p in processes.values()):
@@ -252,6 +258,11 @@ def main():
             peer = out/role
             try:
                 observe(role)
+                if process.poll() is None:
+                    try:
+                        from native_profile import inspect
+                        report['peers'][role]['native_profile'] = inspect(process,executables[role],bool(player and role=='client'))
+                    except Exception as error:report['peers'][role]['native_profile_error'] = str(error)
                 records = windows_for_pid(process.pid) if player and role=='client' else resize_viewport(process.pid,{'width':640,'height':480})
                 report['peers'][role]['windows'] = records
                 user32 = ctypes.windll.user32

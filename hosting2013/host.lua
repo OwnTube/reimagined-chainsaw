@@ -19,6 +19,7 @@ local ok, problem = pcall(function()
     local run = game:GetService("RunService")
     -- Establish the server role before connecting server-only RemoteEvents.
     stage = "NetworkServer creation"
+    print(marker .. "|NETWORK_SERVER_PREEXISTING|" .. tostring(world.Parent:FindFirstChild("NetworkServer") ~= nil))
     local server = game:GetService("NetworkServer")
     stage = "local authentication option"
     local authOption = pcall(function() server:SetIsPlayerAuthenticationRequired(false) end)
