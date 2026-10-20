@@ -80,9 +80,20 @@ def main():
         processes[role] = process
         report['peers'][role] = {'pid':process.pid,'engine_marker_lines':[]}
     def observe(role):
-        text = collect_logs(out/role)+(out/role/'process.log').read_text(errors='replace')
-        lines = [line for line in text.splitlines() if markers[role] in line]
+        collect_logs(out/role)
+        # Native engine events rotate among worker-thread files. Preserve every
+        # observed owned marker, including those no longer in the newest 12 logs.
+        root = Path(os.environ['LOCALAPPDATA'])/'Roblox'/'logs'
+        paths = sorted((p for p in root.glob('*') if p.is_file() and p.suffix.lower() in ('.txt','.log')),
+                       key=lambda p:p.stat().st_mtime)[-128:]
+        paths.append(out/role/'process.log')
+        lines = list(report['peers'][role]['engine_marker_lines'])
+        for path in paths:
+            text = path.read_bytes()[-2*1024*1024:].decode('utf-8',errors='replace')
+            lines.extend(line for line in text.splitlines() if markers[role] in line)
+        lines = list(dict.fromkeys(lines))
         report['peers'][role]['engine_marker_lines'] = lines
+        (out/role/'engine-events.log').write_text('\n'.join(lines)+'\n',encoding='utf-8')
         return '\n'.join(lines)
     try:
         launch('host')

@@ -41,6 +41,7 @@ local ok, problem = pcall(function()
     signal.Parent = world
     stage = "server RemoteEvent callback"
     signal.OnServerEvent:connect(function(player, reply, first, second)
+        print(marker .. "|REMOTE_RECEIVED|" .. type(player) .. "|" .. tostring(reply) .. "|" .. tostring(first) .. "|" .. tostring(second))
         if reply == token and first ~= second and math.abs(first) == 6 and math.abs(second) == 6 then
             print(marker .. "|ROUNDTRIP_CONFIRMED|" .. tostring(player.userId))
         end
