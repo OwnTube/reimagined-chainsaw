@@ -37,9 +37,13 @@ local ok, problem = pcall(function()
         local humanoid = character and character:FindFirstChild("Humanoid")
         if torso and humanoid then
             if not walking then
-                walking = true
-                humanoid:MoveTo(Vector3.new(10,3,0))
-                print(marker .. "|CLIENT_MOVE_REQUESTED")
+                local floor = world:FindFirstChild("RccOwnedFloor")
+                if floor then
+                    -- Unlike later builds, this API requires its second Part.
+                    humanoid:MoveTo(Vector3.new(10,3,0), floor)
+                    walking = true
+                    print(marker .. "|CLIENT_MOVE_REQUESTED")
+                end
             end
             if not moved and torso.Position.X > 2 then
                 moved = true

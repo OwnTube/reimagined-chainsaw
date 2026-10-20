@@ -116,7 +116,8 @@ def main():
         report['error'] = str(error)
     finally:
         from PIL import ImageGrab
-        for role, process in processes.items():
+        # The last-launched client is already foreground. Capture it first.
+        for role, process in reversed(list(processes.items())):
             peer = out/role
             try:
                 observe(role)
