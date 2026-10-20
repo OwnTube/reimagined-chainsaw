@@ -5,6 +5,8 @@ local port = __RCC_PORT__
 local stage = "services"
 local loadCoreGui = __RCC_CORE_GUI__
 print(marker .. "|CLIENT_BOOTSTRAP_STARTED")
+local localOk, localConnection = pcall(function() return settings():GetFFlag("DebugLocalRccServerConnection") end)
+print(marker .. "|LOCAL_RCC_FLAG|" .. tostring(localOk) .. "|" .. tostring(localConnection))
 local ok, problem = pcall(function()
     local world = game:GetService("Workspace")
     local run = game:GetService("RunService")

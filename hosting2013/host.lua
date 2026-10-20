@@ -9,6 +9,8 @@ local ok, problem = pcall(function()
     print(marker .. "|NETWORK_SECURITY_FLAG|" .. tostring(flagOk) .. "|" .. tostring(flag))
     local protocolOk, protocol = pcall(function() return settings():GetFFlag("CheckNetworkProtocolVersion") end)
     print(marker .. "|NETWORK_PROTOCOL_FLAG|" .. tostring(protocolOk) .. "|" .. tostring(protocol))
+    local localOk, localConnection = pcall(function() return settings():GetFFlag("DebugLocalRccServerConnection") end)
+    print(marker .. "|LOCAL_RCC_FLAG|" .. tostring(localOk) .. "|" .. tostring(localConnection))
     local players = game:GetService("Players")
     -- Keep the owned character when the client completes RequestCharacter;
     -- the default loader otherwise replaces it with an online appearance.

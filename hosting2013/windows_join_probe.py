@@ -129,6 +129,11 @@ def main():
                 report['local_player_configuration'] = configuration
                 report['player_sha256'] = configuration['configured_sha256']
                 report['scope'] = 'unmodified 2013 Studio host and locally configured standalone 2013 Player'
+                settings_dir = deployment/'ClientSettings'
+                settings_dir.mkdir(exist_ok=True)
+                player_flags = {'FFlagDebugLocalRccServerConnection':'True'}
+                (settings_dir/'ClientAppSettings.json').write_text(json.dumps(player_flags),encoding='utf-8')
+                report['player_local_flags'] = player_flags
                 hosts_path = Path(os.environ['WINDIR'])/'System32/drivers/etc/hosts'
                 hosts_line = ('\r\n127.0.0.1 '+LOCAL_DOMAIN+' www.'+LOCAL_DOMAIN+' # RCC2013_'+secrets.token_hex(8)+'\r\n').encode('ascii')
                 with hosts_path.open('ab') as hosts:hosts.write(hosts_line)
@@ -177,7 +182,7 @@ def main():
             if role=='host' and args.host_profile=='local-player':
                 settings_dir = deployment/'ClientSettings'
                 settings_dir.mkdir(exist_ok=True)
-                local_flags = {'FFlagCheckNetworkSecurityKey':'False','FFlagCheckNetworkProtocolVersion':'False'}
+                local_flags = {'FFlagDebugLocalRccServerConnection':'True'}
                 (settings_dir/'ClientAppSettings.json').write_text(json.dumps(local_flags),encoding='utf-8')
                 report['host_local_flags'] = local_flags
             command = [str(deployment/studio.name),'-ide']
