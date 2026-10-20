@@ -68,14 +68,34 @@ def press_owned_key(pid, virtual_key, duration=1, method='system'):
     scan = user32.MapVirtualKeyW(virtual_key,0)
     window = wintypes.HWND(candidates[0]['handle'])
     user32.PostMessageW.argtypes = [wintypes.HWND,wintypes.UINT,wintypes.WPARAM,wintypes.LPARAM]
+    metadata = {'method':method}
+    kernel = ctypes.windll.kernel32
+    session = wintypes.DWORD()
+    if kernel.ProcessIdToSessionId(pid,ctypes.byref(session)):metadata['player_session_id'] = session.value
+    kernel.WTSGetActiveConsoleSessionId.restype = wintypes.DWORD
+    metadata['active_console_session_id'] = kernel.WTSGetActiveConsoleSessionId()
+    class Mouse(ctypes.Structure):
+        _fields_ = [('x',wintypes.LONG),('y',wintypes.LONG),('data',wintypes.DWORD),('flags',wintypes.DWORD),('time',wintypes.DWORD),('extra',ctypes.c_size_t)]
+    class Key(ctypes.Structure):
+        _fields_ = [('vk',wintypes.WORD),('scan',wintypes.WORD),('flags',wintypes.DWORD),('time',wintypes.DWORD),('extra',ctypes.c_size_t)]
+    class Payload(ctypes.Union):_fields_ = [('mouse',Mouse),('key',Key)]
+    class Input(ctypes.Structure):_fields_ = [('kind',wintypes.DWORD),('payload',Payload)]
+    user32.SendInput.argtypes = [wintypes.UINT,ctypes.POINTER(Input),ctypes.c_int]
+    def send_scan(up):
+        event = Input();event.kind = 1;event.payload.key = Key(0,scan,8|(2 if up else 0),0,0)
+        return user32.SendInput(1,ctypes.byref(event),ctypes.sizeof(event))
     try:
         if method=='message':
             if not user32.PostMessageW(window,0x100,virtual_key,1|(scan<<16)):raise ctypes.WinError()
+        elif method=='scancode':metadata['send_input_down_accepted'] = send_scan(False)
         else:user32.keybd_event(virtual_key,scan,0,0)
+        metadata['async_key_down'] = bool(user32.GetAsyncKeyState(virtual_key)&0x8000)
         time.sleep(duration)
     finally:
         if method=='message':user32.PostMessageW(window,0x101,virtual_key,1|(scan<<16)|0xc0000000)
+        elif method=='scancode':metadata['send_input_up_accepted'] = send_scan(True)
         else:user32.keybd_event(virtual_key,scan,2,0)
+    return metadata
 
 
 def main():
@@ -86,7 +106,7 @@ def main():
     parser.add_argument('--host-profile',choices=('test','player','local-player'),default='test',help='Player-host profiles omit Studio testMode')
     parser.add_argument('--core-loader',choices=('native','compat'),default='compat')
     parser.add_argument('--test-input',action='store_true',help='Send D only to the owned foreground Player after UI and walking pass')
-    parser.add_argument('--input-method',choices=('system','message'),default='system')
+    parser.add_argument('--input-method',choices=('system','message','scancode'),default='system')
     parser.add_argument('--output',type=Path,default=Path('hosting2013/output'))
     parser.add_argument('--timeout',type=int,default=90)
     args = parser.parse_args()
@@ -309,7 +329,7 @@ def main():
         report['keyboard_movement_validated'] = False
         if args.test_input and player and report.get('core_gui_validated') and '|CLIENT_WALK_STOPPED' in client:
             time.sleep(1)
-            press_owned_key(processes['client'].pid,0x44,method=args.input_method)
+            report['keyboard_os_evidence'] = press_owned_key(processes['client'].pid,0x44,method=args.input_method)
             report['keyboard_input_sent'] = True
             report['keyboard_input_method'] = args.input_method
             input_deadline = time.monotonic()+8

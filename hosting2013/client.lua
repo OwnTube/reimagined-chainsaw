@@ -29,6 +29,8 @@ local ok, problem = pcall(function()
     local first, acknowledged, walking, moved = nil, false, false, false
     local atTarget, cameraConfigured, keyboardStart, keyboardMoved = false, false, nil, false
     if loadCoreGui then
+        local capabilityOk, capability = pcall(function() return game:GetService("UserInputService").KeyboardEnabled end)
+        print(marker .. "|KEYBOARD_CAPABILITY|" .. tostring(capabilityOk) .. "|" .. tostring(capability))
         local inputOk, inputProblem = pcall(function()
             game:GetService("UserInputService").InputBegan:connect(function(input,processed)
                 if input.KeyCode==Enum.KeyCode.D then
