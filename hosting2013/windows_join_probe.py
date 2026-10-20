@@ -148,7 +148,9 @@ def main():
                             local_source = local_source.replace(prefix,base)
                         content,status = signer.sign(local_source),200
                     elif path in ('/game/studio.ashx','/game/visit.ashx'):
-                        bootstrap = 'print('+json.dumps(markers[role]+'|CORE_BOOTSTRAP_READY')+')'
+                        bootstrap = ('print('+json.dumps(markers[role]+'|CORE_BOOTSTRAP_READY')+')\n'
+                                     'local context = game:GetService("ScriptContext")\n'
+                                     'context:AddCoreScript(37801172,context,"StarterScript")\n')
                         content,status = signer.sign(bootstrap) if signer else bootstrap.encode('utf-8'),200
                     elif path=='/Login/Negotiate.ashx':content,status = b'ok',200
                     elif path=='/game/logout.aspx':content,status = b'',200
@@ -175,7 +177,7 @@ def main():
             if role=='host' and args.host_profile=='local-player':
                 settings_dir = deployment/'ClientSettings'
                 settings_dir.mkdir(exist_ok=True)
-                local_flags = {'FFlagCheckNetworkSecurityKey':'False','FFlagCheckNetworkProtocolVersion':'True'}
+                local_flags = {'FFlagCheckNetworkSecurityKey':'False','FFlagCheckNetworkProtocolVersion':'False'}
                 (settings_dir/'ClientAppSettings.json').write_text(json.dumps(local_flags),encoding='utf-8')
                 report['host_local_flags'] = local_flags
             command = [str(deployment/studio.name),'-ide']

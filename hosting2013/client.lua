@@ -90,11 +90,7 @@ local ok, problem = pcall(function()
     local player = network:PlayerConnect(0, "localhost", port, 0, 30)
     print(marker .. "|PLAYER_CONNECT_RETURNED|" .. tostring(player))
     if loadCoreGui then
-        local loaded, detail = pcall(function()
-            local context = game:GetService("ScriptContext")
-            context:AddCoreScript(37801172,context,"StarterScript")
-        end)
-        print(marker .. "|CORE_GUI_REQUESTED|" .. tostring(loaded) .. "|" .. tostring(detail))
+        print(marker .. "|CORE_GUI_AWAITING_NATIVE_LOADER")
     end
     stage = "RunService start"
     run:Run()
