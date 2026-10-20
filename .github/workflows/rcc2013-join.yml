@@ -26,6 +26,15 @@ jobs:
         id: restore
         working-directory: rcc2013
         run: python download.py
+      - name: Release the disposable runner's default IIS listener
+        shell: pwsh
+        run: |
+          Get-NetTCPConnection -LocalPort 80 -State Listen -ErrorAction SilentlyContinue | Select-Object LocalAddress,LocalPort,OwningProcess
+          $service = Get-Service W3SVC -ErrorAction SilentlyContinue
+          if ($service -and $service.Status -eq 'Running') {
+            'RCC2013_RESTART_IIS=1' >> $env:GITHUB_ENV
+            Stop-Service W3SVC -Force -ErrorAction Stop
+          }
       - name: Test Studio hosting with the standalone Player and signed local bootstrap
         run: python hosting2013/windows_join_probe.py --studio rcc2013/vendor/studio/RobloxStudioBeta.exe --player rcc2013/vendor/player/RobloxPlayerBeta.exe --player-profile local-signed --output hosting2013/player-output --timeout 60
       - name: Preserve owned join evidence
@@ -37,3 +46,7 @@ jobs:
             hosting2013/output/
             hosting2013/player-output/
           retention-days: 7
+      - name: Restore the runner IIS service if it was running
+        if: always() && env.RCC2013_RESTART_IIS == '1'
+        shell: pwsh
+        run: Start-Service W3SVC
