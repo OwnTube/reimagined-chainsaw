@@ -1,8 +1,76 @@
 # Native 2013 local hosting and joining
 
-This research uses two separate, unmodified copies of the pinned November
-2013 Studio deployment. It does not build The Funnel Method's 2016 patches
+The current probe hosts in the pinned November 2013 Studio and joins using
+the separately pinned **RobloxPlayerBeta.exe**. The earlier two-Studio test
+below is retained as a control, not presented as standalone Player evidence.
+This does not build The Funnel Method's 2016 patches
 or assume that their December 2013L protocol target matches this build.
+
+## Actual standalone Player checkpoint — 2026-10-20
+
+[Run 39424173794](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39424173794),
+source `df9766ab74d017c56e9b626f47f77aa972612b5c`, reports true for native
+hosting, standalone Player admission, bidirectional replication, and character
+movement on both peers. The client receives an independent random server
+token, observes the server beacon move, and replies through RemoteEvent.
+Both processes' native local-RCC flags are 1 and their handshake-value hashes
+match. The probe reads only those pinned fields from its own child processes;
+it exports neither raw handshake values nor process memory.
+
+The important distinction is the native `DebugLocalRccServerConnection`
+setting **on both peers plus numeric `127.0.0.1` in PlayerConnect**. Literal
+`localhost` follows another native branch and left Player on its normal
+handshake value despite the flag. It failed with native rejection 24. The
+numeric branch selects the engine's own local-RCC handshake. Neither a
+protocol-check instruction patch nor disabled network-version/security flags
+is used in the working profile.
+
+The disposable Player is configured for `rcc13.test`, mapped to loopback on
+the test runner, and a newly generated RSA public key. `local_player.py`
+requires the exact original SHA-256 and makes 21 equal-length edits entirely
+within `.rdata`; it refuses executable sections and unknown builds. The local
+backend signs owned bootstrap source using the corresponding in-memory key.
+Native execution of the random bootstrap marker proves that the Player accepts
+these signatures. Studio retains its original executable digest. No modified
+executables or private keys enter the source tree or evidence artifacts.
+
+```text
+python -m pip install Pillow cryptography
+python hosting2013/windows_join_probe.py --studio rcc2013/vendor/studio/RobloxStudioBeta.exe --player rcc2013/vendor/player/RobloxPlayerBeta.exe --player-profile local-signed --host-profile local-player --output hosting2013/player-output --timeout 60
+```
+
+This profile changes the hosts file only in the disposable Windows runner and
+binds its backend on loopback port 80. The workflow temporarily stops a running
+default IIS listener, then restores it. Cleanup removes the exact owned hosts
+entry and runtime deployments. The source is a bounded development probe,
+not an installer or a persistent publicly accessible game service.
+
+### Interface remains a separate requirement
+
+The network checkpoint's `core_gui_validated` is **false**. Native Player
+shows its base controls and the replicated game, but the additional archived
+menu, chat, player list, and backpack have not yet been validated there.
+`core_assets.json` pins archive URLs, modification timestamps, and SHA-256
+for pre-November-26 2013 CoreScripts and libraries. Those timestamps are archive
+metadata, not proof of a precise live-site rollout. Original script bytes are
+restored outside the repository/evidence directory and served only locally.
+The bootstrap signs them with the disposable test key and rewrites historical
+vendor asset URLs to its own local backend.
+
+CI now requires both the network/character evidence and native archived GUI
+markers. `network_test_passed` stays separate from `passed`; the earlier
+network-only green run must not be described as a complete UI success.
+Keyboard input, multiple players, external connections, accounts, persistence,
+and arbitrary uploaded places remain unverified.
+
+### Research tools
+
+REA 6.7.0's built-in PE resource parser independently identified both pinned
+x86 binaries and their hashes. Its native-provider search was blocked by this
+Linux environment's process-ownership inspection (`ps` failed); no ownership
+guard was bypassed. Read-only PE data inspection and disassembly were used
+locally to identify the specific native flag and address branches. Engine
+disassembly/decompiled code is not published.
 
 On native Windows with a visible desktop, after restoring `rcc2013/vendor`:
 
@@ -54,7 +122,7 @@ server running. Keyboard input, multiple simultaneous players, external
 connections, arbitrary uploaded places, and persistent account services have
 not been validated by this test.
 
-### Standalone Player remains blocked
+### Historical stock Player baseline: URL trust blocked startup
 
 In the same run, the separately pinned Player was tested with actual local
 negotiation/join URLs and a runtime-only AppSettings BaseUrl override. Its

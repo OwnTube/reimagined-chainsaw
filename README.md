@@ -10,10 +10,11 @@ Archive hashes identify tested bytes, not independently verified vendor
 provenance. Executables are downloaded at runtime and are not committed.
 The 2026 project remains on its separate `rcc2026-ci` branch.
 
-The separate [local joining probe](docs/local-joining.md) now also tests an
-owned game between two native 2013 Studio processes, including admission,
-replicated scene data, character movement, and a RemoteEvent reply. The JSON
-thumbnail API remains a separate renderer; it is not a public game backend.
+The separate [local joining probe](docs/local-joining.md) now verifies an
+owned game hosted by Studio and joined by the actual standalone 2013 Player,
+including admission, replicated scene data, character movement, and a
+RemoteEvent reply. Additional archived in-game UI is still under development.
+The JSON thumbnail API remains a separate renderer.
 
 ## Thumbnail types
 
@@ -185,21 +186,31 @@ reached the host, and client-initiated character walking was observed on both
 peers. Both Windows control tests passed and both native viewports were
 captured. See [commands, engine evidence, and limits](docs/local-joining.md).
 
-The separately pinned standalone Player is **not verified**: even after a
-runtime-only BaseUrl override and real local negotiation URL, native URL-trust
-checks prevented it from requesting the owned join script. Its result records
-no backend requests and no admission. This experimental step is optional in
-CI; a green workflow does not override its failed result. The bounded test
-cleans up its peers and does not leave an externally accessible game server.
+[Standalone Player run 39424173794](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39424173794),
+source `df9766ab74d017c56e9b626f47f77aa972612b5c`, subsequently verified the
+same admission, independent token, moving beacon, RemoteEvent reply, and
+character movement using **RobloxPlayerBeta.exe**, with Studio hosting.
+The Player's disposable copy uses a reserved local domain and a fresh script
+public key; 21 equal-length data edits preserve its executable code. Both
+peers enable the native `DebugLocalRccServerConnection` setting, and Player
+connects to numeric loopback. Studio's executable remains unchanged.
+
+The additional archived CoreGui did **not** load in that network checkpoint;
+its `core_gui_validated` is false. Subsequent CI requires this separately as
+well as standalone joining and movement. A Player screenshot alone does not
+establish a complete interface or keyboard controls. The bounded test removes
+its peers, local hosts-file entry, runtime copies, and ephemeral signing key.
 
 ## Limits
 
 This is a JSON wrapper around Studio's visible viewport, not a legacy RCC SOAP
 implementation or headless renderer. A foreground desktop is required; the
-executable is not patched. Static fixture rendering does not establish account
+renderer uses unmodified Studio. The standalone joining probe configures a
+disposable Player copy as described above. Static fixture rendering does not establish account
 appearance, clothing, accessory, animation, or arbitrary body-scale support.
 Game joining is tested independently in `hosting2013`; two-Studio evidence
-does not establish standalone RobloxPlayerBeta compatibility or public hosting.
+does not establish standalone RobloxPlayerBeta compatibility. The independent
+Player evidence above establishes local joining, not public hosting.
 
 [The Funnel Method review](docs/funnel-method-review.md) tracks a separate
 hosting research path: its patch set targets a 2016 RCC with December 2013L

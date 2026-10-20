@@ -158,6 +158,13 @@ def main():
                     elif asset in ('900000001','900000002'):
                         owned = 'print('+json.dumps(markers[role]+'|CORE_PROBE_RAN|'+asset)+')\n'
                         content,status = (signer.sign(owned,legacy=True) if asset=='900000001' else owned.encode('utf-8')),200
+                    elif asset=='900000003':
+                        owned = 'print('+json.dumps(markers[role]+'|CORE_PROBE_RAN|'+asset)+')\n'
+                        root = ET.Element('roblox',version='4')
+                        item = ET.SubElement(root,'Item',{'class':'Script','referent':'RBX0'})
+                        props = ET.SubElement(item,'Properties')
+                        ET.SubElement(props,'ProtectedString',name='Source').text = owned
+                        content,status = ET.tostring(root,encoding='utf-8',xml_declaration=True),200
                     elif asset in core_assets:
                         local_source = core_assets[asset].decode('utf-8')
                         for prefix in ('http://www.roblox.com','https://www.roblox.com','http://roblox.com','https://roblox.com'):
@@ -170,9 +177,13 @@ def main():
                         bootstrap = 'print('+json.dumps(markers[role]+'|CORE_BOOTSTRAP_READY')+')\n'
                         if signer:
                             bootstrap += ('local context=game:GetService("ScriptContext")\n'
+                                          'print('+json.dumps(markers[role]+'|SCRIPTS_DISABLED_BEFORE|')+'..tostring(context.ScriptsDisabled))\n'
+                                          'context.ScriptsDisabled=false\n'
+                                          'print('+json.dumps(markers[role]+'|SCRIPTS_DISABLED_AFTER|')+'..tostring(context.ScriptsDisabled))\n'
                                           'local gui=game:GetService("CoreGui"):FindFirstChild("RobloxGui")\n'
                                           'context:AddCoreScript(900000001,gui,"RccSignedProbe")\n'
-                                          'context:AddCoreScript(900000002,gui,"RccPlainProbe")\n')
+                                          'context:AddCoreScript(900000002,gui,"RccPlainProbe")\n'
+                                          'context:AddCoreScript(900000003,gui,"RccXmlProbe")\n')
                             # Execute the archived root in the native signed web
                             # loader; it then creates the original child CoreScripts.
                             bootstrap += core_assets['37801172'].decode('utf-8')
