@@ -43,7 +43,7 @@ local function start(asset,parent,name)
     local holder = Instance.new("LocalScript")
     holder.Name,holder.Disabled = name,true
     holder.Parent = parent
-    spawn(function()
+    Spawn(function()
         print(marker .. "|CORE_ASSET_STARTED|" .. tostring(asset))
         local ok, problem = pcall(function() compile(asset,holder)() end)
         if not ok then
