@@ -119,11 +119,14 @@ def main():
         if standalone:
             signer = None
             core_assets = {}
+            core_images = {}
             if args.player_profile=='local-signed':
                 from local_player import configure, LOCAL_DOMAIN
-                from core_assets import restore
+                from core_assets import restore, restore_images
                 core_assets,core_manifest = restore(runtime/'core-assets')
                 report['core_assets'] = core_manifest
+                core_images,image_manifest = restore_images(runtime/'core-images')
+                report['core_images'] = image_manifest
                 source = source.replace('local loadCoreGui = false','local loadCoreGui = true')
                 # The native local-RCC flag is consulted in the numeric-address
                 # branch; literal localhost follows a different handshake path.
@@ -146,19 +149,30 @@ def main():
                 def do_GET(self):
                     parsed = urlsplit(self.path)
                     path = parsed.path
-                    asset = parse_qs(parsed.query).get('id',[''])[0] if path.rstrip('/')=='/asset' else ''
+                    asset = parse_qs(parsed.query).get('id',[''])[0] if path.lower().rstrip('/')=='/asset' else ''
                     record = {'method':'GET','path':path}
                     if asset:record['asset_id'] = asset[:20]
                     backend_requests.append(record)
+                    content_type = 'text/plain; charset=utf-8'
                     if path=='/game/join.ashx':content,status = signer.sign(source) if signer else source.encode('utf-8'),200
+                    elif asset in ('900000001','900000002'):
+                        owned = 'print('+json.dumps(markers[role]+'|CORE_PROBE_RAN|'+asset)+')\n'
+                        content,status = (signer.sign(owned,legacy=True) if asset=='900000001' else owned.encode('utf-8')),200
                     elif asset in core_assets:
                         local_source = core_assets[asset].decode('utf-8')
                         for prefix in ('http://www.roblox.com','https://www.roblox.com','http://roblox.com','https://roblox.com'):
                             local_source = local_source.replace(prefix,base)
-                        content,status = signer.sign(local_source),200
+                        content,status = signer.sign(local_source,legacy=True),200
+                    elif asset in core_images:
+                        content,status = core_images[asset],200
+                        content_type = 'image/png'
                     elif path in ('/game/studio.ashx','/game/visit.ashx'):
                         bootstrap = 'print('+json.dumps(markers[role]+'|CORE_BOOTSTRAP_READY')+')\n'
                         if signer:
+                            bootstrap += ('local context=game:GetService("ScriptContext")\n'
+                                          'local gui=game:GetService("CoreGui"):FindFirstChild("RobloxGui")\n'
+                                          'context:AddCoreScript(900000001,gui,"RccSignedProbe")\n'
+                                          'context:AddCoreScript(900000002,gui,"RccPlainProbe")\n')
                             # Execute the archived root in the native signed web
                             # loader; it then creates the original child CoreScripts.
                             bootstrap += core_assets['37801172'].decode('utf-8')
@@ -168,7 +182,7 @@ def main():
                     else:content,status = b'Not found',404
                     record['status'] = status
                     self.send_response(status)
-                    self.send_header('Content-Type','text/plain; charset=utf-8')
+                    self.send_header('Content-Type',content_type)
                     self.send_header('Content-Length',str(len(content)))
                     self.end_headers();self.wfile.write(content)
                 def log_message(self,*args):pass

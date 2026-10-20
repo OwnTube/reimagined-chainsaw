@@ -33,12 +33,12 @@ def data_section_for(blob, offset, size):
 class LocalSigner:
     def __init__(self, key):self.key = key
 
-    def sign(self, source):
+    def sign(self, source, legacy=False):
         # The legacy wrapper signs the CRLF and exact script bytes after it.
         body = b'\r\n'+source.encode('utf-8')
         signature = self.key.sign(body,padding.PKCS1v15(),hashes.SHA1())
         self.key.public_key().verify(signature,body,padding.PKCS1v15(),hashes.SHA1())
-        return b'--rbxsig%'+base64.b64encode(signature)+b'%'+body
+        return (b'%' if legacy else b'--rbxsig%')+base64.b64encode(signature)+b'%'+body
 
 
 def configure(executable):

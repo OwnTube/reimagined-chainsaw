@@ -29,7 +29,7 @@ local ok, problem = pcall(function()
                 local found = {}
                 local function scan(parent)
                     for _, child in pairs(parent:GetChildren()) do
-                        if child.Name == "ChatFrame" or child.Name == "PlayerList" or child.Name == "PlayerListMaster" or child.Name == "CurrentLoadout" or child.Name == "GameMainMenu" or child.Name == "ControlFrame" then
+                        if child.Name == "ChatFrame" or child.Name == "PlayerListScreen" or child.Name == "CurrentLoadout" or child.Name == "GameMainMenu" or child.Name == "ControlFrame" then
                             found[child.Name] = true
                         end
                         scan(child)
@@ -40,7 +40,7 @@ local ok, problem = pcall(function()
                 for name in pairs(found) do table.insert(names,name) end
                 table.sort(names)
                 print(marker .. "|CORE_GUI_NODES|" .. table.concat(names,","))
-                if found.ChatFrame and found.CurrentLoadout and found.GameMainMenu then
+                if found.ChatFrame and found.PlayerListScreen and found.CurrentLoadout and found.GameMainMenu then
                     guiReported = true
                     print(marker .. "|CORE_GUI_READY")
                 end

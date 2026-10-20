@@ -1,0 +1,153 @@
+{
+  "assets": {
+    "105897927": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=105897927",
+      "sha256": "11120f6d1c031c44339ecf3acf967ce0943ff67710bc18998f9c4966ed9d5bab",
+      "bytes": 636,
+      "mime": "image/png"
+    },
+    "113059239": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=113059239",
+      "sha256": "7aa4e493691e4b95ceaadd6011cbf9e95d20a1ca3c873233197486d686848ec2",
+      "bytes": 2232,
+      "mime": "image/png"
+    },
+    "134032333": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=134032333",
+      "sha256": "f9ba8340dbd96258e6895affd90976dd89f20368aad52fbdb078e322bdae069d",
+      "bytes": 2334,
+      "mime": "image/png"
+    },
+    "76049888": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=76049888",
+      "sha256": "04c1435953b80b37234ef8fbcf021600398be6060480e33935afd6c8f9106ecb",
+      "bytes": 2007,
+      "mime": "image/png"
+    },
+    "94692025": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=94692025",
+      "sha256": "01c082e3370f4e3e9c42a26e2389d4df1dda3673cccbdaf4e7a5e9adea14a436",
+      "bytes": 1170,
+      "mime": "image/png"
+    },
+    "94692054": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=94692054",
+      "sha256": "cbb39cc73ac454fa28290d36d06908c06daf85c66b7362bc7748ba9e7ab608ab",
+      "bytes": 1839,
+      "mime": "image/png"
+    },
+    "94692731": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=94692731",
+      "sha256": "8880842089d0b5f805f1e76c94b1688a80bf2b671f7d4f3503ec84172556e317",
+      "bytes": 4042,
+      "mime": "image/png"
+    },
+    "94754966": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=94754966",
+      "sha256": "7a8fe2da1ec37fdf5e4b6a1fb8eb42c6f12f898ea8899eaa85a644adae00d571",
+      "bytes": 2938,
+      "mime": "image/png"
+    },
+    "94825585": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=94825585",
+      "sha256": "926369d29708ec5f4014f75f959b4597f08bb3660453dc2f752432cb9e57039f",
+      "bytes": 4018,
+      "mime": "image/png"
+    },
+    "96488767": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=96488767",
+      "sha256": "986ba708a7274416a5bcb64e3c1ecf1373239edebbe8c525f6686333b63552fa",
+      "bytes": 5556,
+      "mime": "image/png"
+    },
+    "96500683": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=96500683",
+      "sha256": "16aff59045dd83c9d825a66334b71e8adcb80861c8a8b0ba4568bb379f2f6057",
+      "bytes": 7721,
+      "mime": "image/png"
+    },
+    "96501119": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=96501119",
+      "sha256": "cb7357bbb18ef7ce9644f182aa5f16ce81b1c67affec6f177ecb66bc047878f4",
+      "bytes": 7333,
+      "mime": "image/png"
+    },
+    "96502438": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=96502438",
+      "sha256": "771c1717e2890b71135082992ac83f333f324bad0c6455d76b0b1f7c2a202b8c",
+      "bytes": 6366,
+      "mime": "image/png"
+    },
+    "96506233": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=96506233",
+      "sha256": "fd143a8eeb6b8489ecc24636833dc66ff312c09f9e1a24b98d9f51b4624cc7be",
+      "bytes": 5530,
+      "mime": "image/png"
+    },
+    "96507959": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=96507959",
+      "sha256": "e378e15ba3c2320ce4cefe0cab33a4d68716bff7bb55b7a338468c6cf8115ff7",
+      "bytes": 6638,
+      "mime": "image/png"
+    },
+    "97108784": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=97108784",
+      "sha256": "d2065afae716936c3c268b577281ae0c967d823b27c13843810133109d327ab9",
+      "bytes": 1524,
+      "mime": "image/png"
+    },
+    "97109338": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=97109338",
+      "sha256": "8eec2eac61e4a72246780ab5f130967d3e42ee4f944decfda55d931c8d13f0e1",
+      "bytes": 1149,
+      "mime": "image/png"
+    },
+    "97112126": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=97112126",
+      "sha256": "1efd7cc38466a220459531597f0987aef8d93e0c5e13396fb76f9cb1ee1fc424",
+      "bytes": 1155,
+      "mime": "image/png"
+    },
+    "99727663": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=99727663",
+      "sha256": "3525ab7c9f406be59812371b3d04ae1871c38580a3e60aa8cf5794825b051038",
+      "bytes": 2874,
+      "mime": "image/png"
+    },
+    "99749771": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=99749771",
+      "sha256": "c5c342f66ea2bb8a14b8345178ba8e4383925358274bc0400bd42374b9595387",
+      "bytes": 1312,
+      "mime": "image/png"
+    },
+    "99776838": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=99776838",
+      "sha256": "30f989a2d5b45ed14bd492104beec82147d0c5e1f6b9903fa4a7e6980d6cf306",
+      "bytes": 1068,
+      "mime": "image/png"
+    },
+    "99776888": {
+      "url": "https://assetdelivery.roblox.com/v1/asset/?id=99776888",
+      "sha256": "1a986895a47682217920e9e569aaef73307a983ac2de967ecff8b309c7785b0d",
+      "bytes": 1075,
+      "mime": "image/png"
+    }
+  },
+  "unavailable_asset_ids": [
+    "75457888",
+    "75457920",
+    "75460621",
+    "75460642",
+    "75547445",
+    "96536002",
+    "97078724",
+    "97080365",
+    "97120937",
+    "97613075",
+    "97617958",
+    "97623721",
+    "97643886",
+    "97644093",
+    "97662207"
+  ]
+}
