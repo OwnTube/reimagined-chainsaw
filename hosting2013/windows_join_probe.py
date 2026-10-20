@@ -135,7 +135,7 @@ def main():
                 report['scope'] = 'unmodified 2013 Studio host and locally configured standalone 2013 Player'
                 settings_dir = deployment/'ClientSettings'
                 settings_dir.mkdir(exist_ok=True)
-                player_flags = {'FFlagDebugLocalRccServerConnection':'True'}
+                player_flags = {'FFlagDebugLocalRccServerConnection':'True','FLogCoreScripts':'1'}
                 (settings_dir/'ClientAppSettings.json').write_text(json.dumps(player_flags),encoding='utf-8')
                 report['player_local_flags'] = player_flags
                 hosts_path = Path(os.environ['WINDIR'])/'System32/drivers/etc/hosts'
@@ -157,9 +157,11 @@ def main():
                             local_source = local_source.replace(prefix,base)
                         content,status = signer.sign(local_source),200
                     elif path in ('/game/studio.ashx','/game/visit.ashx'):
-                        bootstrap = ('print('+json.dumps(markers[role]+'|CORE_BOOTSTRAP_READY')+')\n'
-                                     'local context = game:GetService("ScriptContext")\n'
-                                     'context:AddStarterScript(37801172)\n')
+                        bootstrap = 'print('+json.dumps(markers[role]+'|CORE_BOOTSTRAP_READY')+')\n'
+                        if signer:
+                            # Execute the archived root in the native signed web
+                            # loader; it then creates the original child CoreScripts.
+                            bootstrap += core_assets['37801172'].decode('utf-8')
                         content,status = signer.sign(bootstrap) if signer else bootstrap.encode('utf-8'),200
                     elif path=='/Login/Negotiate.ashx':content,status = b'ok',200
                     elif path=='/game/logout.aspx':content,status = b'',200
@@ -249,7 +251,8 @@ def main():
             time.sleep(1)
         report['network_test_passed'] = report['server_hosting_validated'] and report['replicated_movement_validated']
         report['passed'] = report['network_test_passed'] and report['client_character_movement_validated'] and (args.player_profile!='local-signed' or report.get('core_gui_validated',False))
-        if not report['passed']:report['error'] = 'Join/replication evidence incomplete before deadline'
+        if not report['passed']:
+            report['error'] = ('Archived CoreGui evidence incomplete before deadline' if report['network_test_passed'] else 'Join/replication evidence incomplete before deadline')
         # A verified network round trip is separate from character locomotion.
         if not report['client_character_movement_validated']:
             report['movement_limitation'] = 'Character locomotion was not verified on both peers'
