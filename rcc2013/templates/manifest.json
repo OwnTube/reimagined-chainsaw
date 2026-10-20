@@ -1,0 +1,10 @@
+{
+  "headshot.lua": {
+    "sha256": "9e8a391d05d50e6900dc0e9b39f5b091885661759f83d241951aa3f1db434722",
+    "origin": "owner attachment 2026-10-20"
+  },
+  "thumbnail.lua": {
+    "sha256": "3d6761d000de1a976b0543de437f80a6b10a20095f2058cd82fce74cfc2353a8",
+    "origin": "owner attachment 2026-10-20"
+  }
+}

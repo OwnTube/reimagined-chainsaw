@@ -1,0 +1,35 @@
+name: Native 2013 owner script compatibility
+on:
+  push:
+    branches: [rcc2013-ci]
+    paths: ["rcc2013/templates/**", "rcc2013/provided_scripts.py", "rcc2013/script_capability_probe.py", "rcc2013/test_provided_scripts.py", ".github/workflows/rcc2013-scripts.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  scripts:
+    runs-on: windows-2022
+    timeout-minutes: 4
+    defaults:
+      run:
+        working-directory: rcc2013
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Check owner template preparation
+        run: python -m unittest -v test_provided_scripts.py
+      - name: Restore pinned deployments
+        run: python download.py
+      - name: Observe native ThumbnailGenerator availability
+        run: python script_capability_probe.py --studio vendor/studio/RobloxStudioBeta.exe --output script-output
+      - name: Preserve script compatibility evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: rcc2013-owner-script-compatibility
+          path: rcc2013/script-output/
+          retention-days: 7
