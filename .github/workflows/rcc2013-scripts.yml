@@ -2,7 +2,7 @@ name: Native 2013 owner script compatibility
 on:
   push:
     branches: [rcc2013-ci]
-    paths: ["rcc2013/templates/**", "rcc2013/provided_scripts.py", "rcc2013/script_capability_probe.py", "rcc2013/test_provided_scripts.py", ".github/workflows/rcc2013-scripts.yml"]
+    paths: ["rcc2013/templates/**", "rcc2013/provided_scripts.py", "rcc2013/script_capability_probe.py", "rcc2013/test_provided_scripts.py", ".github/workflows/rcc2013-scripts.yml", ".gitattributes"]
   workflow_dispatch:
 permissions:
   contents: read

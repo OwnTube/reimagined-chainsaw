@@ -1,0 +1,2 @@
+# Preserve the owner's uploaded script bytes and SHA-256 on Windows checkouts.
+rcc2013/templates/*.lua -text
