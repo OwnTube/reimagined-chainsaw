@@ -109,6 +109,35 @@ both peers. The report keeps `network_test_passed`, `core_gui_validated`, and
 Multiple players, external connections, accounts, persistence, chat delivery,
 and arbitrary uploaded places remain unverified.
 
+### Continuous joining recording — 2026-10-20
+
+[Run 39435086747](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39435086747),
+source `8f63cf8d0678704ea64e43634e44d27bb0cdf09b`, passed the standalone
+join, independent-token round trip, archived GUI, character movement, and
+OS-keyboard movement checks while recording the actual disposable Windows
+desktop. `--record` starts FFmpeg gdigrab before Studio launches and stops it
+before peer cleanup. It includes startup, the separate Player window, joining,
+and the native A/W/Space/Escape demonstration. No footage is staged, replaced,
+sped up, or assembled from screenshots. The recording is silent.
+
+The MP4 is H.264/yuv420p, 1024x768, 12 fps, 459 frames, 38.25 seconds, and
+1,476,402 bytes. Its SHA-256 is
+`c5299e62177848ae9889e63bda1b6fd293fe1880e30b4908736eb0d579c08767`.
+The decoded video was inspected across startup, joined gameplay, movement,
+menu-open, and resumed-game frames. The Player remains windowed in the
+capture despite the maximize request. The archived menu visibly opens and
+closes, but the additional Stepped-based menu-state observer did not confirm
+those transitions; both native_menu fields remain false. That observer is
+not treated as successful engine evidence. Main join and movement evidence
+is independent of the menu observer.
+
+`recording.json` includes relative test checkpoints, actual frame count,
+measured duration, size, codec-read metadata, and digest. The recorder requires
+its decoded duration to match the real test interval within three seconds;
+a failed recording prevents an overall pass. Runtime executables and signing
+keys remain excluded from the artifact. `join-recording.mp4` is included in
+the owned join evidence.
+
 ### Research tools
 
 REA 6.7.0's built-in PE resource parser independently identified both pinned

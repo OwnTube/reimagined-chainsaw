@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 from PIL import Image
 
 from server import Renderer, handler, ThreadingHTTPServer
+from item_fixture import model as item_model, mesh as item_mesh, texture as item_texture
 
 
 def uploaded_place():
@@ -54,12 +55,19 @@ def main():
         with urllib.request.urlopen(urllib.request.Request(base+'/v1/places',place,method='POST'),timeout=10) as response:
             place_id=json.load(response)['place_id']
         if place_id!=hashlib.sha256(place).hexdigest():raise RuntimeError('Upload digest differs')
+        def upload_asset(kind,content):
+            with urllib.request.urlopen(urllib.request.Request(base+'/v1/assets?kind='+kind,content,method='POST'),timeout=10) as response:return json.load(response)
+        texture=upload_asset('texture',item_texture());mesh=upload_asset('mesh',item_mesh())
+        item=upload_asset('model',item_model(mesh['id'],texture['id']))
+        if item['metadata']['stripped_instances']!={'BillboardGui':1,'Script':1,'Humanoid':1}:raise RuntimeError('Active item content was not stripped')
+        report['item_assets']={'texture':texture,'mesh':mesh,'model':item}
         for name,config in [('default',{'size':{'width':512,'height':512}}),
                             ('uploaded',{'place_id':place_id,'size':{'width':640,'height':360},
                                          'camera':{'position':[16,12,22],'target':[0,3,0],'fov':45}}),
                             ('full-body',{'type':'full_body','size':{'width':512,'height':512}}),
                             ('headshot',{'type':'headshot','size':{'width':512,'height':512}}),
-                            ('full-body-reference',{'type':'full_body','size':{'width':450,'height':600}})]:
+                            ('full-body-reference',{'type':'full_body','size':{'width':450,'height':600}}),
+                            ('item',{'type':'item','asset_id':item['id'],'size':{'width':512,'height':512}})]:
             job=request('/v1/renders',config)['id']
             deadline=time.monotonic()+100
             while time.monotonic()<deadline:
@@ -105,6 +113,18 @@ def main():
                     for native_pass in result['result']['passes']:
                         if not any('|CAMERA_READY|' in line and '|fov=30' in line for line in native_pass['engine_marker_lines']):
                             raise RuntimeError('Native headshot camera marker did not confirm the preset')
+            if name=='item':
+                native=result['result']
+                if not all(native.get(k) for k in ('item_structure_validated','asset_delivery_validated','subject_gui_validated','transparent')):
+                    raise RuntimeError('Native item structure, delivery, GUI, or alpha proof missing')
+                colors={'black':0,'white':0,'blue':0}
+                for r,g,b,a in Image.open(io.BytesIO(image)).getdata():
+                    if a==255:
+                        colors['black']+=max(r,g,b)<45
+                        colors['white']+=min(r,g,b)>120 and max(r,g,b)-min(r,g,b)<40
+                        colors['blue']+=b>80 and b>r*1.5 and b>g*1.2
+                if min(colors.values())<100:raise RuntimeError('Delivered mesh texture was not visibly rendered with black, white, and blue pixels')
+                report['item_texture_pixels']=colors
         report['two_distinct_images']=report['jobs'][0]['result']['png_sha256']!=report['jobs'][1]['result']['png_sha256']
         if not report['two_distinct_images']:raise RuntimeError('Distinct scenes produced the same image')
         if report['jobs'][2]['result']['png_sha256']==report['jobs'][3]['result']['png_sha256']:

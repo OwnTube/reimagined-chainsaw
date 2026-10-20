@@ -5,6 +5,7 @@ const cameras = {
   front:{position:[0,9,30],target:[0,2,0]},
   overhead:{position:[16,27,18],target:[0,0,0]}
 };
+let presets = {};
 let activeJob = null;
 let pollTimer = null;
 
@@ -22,7 +23,7 @@ function showError(message) {
 
 function displayJob(job) {
   const result = job.result || {};
-  el('preview-title').textContent = ({headshot:'Player headshot',full_body:'Player · full body',game_thumbnail:'Game thumbnail'})[result.type] || 'Viewport';
+  el('preview-title').textContent = ({headshot:'Player headshot',full_body:'Player · full body',game_thumbnail:'Game thumbnail',item:'Item thumbnail'})[result.type] || 'Viewport';
   el('state').textContent = job.state.toUpperCase();
   el('state').dataset.state = job.state;
   el('job-info').textContent = 'Job ' + job.id.slice(0, 8);
@@ -86,27 +87,37 @@ async function watch(id) {
 }
 
 function sourceChanged() {
-  el('upload-box').hidden = el('scene').value !== 'upload';
-  el('place').required = el('scene').value === 'upload';
+  const item = el('type').value === 'item';
+  el('upload-box').hidden = !item && el('scene').value !== 'upload';
+  el('place').required = item || el('scene').value === 'upload';
+  el('place').accept = item ? '.rbxmx,.xml' : '.rbxl,.rbxlx';
+  el('upload-label').textContent = item ? 'Choose an item model (.rbxmx)' : 'Choose a .rbxl or .rbxlx file';
+}
+function typeChanged() {
+  const type = el('type').value;
+  const item = type === 'item';
+  const player = type === 'headshot' || type === 'full_body';
+  el('scene').disabled = player || item;
+  el('scene').value = item ? 'item' : player ? 'avatar' : 'default';
+  el('scene').querySelector('option[value="avatar"]').disabled = !player;
+  el('scene').querySelector('option[value="item"]').disabled = !item;
+  el('fov').value = (presets[type] || {}).fov || (type === 'headshot' ? 30 : player ? 58 : 50);
+  el('angle').value = 'classic';
+  el('angle').disabled = item;
+  el('fov').disabled = item;
+  el('output-help').textContent = item ? 'Transparent PNG · item only · automatic framing' : player ? 'Transparent PNG · player only' : 'PNG image · game scene';
+  sourceChanged();
 }
 el('scene').addEventListener('change', sourceChanged);
-el('type').addEventListener('change', () => {
-  const player = el('type').value !== 'game_thumbnail';
-  el('scene').disabled = player;
-  el('scene').value = player ? 'avatar' : 'default';
-  el('scene').querySelector('option[value="avatar"]').disabled = !player;
-  el('fov').value = el('type').value === 'headshot' ? 30 : player ? 35 : 50;
-  el('angle').value = 'classic';
-  el('output-help').textContent = player ? 'Transparent PNG · player only' : 'PNG image · game scene';
-  sourceChanged();
-});
+el('type').addEventListener('change', typeChanged);
 
 el('render-form').addEventListener('submit', async event => {
   event.preventDefault();
   showError('');
   el('render-button').disabled = true;
   try {
-    const request = {type:el('type').value,camera:{...cameras[el('angle').value], fov:Number(el('fov').value)}};
+    const request = {type:el('type').value};
+    if (request.type !== 'item') request.camera = {...(el('angle').value === 'classic' ? {} : cameras[el('angle').value]), fov:Number(el('fov').value)};
     if (el('scene').value === 'avatar') {
       request.scene = 'avatar';
       const views = {
@@ -119,18 +130,23 @@ el('render-form').addEventListener('submit', async event => {
         views.front = {position:[0,4.5,-3],target:[0,4.5,0.1]};
         views.overhead = {position:[3*Math.sin(Math.PI/16),6,-3*Math.cos(Math.PI/16)],target:[0,4.5,0.1]};
       }
-      request.camera = {...views[el('angle').value], fov:Number(el('fov').value)};
+      if (el('angle').value !== 'classic') request.camera = {...views[el('angle').value], fov:Number(el('fov').value)};
     }
     if (el('size').value !== 'native') {
       const [width,height] = el('size').value.split(',').map(Number);
       request.size = {width,height};
     }
-    if (el('scene').value === 'upload') {
+    if (el('scene').value === 'upload' || request.type === 'item') {
       const file = el('place').files[0];
       if (!file) throw new Error('Choose a local place file first.');
       if (file.size > 8 * 1024 * 1024) throw new Error('Choose a place file smaller than 8 MB.');
-      const place = await api('/v1/places', {method:'POST', body:file});
-      request.place_id = place.place_id;
+      if (request.type === 'item') {
+        const asset = await api('/v1/assets?kind=model', {method:'POST', body:file});
+        request.asset_id = asset.id;
+      } else {
+        const place = await api('/v1/places', {method:'POST', body:file});
+        request.place_id = place.place_id;
+      }
     }
     const job = await api('/v1/renders', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(request)});
     await watch(job.id);
@@ -141,6 +157,8 @@ el('render-form').addEventListener('submit', async event => {
 async function connect() {
   try {
     const health = await api('/health');
+    presets = await api('/v1/presets');
+    typeChanged();
     el('connection').textContent = health.studio_present ? 'Worker available' : 'Studio deployment missing';
     el('connection-dot').className = health.studio_present ? 'online' : '';
     if (!health.studio_present) showError('Install the pinned Studio deployment with download.py before rendering.');

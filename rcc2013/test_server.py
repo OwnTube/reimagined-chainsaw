@@ -27,9 +27,16 @@ class ControlPlaneTests(unittest.TestCase):
         calls=[]
         def mock_engine(studio,output,place,camera,size,scene,render_type):
             output.mkdir(parents=True)
-            Image.new('RGB',(2,2),(20,40,60)).save(output/'render.png')
+            image=Image.new('RGB' if render_type=='game_thumbnail' else 'RGBA',
+                            (size['width'],size['height']) if size else (512,512),
+                            (20,40,60) if render_type=='game_thumbnail' else (0,0,0,0))
+            if render_type!='game_thumbnail':
+                for y in range(20,80):
+                    for x in range(20,80):image.putpixel((x,y),(20,40,60,255))
+            image.save(output/'render.png')
             calls.append((place,camera,size,scene,render_type))
-            return {'engine_render_validated':True,'test_mock':True}
+            return {'engine_render_validated':True,'test_mock':True,'subject_gui_validated':True,
+                    'passes':[{'subject_gui_validated':True,'engine_render_validated':True}]*2}
         with tempfile.TemporaryDirectory() as temporary:
             renderer=Renderer(Path(temporary)/'test.exe',Path(temporary)/'data',mock_engine)
             http=ThreadingHTTPServer(('127.0.0.1',0),handler(renderer))

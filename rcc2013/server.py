@@ -11,10 +11,13 @@ import re
 import sqlite3
 import threading
 import time
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, parse_qs
 import uuid
 
 from windows_probe import DEFAULT_CAMERA, AVATAR_CAMERA, HEADSHOT_CAMERA, render_scene
+from assets import AssetStore
+from item_framing import item_camera
+from output_validation import validate_png
 
 STATIC = Path(__file__).with_name('static')
 
@@ -50,6 +53,8 @@ class Renderer:
         self.root.mkdir(parents=True,exist_ok=True)
         (self.root/'places').mkdir(exist_ok=True)
         (self.root/'jobs').mkdir(exist_ok=True)
+        self.assets=AssetStore(self.root/'assets')
+        self.delivery_base=None
         self.lock = threading.Lock()
         self.worker = ThreadPoolExecutor(max_workers=1)
         with self.connect() as db:
@@ -76,26 +81,34 @@ class Renderer:
         return identity
 
     def submit(self, request):
-        if not isinstance(request,dict) or set(request)-{'place_id','camera','size','scene','type'}:
-            raise ValueError('Render request supports type, place_id, camera, size, and scene only')
+        if not isinstance(request,dict) or set(request)-{'place_id','asset_id','camera','size','scene','type'}:
+            raise ValueError('Render request supports type, place_id, asset_id, camera, size, and scene only')
         request = dict(request)
         render_type=request.get('type','full_body' if request.get('scene')=='avatar' else 'game_thumbnail')
-        if render_type not in ('headshot','full_body','game_thumbnail'):
-            raise ValueError('type must be headshot, full_body, or game_thumbnail')
-        player=render_type!='game_thumbnail'
-        scene = request.get('scene','avatar' if player else 'blocks')
-        if scene not in ('blocks','avatar'):
-            raise ValueError('scene must be blocks or avatar')
+        if render_type not in ('headshot','full_body','game_thumbnail','item'):
+            raise ValueError('type must be headshot, full_body, item, or game_thumbnail')
+        player=render_type in ('headshot','full_body')
+        scene = request.get('scene','item' if render_type=='item' else 'avatar' if player else 'blocks')
+        if scene not in ('blocks','avatar','item'):raise ValueError('Unknown scene')
         if 'scene' in request and request.get('place_id') is not None:
             raise ValueError('Choose either a built-in scene or an uploaded place')
         if (player and (scene!='avatar' or request.get('place_id') is not None)) or (not player and scene=='avatar'):
             raise ValueError('Player thumbnail types require the avatar scene; game thumbnails require a place or blocks')
+        asset=None
+        if render_type=='item':
+            identity=request.get('asset_id')
+            if type(identity) is not int or not 1<=identity<=2147483647:raise ValueError('Item rendering requires an uploaded asset_id')
+            asset=self.assets.info(identity)
+            if not asset or asset['kind']!='model':raise ValueError('Item asset_id must identify an uploaded XML model')
+            if scene!='item' or request.get('place_id') is not None:raise ValueError('Item rendering requires the item scene')
+            if not self.delivery_base:raise ValueError('Local asset delivery is not running')
+        elif request.get('asset_id') is not None or scene=='item':raise ValueError('asset_id is supported for item rendering only')
         request['type']=render_type
         request['scene'] = scene
-        defaults=HEADSHOT_CAMERA if render_type=='headshot' else AVATAR_CAMERA if player else DEFAULT_CAMERA
-        request['camera'] = camera_spec(request.get('camera',{}),defaults)
         request['size'] = size_spec(request.get('size'))
-        if player and request['size'] is None:request['size']={'width':512,'height':512}
+        if (player or asset) and request['size'] is None:request['size']={'width':512,'height':512}
+        defaults=item_camera(asset['metadata']['bounds'],request['size']) if asset else HEADSHOT_CAMERA if render_type=='headshot' else AVATAR_CAMERA if player else DEFAULT_CAMERA
+        request['camera'] = camera_spec(request.get('camera',{}),defaults)
         identity = request.get('place_id')
         if identity is not None and (not isinstance(identity,str) or not re.fullmatch('[a-f0-9]{64}',identity)
                                     or not (self.root/'places'/(identity+'.rbxl')).is_file()):
@@ -113,7 +126,22 @@ class Renderer:
             db.execute("UPDATE jobs SET state='running' WHERE id=?",(job,))
         try:
             place = self.root/'places'/(request['place_id']+'.rbxl') if request.get('place_id') else None
-            report = self.engine(self.studio,self.root/'jobs'/job,place,request['camera'],request['size'],request['scene'],request['type'])
+            output=self.root/'jobs'/job
+            if request['type']=='item':
+                asset=self.assets.info(request['asset_id']);sequence=self.assets.sequence
+                item={'url':self.delivery_base+'/assets/'+str(asset['id'])+'/content','parts':asset['metadata']['parts']}
+                report=render_scene(self.studio,output,None,request['camera'],request['size'],'item','item',item)
+                trace=self.assets.trace(sequence)
+                expected={asset['id'],*asset['metadata']['dependencies']}
+                delivered={x['id'] for x in trace}
+                report.update({'asset_id':asset['id'],'asset_sha256':asset['sha256'],
+                               'asset_sanitizer':asset['metadata'],'asset_delivery_requests':trace,
+                               'asset_delivery_validated':expected.issubset(delivered)})
+                if not report['asset_delivery_validated']:raise ValueError('Engine did not fetch the item and every local dependency')
+            else:report = self.engine(self.studio,output,place,request['camera'],request['size'],request['scene'],request['type'])
+            report.setdefault('type',request['type'])
+            if report.get('engine_render_validated'):
+                report['png_sha256']=validate_png(output/'render.png',request['type'],request['size'],report)
             state = 'succeeded' if report.get('engine_render_validated') else 'failed'
         except Exception as error:
             report,state = {'error':str(error),'engine_render_validated':False},'failed'
@@ -130,6 +158,17 @@ class Renderer:
     def close(self):
         self.worker.shutdown(wait=True)
 
+    def image(self, job):
+        path=self.root/'jobs'/job['id']/'render.png'
+        try:data=path.read_bytes()
+        except OSError:raise ValueError('Verified image is unavailable')
+        if hashlib.sha256(data).hexdigest()!=job['result'].get('png_sha256'):
+            raise ValueError('Image no longer matches the verified render')
+        dimensions=job['result'].get('image_size')
+        size={'width':dimensions[0],'height':dimensions[1]} if dimensions else None
+        validate_png(path,job['result'].get('type'),size,job['result'])
+        return data
+
     def recent(self):
         with self.connect() as db:
             rows = db.execute('SELECT id,state,result FROM jobs ORDER BY rowid DESC LIMIT 20').fetchall()
@@ -138,21 +177,43 @@ class Renderer:
 
 def handler(renderer):
     class Handler(BaseHTTPRequestHandler):
+        def setup(self):
+            super().setup()
+            host,port=self.server.server_address
+            if host!='127.0.0.1':raise ValueError('Asset delivery requires a numeric loopback listener')
+            renderer.delivery_base='http://127.0.0.1:'+str(port)
         def log_message(self, *_):
             pass
 
-        def send(self, status, data, content_type='application/json'):
+        def send(self, status, data, content_type='application/json', headers=None):
             if not isinstance(data,bytes):
                 data=json.dumps(data).encode('utf-8')
             self.send_response(status)
             self.send_header('Content-Type',content_type)
             self.send_header('Content-Length',str(len(data)))
-            self.send_header('Cache-Control','no-store')
+            self.send_header('Cache-Control','public, max-age=31536000, immutable' if headers else 'no-store')
+            for name,value in (headers or {}).items():self.send_header(name,value)
             self.end_headers()
-            self.wfile.write(data)
+            if self.command!='HEAD':self.wfile.write(data)
 
         def do_GET(self):
             path=urlsplit(self.path).path
+            asset=re.fullmatch(r'/assets/([1-9][0-9]{0,9})/content',path)
+            legacy=path.lower().rstrip('/') in ('/asset','/v1/asset')
+            if asset or legacy:
+                identity=asset[1] if asset else parse_qs(urlsplit(self.path).query).get('id',[''])[0]
+                if not re.fullmatch('[1-9][0-9]{0,9}',identity) or int(identity)>2147483647:return self.send(400,{'error':'Invalid asset id'})
+                try:data,info,digest=renderer.assets.content(int(identity),renderer.delivery_base)
+                except KeyError:return self.send(404,{'error':'Unknown local asset'})
+                except (ValueError,OSError) as error:return self.send(409,{'error':str(error)})
+                headers={'ETag':'"'+digest+'"','X-Asset-SHA256':digest,'X-Asset-Source-SHA256':info['sha256']}
+                if self.headers.get('If-None-Match')==headers['ETag']:return self.send(304,b'',info['mime'],headers)
+                return self.send(200,data,info['mime'],headers)
+            metadata=re.fullmatch(r'/v1/assets/([1-9][0-9]{0,9})',path)
+            if metadata:
+                if int(metadata[1])>2147483647:return self.send(400,{'error':'Invalid asset id'})
+                info=renderer.assets.info(int(metadata[1]))
+                return self.send(200,info) if info else self.send(404,{'error':'Unknown local asset'})
             assets = {'/':('index.html','text/html; charset=utf-8'),
                       '/app.js':('app.js','text/javascript; charset=utf-8'),
                       '/style.css':('style.css','text/css; charset=utf-8'),
@@ -164,6 +225,7 @@ def handler(renderer):
             if path=='/health':
                 return self.send(200,{'service':'RCC2013','engine':'Studio 2013.11.25.2',
                     'render_method':'native viewport capture','studio_present':renderer.studio.is_file()})
+            if path=='/v1/presets':return self.send(200,{'full_body':AVATAR_CAMERA,'headshot':HEADSHOT_CAMERA,'game_thumbnail':DEFAULT_CAMERA})
             if path=='/v1/renders':
                 return self.send(200,{'jobs':renderer.recent()})
             match=re.fullmatch('/v1/renders/([a-f0-9]{32})(/image)?',path)
@@ -175,17 +237,22 @@ def handler(renderer):
             if match[2]:
                 if job['state']!='succeeded':
                     return self.send(409,{'error':'Render is not ready','state':job['state']})
-                return self.send(200,(renderer.root/'jobs'/job['id']/'render.png').read_bytes(),'image/png')
+                try:return self.send(200,renderer.image(job),'image/png')
+                except ValueError as error:return self.send(409,{'error':str(error)})
             return self.send(200,job)
 
         def do_POST(self):
             try:
                 length=int(self.headers.get('Content-Length','-1'))
                 path=urlsplit(self.path).path
-                limit=8*1024*1024 if path=='/v1/places' else 65536
+                limit=8*1024*1024 if path in ('/v1/places','/v1/assets') else 65536
                 if length<0 or length>limit:
                     return self.send(413,{'error':'Missing or excessive Content-Length'})
                 content=self.rfile.read(length)
+                if len(content)!=length:raise ValueError('Incomplete request body')
+                if path=='/v1/assets':
+                    kind=parse_qs(urlsplit(self.path).query).get('kind',['model'])[0]
+                    return self.send(201,renderer.assets.upload(kind,content))
                 if path=='/v1/places':
                     return self.send(201,{'place_id':renderer.upload(content)})
                 if path=='/v1/renders':
@@ -193,6 +260,7 @@ def handler(renderer):
                 return self.send(404,{'error':'Not found'})
             except (ValueError,UnicodeError) as error:
                 return self.send(400,{'error':str(error)})
+        do_HEAD=do_GET
     return Handler
 
 

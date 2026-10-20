@@ -24,16 +24,16 @@
       <div class="layout">
         <form id="render-form" class="settings">
           <section><div class="section-title"><span>01</span><h2>Scene</h2></div>
-            <label class="field-label" for="type">Render type</label><select id="type"><option value="full_body">Player · full body</option><option value="headshot">Player · headshot</option><option value="game_thumbnail">Game thumbnail</option></select>
-            <label class="field-label source-label" for="scene">Source</label><select id="scene" disabled><option value="default">Classic blocks · built-in scene</option><option value="avatar" selected>Classic R6 player</option><option value="upload">Upload a local place</option></select>
-            <label id="upload-box" class="upload-box" hidden><span>Choose a .rbxl or .rbxlx file</span><small>Local place · up to 8 MB</small><input id="place" type="file" accept=".rbxl,.rbxlx"></label>
+            <label class="field-label" for="type">Render type</label><select id="type"><option value="full_body">Player · full body</option><option value="headshot">Player · headshot</option><option value="item">Item · uploaded model</option><option value="game_thumbnail">Game thumbnail</option></select>
+            <label class="field-label source-label" for="scene">Source</label><select id="scene" disabled><option value="default">Classic blocks · built-in scene</option><option value="avatar" selected>Classic R6 player</option><option value="upload">Upload a local place</option><option value="item">Upload an item model</option></select>
+            <label id="upload-box" class="upload-box" hidden><span id="upload-label">Choose a .rbxl or .rbxlx file</span><small>Local place · up to 8 MB</small><input id="place" type="file" accept=".rbxl,.rbxlx"></label>
           </section>
           <section><div class="section-title"><span>02</span><h2>Camera</h2></div>
             <label class="field-label" for="angle">View</label><select id="angle"><option value="classic">Classic perspective</option><option value="front">Front view</option><option value="overhead">High angle</option></select>
-            <div class="field-row"><label class="field-label" for="fov">Field of view</label><span>degrees</span></div><input id="fov" type="number" min="10" max="100" value="35" required>
+            <div class="field-row"><label class="field-label" for="fov">Field of view</label><span>degrees</span></div><input id="fov" type="number" min="10" max="100" value="58" required>
           </section>
           <section><div class="section-title"><span>03</span><h2>Output</h2></div>
-            <label class="field-label" for="size">Image dimensions</label><select id="size"><option value="512,512">512 × 512 · square</option><option value="640,360">640 × 360 · widescreen</option><option value="800,450">800 × 450 · widescreen</option><option value="native">Current viewport</option></select>
+            <label class="field-label" for="size">Image dimensions</label><select id="size"><option value="512,512">512 × 512 · square</option><option value="450,600">450 × 600 · portrait</option><option value="640,360">640 × 360 · widescreen</option><option value="800,450">800 × 450 · widescreen</option><option value="native">Current viewport</option></select>
             <p id="output-help" class="help">Transparent PNG · player only</p>
           </section>
           <div class="form-footer"><p id="error" role="alert" hidden></p><button id="render-button" type="submit">Render image <span aria-hidden="true">↗</span></button><p>One scene at a time. Every frame, the real engine.</p></div>
