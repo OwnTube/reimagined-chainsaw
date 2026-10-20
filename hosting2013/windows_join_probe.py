@@ -3,6 +3,7 @@ import argparse
 import ctypes
 from ctypes import wintypes
 import hashlib
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
 from pathlib import Path
@@ -11,19 +12,39 @@ import shutil
 import socket
 import subprocess
 import sys
+import threading
 import time
+from urllib.parse import urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'rcc2013'))
 from windows_probe import collect_logs, resize_viewport, windows_for_pid, write_scene
 
 
 def udp_binding(pid, port):
-    command = (f'$p = @(Get-NetUDPEndpoint -OwningProcess {int(pid)} -ErrorAction SilentlyContinue); '
-               f'@{{port_bound = [bool](@($p | Where-Object LocalPort -eq {int(port)}).Count)}} '
-               '| ConvertTo-Json -Compress')
-    r = subprocess.run(['powershell.exe','-NoProfile','-NonInteractive','-Command',command],
-                       capture_output=True,text=True,timeout=15)
-    return json.loads(r.stdout)['port_bound'] if r.returncode == 0 else None
+    # Query the native PID table directly; PowerShell/CIM initialization can
+    # exceed the whole startup window on an otherwise healthy hosted runner.
+    class Row(ctypes.Structure):
+        _fields_ = [('address',wintypes.DWORD),('port',wintypes.DWORD),('pid',wintypes.DWORD)]
+    get_table = ctypes.windll.iphlpapi.GetExtendedUdpTable
+    get_table.argtypes = [ctypes.c_void_p,ctypes.POINTER(wintypes.DWORD),wintypes.BOOL,
+                         wintypes.DWORD,ctypes.c_int,wintypes.DWORD]
+    get_table.restype = wintypes.DWORD
+    size = wintypes.DWORD()
+    status = get_table(None,ctypes.byref(size),False,2,1,0)
+    if status not in (0,122):raise OSError(status,'UDP owner table query failed')
+    for _ in range(3):
+        if not 4 <= size.value <= 1024*1024:raise RuntimeError('Unexpected UDP owner table size')
+        buffer = ctypes.create_string_buffer(size.value)
+        status = get_table(buffer,ctypes.byref(size),False,2,1,0)
+        if status==122:continue
+        if status:raise OSError(status,'UDP owner table read failed')
+        count = wintypes.DWORD.from_buffer_copy(buffer.raw[:4]).value
+        if 4+count*ctypes.sizeof(Row)>len(buffer):raise RuntimeError('Truncated UDP owner table')
+        for i in range(count):
+            row = Row.from_buffer_copy(buffer.raw,4+i*ctypes.sizeof(Row))
+            if row.pid==pid and socket.ntohs(row.port & 65535)==port:return True
+        return False
+    raise RuntimeError('UDP owner table changed repeatedly')
 
 
 def script_source(role, marker, port, token):
@@ -34,6 +55,7 @@ def script_source(role, marker, port, token):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--studio',type=Path,required=True)
+    parser.add_argument('--player',type=Path,help='Experiment with the pinned standalone Player instead of a second Studio')
     parser.add_argument('--output',type=Path,default=Path('hosting2013/output'))
     parser.add_argument('--timeout',type=int,default=90)
     args = parser.parse_args()
@@ -43,6 +65,9 @@ def main():
     specs = json.loads((Path(__file__).resolve().parents[1]/'rcc2013/packages.json').read_text())
     digest = hashlib.sha256(studio.read_bytes()).hexdigest()
     if digest != specs['studio']['executable_sha256']: raise ValueError('Studio identity mismatch')
+    player = args.player.resolve(strict=True) if args.player else None
+    if player and hashlib.sha256(player.read_bytes()).hexdigest() != specs['player']['executable_sha256']:
+        raise ValueError('Standalone Player identity mismatch')
     out = args.output.resolve(); out.mkdir(parents=True,exist_ok=False)
     with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as sock:
         sock.bind(('127.0.0.1',0)); port = sock.getsockname()[1]
@@ -53,13 +78,22 @@ def main():
               'client_join_validated':False,'replicated_movement_validated':False,
               'client_character_movement_validated':False,'standalone_player_join_validated':False,
               'launch_profile':'-ide -testMode -fileLocation distinct empty local places -script owned Lua','peers':{}}
+    report['client_kind'] = 'standalone_player' if player else 'studio'
+    if player:
+        report['scope'] = 'unmodified 2013 Studio host and standalone Player on loopback'
+        report['player_sha256'] = specs['player']['executable_sha256']
+        report['client_launch_profile'] = '-t 0 -a 0 -j loopback /game/join.ashx'
+    backend_requests = []
+    backend, backend_thread = None, None
     processes, streams = {}, []
     # Runtime copies are outside the evidence folder: never upload executables.
     runtime = studio.parent.parent/('join-'+secrets.token_hex(6))
     runtime.mkdir()
     def launch(role):
+        nonlocal backend, backend_thread
         deployment = runtime/role
-        shutil.copytree(studio.parent,deployment)
+        standalone = role=='client' and player is not None
+        shutil.copytree(player.parent if standalone else studio.parent,deployment)
         plugins = deployment/'BuiltInPlugins'
         # Remove only our renderer's previous owned plugin, if present.
         old = plugins/'Rcc2013Probe'
@@ -75,7 +109,25 @@ def main():
         stream = (peer/'process.log').open('wb'); streams.append(stream)
         env = os.environ.copy()
         for key in ('QT_PLUGIN_PATH','QT_QPA_PLATFORM_PLUGIN_PATH'):env.pop(key,None)
-        process = subprocess.Popen([str(deployment/studio.name),'-ide','-testMode','-fileLocation',str(place),'-script',source],
+        if standalone:
+            class JoinHandler(BaseHTTPRequestHandler):
+                def do_GET(self):
+                    path = urlsplit(self.path).path
+                    backend_requests.append({'method':'GET','path':path})
+                    content = source.encode('utf-8') if path=='/game/join.ashx' else b'Not found'
+                    self.send_response(200 if path=='/game/join.ashx' else 404)
+                    self.send_header('Content-Type','text/plain; charset=utf-8')
+                    self.send_header('Content-Length',str(len(content)))
+                    self.end_headers();self.wfile.write(content)
+                def log_message(self,*args):pass
+            backend = ThreadingHTTPServer(('127.0.0.1',0),JoinHandler)
+            backend_thread = threading.Thread(target=backend.serve_forever,daemon=True)
+            backend_thread.start()
+            url = 'http://127.0.0.1:'+str(backend.server_port)+'/game/join.ashx'
+            command = [str(deployment/player.name),'-t','0','-a','0','-j',url]
+        else:
+            command = [str(deployment/studio.name),'-ide','-testMode','-fileLocation',str(place),'-script',source]
+        process = subprocess.Popen(command,
                                    cwd=deployment,env=env,stdout=stream,stderr=subprocess.STDOUT)
         processes[role] = process
         report['peers'][role] = {'pid':process.pid,'engine_marker_lines':[]}
@@ -114,6 +166,7 @@ def main():
             if '|ERROR|' in host+client:raise RuntimeError('Peer Lua failed; inspect native evidence')
             if '|CONNECTION_FAILED|' in client:raise RuntimeError('Native client connection failed')
             report['client_join_validated'] = '|PLAYER_ADDED|' in host and '|CONNECTION_ACCEPTED' in client and '|REPLICATED_TOKEN|'+token in client
+            report['standalone_player_join_validated'] = bool(player) and report['client_join_validated']
             report['replicated_movement_validated'] = report['client_join_validated'] and '|REPLICATED_MOVEMENT|' in client and '|ROUNDTRIP_CONFIRMED|' in host
             report['client_character_movement_validated'] = '|CLIENT_CHARACTER_MOVED|' in client and '|SERVER_CHARACTER_MOVED|' in host
             if report['replicated_movement_validated'] and report['client_character_movement_validated']:break
@@ -132,7 +185,7 @@ def main():
             peer = out/role
             try:
                 observe(role)
-                records = resize_viewport(process.pid,{'width':640,'height':480})
+                records = windows_for_pid(process.pid) if player and role=='client' else resize_viewport(process.pid,{'width':640,'height':480})
                 report['peers'][role]['windows'] = records
                 user32 = ctypes.windll.user32
                 user32.GetForegroundWindow.restype = wintypes.HWND
@@ -140,6 +193,12 @@ def main():
                 user32.GetWindowThreadProcessId(user32.GetForegroundWindow(),ctypes.byref(owner))
                 if owner.value != process.pid:raise RuntimeError('Owned peer is not foreground')
                 views = {tuple(w['rect']) for w in records if w['visible'] and w['title']=='QOgreWidget'}
+                if player and role=='client':
+                    candidates = [w for w in records if w['visible'] and w['top_level'] and w['rect'][2]-w['rect'][0]>=128 and w['rect'][3]-w['rect'][1]>=64]
+                    if candidates:
+                        window = max(candidates,key=lambda w:(w['rect'][2]-w['rect'][0])*(w['rect'][3]-w['rect'][1]))
+                        views = {tuple(window['rect'])}
+                        report['peers'][role]['capture_kind'] = 'standalone Player window diagnostic'
                 if len(views)==1:ImageGrab.grab(bbox=next(iter(views))).save(peer/'viewport.png')
                 ImageGrab.grab().save(peer/'runner-desktop.png')
             except Exception as error:report['peers'][role]['capture_error'] = str(error)
@@ -150,6 +209,10 @@ def main():
                 try:process.wait(timeout=10)
                 except subprocess.TimeoutExpired:process.kill();process.wait(timeout=10)
         for stream in streams:stream.close()
+        if backend:
+            backend.shutdown();backend.server_close();backend_thread.join(timeout=5)
+            report['backend_requests'] = backend_requests
+            report['join_script_requested'] = any(r['path']=='/game/join.ashx' for r in backend_requests)
         shutil.rmtree(runtime,ignore_errors=True)
         (out/'result.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print(json.dumps(report,indent=2))

@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+rcc2013/vendor/
+rcc2013/cache/
+rcc2013/output/
+rcc2013/data/
+hosting2013/output/
+hosting2013/player-output/
