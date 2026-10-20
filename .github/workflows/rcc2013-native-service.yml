@@ -1,0 +1,75 @@
+name: Build custom RCCService.exe and record real Player transport
+on:
+  push:
+    branches: [rcc2013-ci]
+    paths: ["server2013/native/**", ".github/workflows/rcc2013-native-service.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-service:
+    runs-on: windows-2022
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - run: python -m pip install Pillow cryptography imageio-ffmpeg==0.6.0
+      - name: Compile our native Windows service with the owner's icon
+        shell: pwsh
+        run: |
+          $install = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if (!$install) { throw 'C++ compiler not found' }
+          New-Item -ItemType Directory server2013/dist -Force | Out-Null
+          $dist = (Resolve-Path server2013/dist).Path
+          @"
+          @echo off
+          call "$install\VC\Auxiliary\Build\vcvars64.bat"
+          if errorlevel 1 exit /b 1
+          rc /nologo /fo RCCService.res RCCService.rc
+          if errorlevel 1 exit /b 1
+          cl /nologo /std:c++17 /O2 /EHsc /MT RCCService.cpp RCCService.res /Fe:"$dist\RCCService.exe"
+          exit /b %errorlevel%
+          "@ | Set-Content server2013/native/build.cmd -Encoding ascii
+          Push-Location server2013/native
+          cmd /c build.cmd
+          $buildExit = $LASTEXITCODE
+          Pop-Location
+          if ($buildExit -ne 0) { throw 'Native compilation failed' }
+          & server2013/dist/RCCService.exe --help
+          Get-FileHash server2013/dist/RCCService.exe -Algorithm SHA256
+      - name: Restore only the exact 2013 Player
+        working-directory: rcc2013
+        run: python download.py --only player
+      - name: Release default IIS and prove Studio is absent
+        shell: pwsh
+        run: |
+          if (Test-Path rcc2013/vendor/studio) { throw 'Studio unexpectedly installed' }
+          if (Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue) { throw 'Studio unexpectedly running' }
+          $service = Get-Service W3SVC -ErrorAction SilentlyContinue
+          if ($service -and $service.Status -eq 'Running') {
+            'RCC2013_RESTART_IIS=1' >> $env:GITHUB_ENV
+            Stop-Service W3SVC -Force -ErrorAction Stop
+          }
+      - name: Record real Player connecting to our compiled service
+        run: python hosting2013/windows_join_probe.py --native-server server2013/dist/RCCService.exe --player rcc2013/vendor/player/RobloxPlayerBeta.exe --player-profile local-signed --record --output server2013/output --timeout 25
+      - name: Prove Studio remained absent
+        shell: pwsh
+        run: |
+          if (Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue) { throw 'Studio unexpectedly running' }
+      - name: Preserve our executable and measured native evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: rcc2013-native-service
+          path: |
+            server2013/dist/RCCService.exe
+            server2013/output/
+          retention-days: 7
+      - name: Restore IIS if previously running
+        if: always() && env.RCC2013_RESTART_IIS == '1'
+        shell: pwsh
+        run: Start-Service W3SVC

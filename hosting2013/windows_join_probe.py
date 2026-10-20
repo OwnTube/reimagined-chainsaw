@@ -116,6 +116,7 @@ def press_owned_key(pid, virtual_key, duration=1, method='system', activate=True
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--studio',type=Path)
+    parser.add_argument('--native-server',type=Path,help='Our compiled RCCService.exe; test harness remains Python')
     parser.add_argument('--custom-host',action='store_true',help='Launch our independent Python transport, without Studio')
     parser.add_argument('--player',type=Path,help='Experiment with the pinned standalone Player instead of a second Studio')
     parser.add_argument('--player-profile',choices=('stock','local-signed'),default='stock')
@@ -128,14 +129,15 @@ def main():
     parser.add_argument('--output',type=Path,default=Path('hosting2013/output'))
     parser.add_argument('--timeout',type=int,default=90)
     args = parser.parse_args()
+    if args.native_server:args.custom_host=True
     if os.name != 'nt': parser.error('Native Windows required')
     if not 10 <= args.timeout <= 180: parser.error('Timeout must be 10..180 seconds')
     if args.player_profile=='local-signed' and not args.player:parser.error('local-signed requires the standalone Player')
     if args.test_input and (not args.player or args.player_profile!='local-signed'):parser.error('Input testing requires the configured standalone Player')
-    if args.record and not args.test_input:parser.error('Recording requires the standalone keyboard-validated test')
+    if args.record and not args.test_input and not args.custom_host:parser.error('Recording requires the standalone keyboard-validated test')
     if not args.custom_host and not args.studio:parser.error('Reference host requires --studio')
     if args.custom_host and (not args.player or args.player_profile!='local-signed'):parser.error('Custom host requires configured standalone Player')
-    if args.custom_host and (args.trace_transport or args.record or args.test_input):parser.error('Transport checkpoint does not yet provide a world or keyboard test')
+    if args.custom_host and (args.trace_transport or args.test_input):parser.error('Transport checkpoint does not yet provide a world or keyboard test')
     studio = args.studio.resolve(strict=True) if args.studio else None
     specs = json.loads((Path(__file__).resolve().parents[1]/'rcc2013/packages.json').read_text())
     digest = hashlib.sha256(studio.read_bytes()).hexdigest() if studio else None
@@ -180,8 +182,10 @@ def main():
             stream=(peer/'process.log').open('wb');streams.append(stream)
             script=Path(__file__).resolve().parents[1]/'server2013/server.py'
             command=[sys.executable,str(script),'--port',str(port),'--output',str(peer),'--duration',str(min(180,args.timeout+30))]
+            if args.native_server:
+                command=[str(args.native_server.resolve(strict=True)),'-console','--network-only','--port',str(port),'--output',str(peer),'--duration',str(min(180,args.timeout+30))]
             process=subprocess.Popen(command,stdout=stream,stderr=subprocess.STDOUT)
-            processes[role]=process;executables[role]=Path(sys.executable)
+            processes[role]=process;executables[role]=args.native_server.resolve() if args.native_server else Path(sys.executable)
             report['peers'][role]={'pid':process.pid,'engine_marker_lines':[]}
             return
         deployment = runtime/role
@@ -221,7 +225,7 @@ def main():
                 signer,configuration = configure(deployment/player.name)
                 report['local_player_configuration'] = configuration
                 report['player_sha256'] = configuration['configured_sha256']
-                report['scope'] = 'independent Python transport and native 2013 Player; no Studio host' if args.custom_host else 'unmodified 2013 Studio host and locally configured standalone 2013 Player'
+                report['scope'] = ('native C++ RCCService.exe and native 2013 Player; no Studio host' if args.native_server else 'independent Python transport and native 2013 Player; no Studio host') if args.custom_host else 'unmodified 2013 Studio host and locally configured standalone 2013 Player'
                 settings_dir = deployment/'ClientSettings'
                 settings_dir.mkdir(exist_ok=True)
                 player_flags = {'FFlagDebugLocalRccServerConnection':'True','FLogCoreScripts':'1'}
@@ -261,10 +265,10 @@ def main():
                         content_type = 'image/png'
                     elif path in ('/game/studio.ashx','/game/visit.ashx'):
                         bootstrap = 'print('+json.dumps(markers[role]+'|CORE_BOOTSTRAP_READY')+')\n'
-                        if signer and args.core_loader=='compat':
+                        if signer and args.core_loader=='compat' and not args.custom_host:
                             from core_loader import bootstrap as build_core_loader
                             bootstrap += build_core_loader(core_assets,base,markers[role])
-                        elif signer:
+                        elif signer and not args.custom_host:
                             bootstrap += ('local context=game:GetService("ScriptContext")\n'
                                           'print('+json.dumps(markers[role]+'|SCRIPTS_DISABLED_BEFORE|')+'..tostring(context.ScriptsDisabled))\n'
                                           'context.ScriptsDisabled=false\n'
@@ -341,7 +345,7 @@ def main():
         if args.record:
             from windows_recording import DesktopRecording
             recording=DesktopRecording(out)
-            recording.event('Studio host launch requested')
+            recording.event('custom RCC host launch requested; no Studio' if args.custom_host else 'Studio host launch requested')
         launch('host')
         deadline = time.monotonic()+args.timeout
         while time.monotonic()<deadline and processes['host'].poll() is None:
@@ -353,7 +357,7 @@ def main():
         report['udp_port_bound_by_host'] = udp_binding(processes['host'].pid,port)
         report['server_hosting_validated'] = report['udp_port_bound_by_host'] is True
         if not report['server_hosting_validated']:raise RuntimeError('Host process has no matching UDP endpoint')
-        if recording:recording.event('Studio server ready with verified same-process UDP binding')
+        if recording:recording.event('custom RCC ready with verified same-process UDP binding' if args.custom_host else 'Studio server ready with verified same-process UDP binding')
         try:
             if args.custom_host:raise ValueError('Custom host has no Roblox engine memory profile')
             from native_profile import inspect
@@ -381,7 +385,8 @@ def main():
                 state=report.get('custom_server',{})
                 report['custom_transport_handshake_validated'] = state.get('transport_handshake_observed',False) and '|CONNECTION_ACCEPTED' in client
                 if report['custom_transport_handshake_validated']:
-                    time.sleep(3);observe('host');observe('client');break
+                    if recording:recording.event('native Player accepted transport; world replication is unfinished')
+                    time.sleep(5);observe('host');observe('client');break
             if '|ERROR|' in host+client:raise RuntimeError('Peer Lua failed; inspect native evidence')
             if '|CONNECTION_FAILED|' in client:
                 # Retain a short diagnostic interval for asynchronous UI loading.
@@ -420,7 +425,8 @@ def main():
             report['game_join_validated']=False
             report['passed']=False
             report['error']='Custom host transport experiment only: Roblox world replication and simulation are not implemented'
-            report['host_kind']='custom_python'
+            report['host_kind']='custom_cpp' if args.native_server else 'custom_python'
+            if args.native_server:report['custom_executable_sha256']=hashlib.sha256(args.native_server.read_bytes()).hexdigest()
             report['studio_launched']=False
             report['probe_checkpoint']='transport handshake; full game join remains false'
             report['probe_checkpoint_passed']=report.get('custom_transport_handshake_validated',False) and report['udp_port_bound_by_host']
@@ -505,7 +511,7 @@ def main():
         shutil.rmtree(runtime,ignore_errors=True)
         (out/'result.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print(json.dumps(report,indent=2))
-    return 0 if report.get('probe_checkpoint_passed',report['passed']) else 1
+    return 0 if report.get('probe_checkpoint_passed',report['passed']) and (not recording or report.get('recording',{}).get('validated')) else 1
 
 
 if __name__ == '__main__':raise SystemExit(main())
