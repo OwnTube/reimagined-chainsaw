@@ -28,7 +28,7 @@ def udp_binding(pid, port):
 
 def script_source(role, marker, port, token):
     source = Path(__file__).with_name(role+'.lua').read_text()
-    return source.replace('MARKER',json.dumps(marker)).replace('PORT',str(port)).replace('TOKEN',json.dumps(token))
+    return source.replace('__RCC_MARKER__',json.dumps(marker)).replace('__RCC_PORT__',str(port)).replace('__RCC_TOKEN__',json.dumps(token))
 
 
 def main():

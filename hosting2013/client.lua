@@ -1,11 +1,14 @@
 -- The client receives world geometry only over the local engine connection.
 -- No server token or owned scene is embedded in this bootstrap.
-local marker = MARKER
-local port = PORT
+local marker = __RCC_MARKER__
+local port = __RCC_PORT__
+local stage = "services"
+print(marker .. "|CLIENT_BOOTSTRAP_STARTED")
 local ok, problem = pcall(function()
     local world = game:GetService("Workspace")
     local run = game:GetService("RunService")
     local network = game:GetService("NetworkClient")
+    stage = "connection callbacks"
     network.ConnectionAccepted:connect(function()
         print(marker .. "|CONNECTION_ACCEPTED")
     end)
@@ -51,9 +54,11 @@ local ok, problem = pcall(function()
             end
         end
     end)
+    stage = "PlayerConnect"
     local player = network:PlayerConnect(0, "127.0.0.1", port, 0, 30)
     print(marker .. "|PLAYER_CONNECT_RETURNED|" .. tostring(player))
+    stage = "RunService start"
     run:Run()
     print(marker .. "|CLIENT_READY")
 end)
-if not ok then print(marker .. "|ERROR|" .. tostring(problem)) end
+if not ok then print(marker .. "|ERROR|stage=" .. stage .. "|" .. tostring(problem)) end

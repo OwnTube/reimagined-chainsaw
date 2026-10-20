@@ -1,7 +1,7 @@
 -- Owned local test server, using unmodified Studio's legacy networking API.
-local marker = MARKER
-local port = PORT
-local token = TOKEN
+local marker = __RCC_MARKER__
+local port = __RCC_PORT__
+local token = __RCC_TOKEN__
 local stage = "services"
 local ok, problem = pcall(function()
     local world = game:GetService("Workspace")
