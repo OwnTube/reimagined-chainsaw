@@ -32,10 +32,8 @@ local ok, problem = pcall(function()
         local capabilityOk, capability = pcall(function() return game:GetService("UserInputService").KeyboardEnabled end)
         print(marker .. "|KEYBOARD_CAPABILITY|" .. tostring(capabilityOk) .. "|" .. tostring(capability))
         local inputOk, inputProblem = pcall(function()
-            game:GetService("UserInputService").InputBegan:connect(function(inputType,keyCode,...)
-                -- This pinned 2013 API predates the modern InputObject event.
-                print(marker .. "|INPUT_BEGAN|" .. tostring(inputType) .. "|" .. tostring(keyCode))
-                if keyCode==Enum.KeyCode.D then
+            local function keyReceived(key)
+                if string.lower(key)=="d" then
                     print(marker .. "|KEYBOARD_INPUT_RECEIVED")
                     local player = game:GetService("Players").LocalPlayer
                     local torso = player and player.Character and player.Character:FindFirstChild("Torso")
@@ -46,6 +44,17 @@ local ok, problem = pcall(function()
                         signal:FireServer(value.Value,"keyboard",0)
                     end
                 end
+            end
+            -- Use the legacy Mouse key string API used by this era's scripts.
+            -- Keep UserInputService diagnostic only: this build's KeyCode is
+            -- numeric, and its enum surface differs from later clients.
+            game:GetService("UserInputService").InputBegan:connect(function(input)
+                print(marker .. "|INPUT_BEGAN|" .. tostring(input))
+            end)
+            Spawn(function()
+                while not game:GetService("Players").LocalPlayer do wait() end
+                game:GetService("Players").LocalPlayer:GetMouse().KeyDown:connect(keyReceived)
+                print(marker .. "|LEGACY_KEYBOARD_OBSERVER_READY")
             end)
         end)
         print(marker .. "|KEYBOARD_OBSERVER_READY|" .. tostring(inputOk) .. "|" .. tostring(inputProblem))

@@ -81,6 +81,20 @@ def press_owned_key(pid, virtual_key, duration=1, method='system'):
     class Payload(ctypes.Union):_fields_ = [('mouse',Mouse),('key',Key)]
     class Input(ctypes.Structure):_fields_ = [('kind',wintypes.DWORD),('payload',Payload)]
     user32.SendInput.argtypes = [wintypes.UINT,ctypes.POINTER(Input),ctypes.c_int]
+    # Activating the native client area gives DirectInput time to acquire its
+    # keyboard before the bounded test key. Stay inside the owned game window.
+    rect = wintypes.RECT()
+    user32.GetClientRect(window,ctypes.byref(rect))
+    point = wintypes.POINT(rect.right//2,rect.bottom//2)
+    user32.ClientToScreen(window,ctypes.byref(point))
+    user32.SetCursorPos(point.x,point.y)
+    click = (Input*2)()
+    click[0].kind=0;click[0].payload.mouse.flags=2
+    click[1].kind=0;click[1].payload.mouse.flags=4
+    metadata['activation_click_accepted'] = user32.SendInput(2,click,ctypes.sizeof(Input))
+    time.sleep(2)
+    user32.GetWindowThreadProcessId(user32.GetForegroundWindow(),ctypes.byref(owner))
+    if owner.value!=pid:raise RuntimeError('Owned Player lost focus before keyboard test')
     def send_scan(up):
         event = Input();event.kind = 1;event.payload.key = Key(0,scan,8|(2 if up else 0),0,0)
         return user32.SendInput(1,ctypes.byref(event),ctypes.sizeof(event))
