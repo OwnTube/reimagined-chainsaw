@@ -45,22 +45,68 @@ default IIS listener, then restores it. Cleanup removes the exact owned hosts
 entry and runtime deployments. The source is a bounded development probe,
 not an installer or a persistent publicly accessible game service.
 
-### Interface remains a separate requirement
+### Archived interface checkpoint — 2026-10-20
 
-The network checkpoint's `core_gui_validated` is **false**. Native Player
-shows its base controls and the replicated game, but the additional archived
-menu, chat, player list, and backpack have not yet been validated there.
-`core_assets.json` pins archive URLs, modification timestamps, and SHA-256
-for pre-November-26 2013 CoreScripts and libraries. Those timestamps are archive
-metadata, not proof of a precise live-site rollout. Original script bytes are
-restored outside the repository/evidence directory and served only locally.
-The bootstrap signs them with the disposable test key and rewrites historical
-vendor asset URLs to its own local backend.
+[Run 39427990205](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39427990205),
+source `a864aa917b962ebdf0cda30f60892a47f242a49c`, reports true for both the
+network/character checks and `core_gui_validated`. The native Player contains
+`GameMainMenu`, `ChatFrame`, `PlayerListScreen`, and `CurrentLoadout` together.
+Its actual window capture was visually inspected. This proves that the
+archived scripts build their interface; it does not prove every control,
+chat delivery, inventory action, or texture works.
 
-CI now requires both the network/character evidence and native archived GUI
-markers. `network_test_passed` stays separate from `passed`; the earlier
-network-only green run must not be described as a complete UI success.
-Keyboard input, multiple players, external connections, accounts, persistence,
+`core_assets.json` pins 19 archived scripts/libraries, URLs, modification
+metadata, and SHA-256. Archive timestamps do not prove a precise live rollout.
+The default `--core-loader compat` embeds those verified runtime sources in
+the signed local bootstrap, supplies isolated script environments and the
+four original LoadLibrary modules, and starts their native Lua threads.
+The original archived sources construct the GUI; the repository contains
+orchestration, not copies of those sources. Sources and runtime deployments
+remain outside uploaded evidence and are deleted during cleanup.
+
+The experimental `--core-loader native` route fetches child CoreScript URLs,
+but their execution has not been established. The successful compatibility
+loader is distinct from that unresolved LinkedSource path. Lua 5.1 execution
+must stay outside a `pcall` boundary so the original scripts can yield.
+
+`core_images.json` pins 22 decoded public PNG assets. Fifteen requested image
+IDs were unavailable and are recorded explicitly. Bundled textures remain
+local references; missing network assets are not silently replaced. Full
+visual fidelity is therefore unverified. Guest chat permissions and inventory
+behavior remain separate checks from the existence of their containers.
+
+### Keyboard and inventory checkpoint — 2026-10-20
+
+[Run 39430884973](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39430884973),
+source `91f2a648f9496e04ae9c4309f34862509c152732`, passed the mandatory
+standalone Player test with **all network, character movement, archived GUI,
+and keyboard-movement fields true**. A bounded OS scancode D press reached
+the native legacy Mouse.KeyDown callback. Client and Studio independently
+observed more than two studs of horizontal character movement after that
+input. The input observer does not move the character; native
+HumanoidController handles the key. Automatic MoveTo had already been stopped.
+A click inside the owned game window and a two-second acquisition interval
+precede the key; foreground PID ownership is checked before delivery.
+
+The older UserInputService observer incorrectly assumed a modern KeyCode enum;
+this build logs numeric key code 100 for D. The working observer uses its
+legacy key string API. Windows accepts both key-down and key-up, and the
+Player shares the active console session. Earlier failed input probes are not
+a successful keyboard result and are superseded by this native checkpoint.
+
+The native LocalBackpack and HumanoidController were present. Correcting the
+compatibility loader's script object names to the archived scripts' expected
+`CoreScripts/BackpackScripts/...` names unblocked their dependencies. The
+actual Player capture now shows the owned tool's first hotbar slot. Tool
+equipping and inventory-window interaction are still untested. Local guest
+chat mode is configured to TextAndMenu; sending/receiving chat is untested.
+
+CI requires standalone network/character evidence and all four native GUI
+containers. `--test-input` additionally requires keyboard-driven movement on
+both peers. The report keeps `network_test_passed`, `core_gui_validated`, and
+`keyboard_movement_validated` separate; a screenshot alone proves none of them.
+
+Multiple players, external connections, accounts, persistence, chat delivery,
 and arbitrary uploaded places remain unverified.
 
 ### Research tools
@@ -89,7 +135,7 @@ including all proprietary engine assets, stay outside the evidence directory
 and are removed after the experiment. Only owned scripts, reports, redacted
 logs, and diagnostic screenshots are uploaded.
 
-## Verified checkpoint — 2026-10-20
+## Historical two-Studio control — 2026-10-20
 
 [Native run 39348329677](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39348329677),
 source `b09758b8aab8bb4145a5805459fef70072a32007`, passed both Windows control
@@ -132,8 +178,8 @@ executable SHA-256 still matches the original pin. Its report has
 Its own native log reports a trust-check failure for the local
 `/Login/Negotiate.ashx` URL and `invalid request 5` while loading the local
 `/game/studio.ashx` URL. The backend was not reached; this does not test the
-Player's network protocol compatibility with the Studio host. A supported
-standalone bootstrap/trust configuration is still missing. No account
+Player's network protocol compatibility with the Studio host. That historical baseline lacks the local bootstrap/trust configuration
+used by the later successful standalone checkpoint above. No account
 credentials or proprietary modified executables are requested or published.
 
 ## Experimental standalone command
@@ -168,8 +214,9 @@ The report separates these outcomes:
 | `client_character_movement_validated` | A client Humanoid move request produces character displacement observed on both peers |
 | `standalone_player_join_validated` | Reserved for a separate RobloxPlayerBeta experiment; the two-Studio test cannot establish it |
 
-The probe's `passed` field requires hosting and bidirectional replication;
-character locomotion is reported separately. A screenshot alone never proves
+The current probe's `passed` field requires hosting, bidirectional replication,
+and character locomotion. The configured Player also requires archived GUI
+containers, and `--test-input` adds the separate keyboard-movement requirement. A screenshot alone never proves
 a successful join. Both processes are terminated at the end of the test.
 This is a local development experiment, not a public service or account backend.
 
@@ -192,16 +239,12 @@ All experiments use Studio SHA-256
 | [39347870867](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39347870867) | Direct native UDP ownership query, explicit character request, cumulative native events, and independent standalone probe | Both native control tests passed. Studio admission, token, beacon movement, and server receipt of the RemoteEvent reply passed. Default character loading replaced the owned model, so movement was not confirmed on both peers in this run. The separate Player probe did not fetch the local join script; its log reports a trust failure for the wiki's `0?suggest=0` negotiation URL. |
 | [39348329677](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39348329677) | Preserve the owned character and configure a real local Player backend | All two-Studio join, replication, reply, and walking fields passed together. The separate Player remained blocked before any backend request, with native URL-trust errors. |
 
-The current evidence establishes Studio admission, world replication, a
-complete application-event round trip, and character walking on both peers
-in one run. The standalone Player remains blocked at bootstrap, as detailed
-above; configuring its copied BaseUrl alone did not resolve native URL trust.
-
-The standalone step is explicitly experimental and uses `continue-on-error`.
-A successful overall workflow does not establish a successful Player join:
-read `player-output/result.json`, especially `passed`,
-`standalone_player_join_validated`, `join_script_requested`, and the requested
-backend paths. The main two-Studio result is `output/result.json`.
+Those historical experiments established the two-Studio control. The stock
+Player remained blocked at bootstrap; changing BaseUrl alone did not resolve
+URL trust. The later locally configured Player checkpoint above supersedes
+that limitation. The current workflow has a mandatory standalone Player step
+and does not use `continue-on-error`. Read `player-output/result.json` for
+the separate network, interface, and input outcomes.
 
 UDP ownership is now queried directly through Windows GetExtendedUdpTable.
 A Windows test binds a known Python UDP socket and requires the query to match

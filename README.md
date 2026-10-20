@@ -13,7 +13,9 @@ The 2026 project remains on its separate `rcc2026-ci` branch.
 The separate [local joining probe](docs/local-joining.md) now verifies an
 owned game hosted by Studio and joined by the actual standalone 2013 Player,
 including admission, replicated scene data, character movement, and a
-RemoteEvent reply. Additional archived in-game UI is still under development.
+RemoteEvent reply. Archived menu, chat, player-list, and backpack containers
+now load in the standalone Player; full interaction and texture fidelity
+remain under development.
 The JSON thumbnail API remains a separate renderer.
 
 ## Thumbnail types
@@ -107,9 +109,19 @@ Lua script was found in that revision.** A subsequent revival-source search
 found headshot geometry in BubbaBlox v2 and Economy Simulator. The headshot now
 uses BubbaBlox's no-hat R6 case: head-level camera, 3-stud distance, 11.25-degree
 side angle, 0.1-stud target offset, and 30-degree FOV. The inspected full-body
-scripts delegate framing to RCC; our full-body camera remains custom. Neither
-preset is claimed to establish original 2013 Roblox defaults.
+scripts delegate framing to RCC; the owner’s supplied profile thumbnail now guides the full-body camera
+reconstruction. Neither preset establishes original 2013 Roblox defaults.
 See [source-by-source findings and positioning](docs/thumbnail-research.md).
+
+The owner's uploaded RCC scripts are preserved in [templates](rcc2013/templates)
+and have a local job-parameter adapter. A native probe confirmed that this
+Studio build has no ThumbnailGenerator service, so those scripts' Click
+calls cannot run unchanged here. The full-body Studio camera is reconstructed
+from the supplied 150x200 profile image: eye [-2.44,5.06,-4.92], target
+[0,2.4,0], FOV 58°. The headshot matches the supplied script's no-accessory
+camera formula. Direct RCC template execution remains pending a compatible
+runtime; it is not silently replaced by another engine version.
+
 
 ## Validation
 
@@ -120,7 +132,20 @@ Their mock engine is separate from actual native evidence.
 five dedicated body-mesh markers, asset hashes, full-body margins, distinct
 headshot/full-body images, and PNG alpha.
 `console_capture.py` checks Chrome against a completed native player job.
-Latest [dedicated-body run 39319529320](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39319529320),
+Latest [reference-framing run 39433202145](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39433202145),
+source `8f05824625642c886b9ffaac1d193f0f9016c320`, passed the eight existing
+local checks, five native HTTP render jobs, and console validation. The new
+450x600 portrait was visually inspected; alpha bounds (43,33,441,512) are
+within five pixels of the supplied profile reference scaled to that size.
+The transparent portrait PNG SHA-256 is
+`8e2ae7fe6a3d907ac510fe3282fe0c06e8f628f2cb97129c0f64da503aa19b04`.
+The 512x512 full-body output is
+`d599e6449221d0f63b219479203a32248dbcda8ea00a829be255f80191d272f8`.
+The headshot remains byte-identical to the previous dedicated-body checkpoint.
+Both full-body sizes retain all six body parts, dedicated meshes, clear
+background, opaque player pixels, and no overhead GUI.
+
+Earlier [dedicated-body run 39319529320](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39319529320),
 source commit `7c9317516f872873181d4e4b06449b967854827e`, passed eight local
 tests, all four native HTTP render jobs, and Chrome console validation.
 Both player outputs were visually inspected: the limbs and torso have their
@@ -195,11 +220,21 @@ public key; 21 equal-length data edits preserve its executable code. Both
 peers enable the native `DebugLocalRccServerConnection` setting, and Player
 connects to numeric loopback. Studio's executable remains unchanged.
 
-The additional archived CoreGui did **not** load in that network checkpoint;
-its `core_gui_validated` is false. Subsequent CI requires this separately as
-well as standalone joining and movement. A Player screenshot alone does not
-establish a complete interface or keyboard controls. The bounded test removes
-its peers, local hosts-file entry, runtime copies, and ephemeral signing key.
+[Archived interface run 39427990205](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39427990205),
+source `a864aa917b962ebdf0cda30f60892a47f242a49c`, additionally verified all
+four menu/chat/player-list/backpack containers while the network and character
+checks passed. The default compatibility loader executes pinned archived Lua
+inside the signed local bootstrap; native child CoreScript loading remains
+unresolved. Twenty-two image assets are restored, with fifteen unavailable
+IDs recorded. A container check does not prove every UI action or texture.
+[Keyboard run 39430884973](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39430884973),
+source `91f2a648f9496e04ae9c4309f34862509c152732`, subsequently passed all of
+those checks plus OS-keyboard movement observed on both peers. The native
+legacy key callback receives D, and the engine's HumanoidController moves the
+character. The capture shows the archived inventory's first tool slot;
+equipping and chat delivery remain untested. See [current native results and limits](docs/local-joining.md).
+The bounded test removes its peers, exact local hosts-file entry, runtime
+copies, and ephemeral signing key.
 
 ## Limits
 
