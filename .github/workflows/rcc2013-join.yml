@@ -18,20 +18,16 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install capture dependency
-        run: python -m pip install Pillow
+        run: python -m pip install Pillow cryptography
       - name: Check independent replication challenge generation
         working-directory: hosting2013
-        run: python -m unittest -v test_bootstrap.py
+        run: python -m unittest -v test_bootstrap.py test_local_player.py
       - name: Restore pinned 2013 Studio and Player
         id: restore
         working-directory: rcc2013
         run: python download.py
-      - name: Test native server admission and replicated local movement
-        run: python hosting2013/windows_join_probe.py --studio rcc2013/vendor/studio/RobloxStudioBeta.exe
-      - name: Probe standalone Player against an owned loopback join-script backend
-        if: ${{ !cancelled() && steps.restore.outcome == 'success' }}
-        continue-on-error: true
-        run: python hosting2013/windows_join_probe.py --studio rcc2013/vendor/studio/RobloxStudioBeta.exe --player rcc2013/vendor/player/RobloxPlayerBeta.exe --output hosting2013/player-output --timeout 45
+      - name: Test Studio hosting with the standalone Player and signed local bootstrap
+        run: python hosting2013/windows_join_probe.py --studio rcc2013/vendor/studio/RobloxStudioBeta.exe --player rcc2013/vendor/player/RobloxPlayerBeta.exe --player-profile local-signed --output hosting2013/player-output --timeout 60
       - name: Preserve owned join evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

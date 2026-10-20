@@ -57,11 +57,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--studio',type=Path,required=True)
     parser.add_argument('--player',type=Path,help='Experiment with the pinned standalone Player instead of a second Studio')
+    parser.add_argument('--player-profile',choices=('stock','local-signed'),default='stock')
     parser.add_argument('--output',type=Path,default=Path('hosting2013/output'))
     parser.add_argument('--timeout',type=int,default=90)
     args = parser.parse_args()
     if os.name != 'nt': parser.error('Native Windows required')
     if not 10 <= args.timeout <= 180: parser.error('Timeout must be 10..180 seconds')
+    if args.player_profile=='local-signed' and not args.player:parser.error('local-signed requires the standalone Player')
     studio = args.studio.resolve(strict=True)
     specs = json.loads((Path(__file__).resolve().parents[1]/'rcc2013/packages.json').read_text())
     digest = hashlib.sha256(studio.read_bytes()).hexdigest()
@@ -87,12 +89,13 @@ def main():
         report['player_configuration'] = 'copied AppSettings.xml BaseUrl points only to the owned loopback backend'
     backend_requests = []
     backend, backend_thread = None, None
+    hosts_path, hosts_line = None, None
     processes, streams = {}, []
     # Runtime copies are outside the evidence folder: never upload executables.
     runtime = studio.parent.parent/('join-'+secrets.token_hex(6))
     runtime.mkdir()
     def launch(role):
-        nonlocal backend, backend_thread
+        nonlocal backend, backend_thread, hosts_path, hosts_line
         deployment = runtime/role
         standalone = role=='client' and player is not None
         shutil.copytree(player.parent if standalone else studio.parent,deployment)
@@ -112,22 +115,37 @@ def main():
         env = os.environ.copy()
         for key in ('QT_PLUGIN_PATH','QT_QPA_PLATFORM_PLUGIN_PATH'):env.pop(key,None)
         if standalone:
+            signer = None
+            if args.player_profile=='local-signed':
+                from local_player import configure, LOCAL_DOMAIN
+                signer,configuration = configure(deployment/player.name)
+                report['local_player_configuration'] = configuration
+                report['player_sha256'] = configuration['configured_sha256']
+                report['scope'] = 'unmodified 2013 Studio host and locally configured standalone 2013 Player'
+                hosts_path = Path(os.environ['WINDIR'])/'System32/drivers/etc/hosts'
+                hosts_line = ('\r\n127.0.0.1 '+LOCAL_DOMAIN+' www.'+LOCAL_DOMAIN+' # RCC2013_'+secrets.token_hex(8)+'\r\n').encode('ascii')
+                with hosts_path.open('ab') as hosts:hosts.write(hosts_line)
+                env['NO_PROXY'] = env.get('NO_PROXY','')+',127.0.0.1,localhost,.'+LOCAL_DOMAIN
             class JoinHandler(BaseHTTPRequestHandler):
                 def do_GET(self):
                     path = urlsplit(self.path).path
                     backend_requests.append({'method':'GET','path':path})
-                    if path=='/game/join.ashx':content,status = source.encode('utf-8'),200
+                    if path=='/game/join.ashx':content,status = signer.sign(source) if signer else source.encode('utf-8'),200
+                    elif path in ('/game/studio.ashx','/game/visit.ashx'):
+                        bootstrap = 'print('+json.dumps(markers[role]+'|CORE_BOOTSTRAP_READY')+')'
+                        content,status = signer.sign(bootstrap) if signer else bootstrap.encode('utf-8'),200
                     elif path=='/Login/Negotiate.ashx':content,status = b'ok',200
+                    elif path=='/game/logout.aspx':content,status = b'',200
                     else:content,status = b'Not found',404
                     self.send_response(status)
                     self.send_header('Content-Type','text/plain; charset=utf-8')
                     self.send_header('Content-Length',str(len(content)))
                     self.end_headers();self.wfile.write(content)
                 def log_message(self,*args):pass
-            backend = ThreadingHTTPServer(('127.0.0.1',0),JoinHandler)
+            backend = ThreadingHTTPServer(('127.0.0.1',80 if signer else 0),JoinHandler)
             backend_thread = threading.Thread(target=backend.serve_forever,daemon=True)
             backend_thread.start()
-            base = 'http://127.0.0.1:'+str(backend.server_port)
+            base = 'http://www.'+LOCAL_DOMAIN if signer else 'http://127.0.0.1:'+str(backend.server_port)
             config = deployment/'AppSettings.xml'
             settings = ET.parse(config)
             base_node = settings.getroot().find('BaseUrl')
@@ -224,6 +242,8 @@ def main():
             backend.shutdown();backend.server_close();backend_thread.join(timeout=5)
             report['backend_requests'] = backend_requests
             report['join_script_requested'] = any(r['path']=='/game/join.ashx' for r in backend_requests)
+        if hosts_path and hosts_line:
+            hosts_path.write_bytes(hosts_path.read_bytes().replace(hosts_line,b'',1))
         shutil.rmtree(runtime,ignore_errors=True)
         (out/'result.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print(json.dumps(report,indent=2))
