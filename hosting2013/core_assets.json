@@ -1,0 +1,120 @@
+{
+  "cutoff": "2013-11-25",
+  "selection": "Latest archived modification timestamp before 2013-11-26; timestamps are archive metadata, not proof of live deployment.",
+  "assets": {
+    "37801172": {
+      "name": "StarterScript (37801172)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/StarterScript%20%2837801172%29/62.lua",
+      "archive_timestamp": "2013-10-18 15:46",
+      "sha256": "324148823d377424bb6a08f313a7db6146df76abc4b006078d2d425d55733750"
+    },
+    "60595695": {
+      "name": "LibraryRegistration (60595695)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/LibraryRegistration%20%2860595695%29/5.lua",
+      "archive_timestamp": "2012-02-23 18:41",
+      "sha256": "aae5effe8e9df4bbfa8244fffa85b1d8b56ca1a3dd17afece9cfb663cd9f25e0"
+    },
+    "59002209": {
+      "name": "Sections (59002209)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/Sections%20%2859002209%29/2.lua",
+      "archive_timestamp": "2011-10-17 17:38",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+    },
+    "36868950": {
+      "name": "ToolTip (36868950)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/ToolTip%20%2836868950%29/20.lua",
+      "archive_timestamp": "2011-12-02 17:08",
+      "sha256": "f48aef8df3fab7317d29f6509df6e63bac20e4dec8a1095cf459111a1ca43577"
+    },
+    "46295863": {
+      "name": "Settings (46295863)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/Settings%20%2846295863%29/32.lua",
+      "archive_timestamp": "2013-02-14 19:40",
+      "sha256": "07b608f18c99fea8dcb7574da674b05213498c783cd7e44fe3d643f1f798f315"
+    },
+    "39250920": {
+      "name": "DialogScript (39250920)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/DialogScript%20%2839250920%29/9.lua",
+      "archive_timestamp": "2011-12-01 19:02",
+      "sha256": "35bfda043f77333670fc5e78f7fe280ba11c320faa57914085c4c1b6bf577d2f"
+    },
+    "48488451": {
+      "name": "PopupScript (48488451)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/PopupScript%20%2848488451%29/2.lua",
+      "archive_timestamp": "2011-08-03 21:07",
+      "sha256": "e820a433247f3f93813ce6f1ba1d979357a76f7fa8053e44399974b55845975c"
+    },
+    "48488398": {
+      "name": "NotificationScript (48488398)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/NotificationScript%20%2848488398%29/9.lua",
+      "archive_timestamp": "2013-11-05 13:25",
+      "sha256": "aad833dc62ffab441e5c0d08d0f2de72b81d2a358e012b7884d3480f4443180e"
+    },
+    "97188756": {
+      "name": "ChatScript (97188756)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/ChatScript%20%2897188756%29/21.lua",
+      "archive_timestamp": "2013-10-07 15:29",
+      "sha256": "6a9cbe7286052eb4d5f5f507514de2601d61cbcefa01eb9e406c0810f66db6a3"
+    },
+    "107893730": {
+      "name": "PurchasePromptScript (107893730)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/PurchasePromptScript%20%28107893730%29/22.lua",
+      "archive_timestamp": "2013-11-18 18:00",
+      "sha256": "79e71f4424018edce449bca76536e5a5cc880adaee2caef1f071781f4d55e8e0"
+    },
+    "48488235": {
+      "name": "PlayerList (48488235)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/PlayerList%20%2848488235%29/71.lua",
+      "archive_timestamp": "2013-10-30 18:53",
+      "sha256": "172c5fa5521f749ad1b3da3562bfea459bd55fe2f184f4c6854167147f73c44c"
+    },
+    "53878047": {
+      "name": "BackpackBuilder (53878047)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/BackpackBuilder%20%2853878047%29/20.lua",
+      "archive_timestamp": "2013-02-21 21:09",
+      "sha256": "8965bf915d8f90e7fc9f26ec4cc9f6e8c76afa88f69b31b1941ed5eed7d49ba2"
+    },
+    "89449093": {
+      "name": "BackpackManager (89449093)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/BackpackManager%20%2889449093%29/7.lua",
+      "archive_timestamp": "2013-10-14 16:58",
+      "sha256": "0d99e6df29b7424fe0e3ddcc49ea4b2e6dcb6a671425d13e43e762227eda7ca8"
+    },
+    "89449008": {
+      "name": "BackpackGear (89449008)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/BackpackGear%20%2889449008%29/3.lua",
+      "archive_timestamp": "2013-10-07 15:07",
+      "sha256": "646b2843bcf36b6f1a91e2d11b7d2ad235c9d73a3a86977c502c92b93e9c31cd"
+    },
+    "53878057": {
+      "name": "LoadoutScript (53878057)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/LoadoutScript%20%2853878057%29/41.lua",
+      "archive_timestamp": "2013-10-09 17:21",
+      "sha256": "dfecb5169920dcd6d2247fec79751ddd6486c2691531bff2f3622b274a1bbc39"
+    },
+    "45284430": {
+      "name": "RbxGui (45284430)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/RbxGui%20%2845284430%29/36.lua",
+      "archive_timestamp": "2012-06-22 18:53",
+      "sha256": "36bd77930813fb8c03fa2db57200c9aebc1282f407004f1a4b4275ab7418cccb"
+    },
+    "45374389": {
+      "name": "RbxGear (45374389)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/RbxGear%20%2845374389%29/3.lua",
+      "archive_timestamp": "2011-03-23 13:10",
+      "sha256": "8e8bcfb3c280b828f66a147bb82558cc91ed38ec755eb9151cbf8269c6268659"
+    },
+    "60595411": {
+      "name": "RbxUtility (60595411)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/RbxUtility%20%2860595411%29/10.lua",
+      "archive_timestamp": "2012-08-17 20:22",
+      "sha256": "e57c206e1328d0a63a4d204ec16e859ee09624985e421028b1cebae13662a70f"
+    },
+    "73157242": {
+      "name": "RbxStamper (73157242)",
+      "url": "https://archive.roblonium.com/Assets/CoreScripts/RbxStamper%20%2873157242%29/10.lua",
+      "archive_timestamp": "2013-02-05 14:24",
+      "sha256": "2da96bdccb9a3ff89b519c9e22b8892c1f8464cf9c51904cf736b88dcc80ab1a"
+    }
+  }
+}

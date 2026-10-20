@@ -3,6 +3,7 @@
 local marker = __RCC_MARKER__
 local port = __RCC_PORT__
 local stage = "services"
+local loadCoreGui = __RCC_CORE_GUI__
 print(marker .. "|CLIENT_BOOTSTRAP_STARTED")
 local ok, problem = pcall(function()
     local world = game:GetService("Workspace")
@@ -18,7 +19,31 @@ local ok, problem = pcall(function()
         print(marker .. "|CONNECTION_FAILED|" .. tostring(code) .. "|" .. tostring(message))
     end)
     local first, acknowledged, walking, moved = nil, false, false, false
+    local guiReported, guiFrames = false, 0
     run.Stepped:connect(function()
+        if loadCoreGui and not guiReported then
+            guiFrames = guiFrames + 1
+            if guiFrames % 120 == 0 then
+                local found = {}
+                local function scan(parent)
+                    for _, child in pairs(parent:GetChildren()) do
+                        if child.Name == "ChatFrame" or child.Name == "PlayerList" or child.Name == "PlayerListMaster" or child.Name == "CurrentLoadout" or child.Name == "GameMainMenu" or child.Name == "ControlFrame" then
+                            found[child.Name] = true
+                        end
+                        scan(child)
+                    end
+                end
+                scan(game:GetService("CoreGui"))
+                local names = {}
+                for name in pairs(found) do table.insert(names,name) end
+                table.sort(names)
+                print(marker .. "|CORE_GUI_NODES|" .. table.concat(names,","))
+                if found.ChatFrame and found.CurrentLoadout and found.GameMainMenu then
+                    guiReported = true
+                    print(marker .. "|CORE_GUI_READY")
+                end
+            end
+        end
         local value = world:FindFirstChild("RccServerToken")
         local beacon = world:FindFirstChild("RccReplicationBeacon")
         local signal = world:FindFirstChild("RccJoinSignal")
@@ -64,6 +89,13 @@ local ok, problem = pcall(function()
     -- This build has an explicit local-test branch for the hostname localhost.
     local player = network:PlayerConnect(0, "localhost", port, 0, 30)
     print(marker .. "|PLAYER_CONNECT_RETURNED|" .. tostring(player))
+    if loadCoreGui then
+        local loaded, detail = pcall(function()
+            local context = game:GetService("ScriptContext")
+            context:AddCoreScript(37801172,context,"StarterScript")
+        end)
+        print(marker .. "|CORE_GUI_REQUESTED|" .. tostring(loaded) .. "|" .. tostring(detail))
+    end
     stage = "RunService start"
     run:Run()
     print(marker .. "|CLIENT_READY")
