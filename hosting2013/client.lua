@@ -60,7 +60,22 @@ local ok, problem = pcall(function()
         print(marker .. "|KEYBOARD_OBSERVER_READY|" .. tostring(inputOk) .. "|" .. tostring(inputProblem))
     end
     local guiReported, guiFrames = false, 0
+    local menuFrames, menuWasShown, menuClosed = 0, false, false
     run.Stepped:connect(function()
+        if loadCoreGui and guiReported then
+            menuFrames = menuFrames + 1
+            if menuFrames % 30 == 0 then
+                local gui = game:GetService("CoreGui"):FindFirstChild("RobloxGui")
+                local shield = gui and gui:FindFirstChild("UserSettingsShield")
+                if shield and shield.Visible and not menuWasShown then
+                    menuWasShown = true
+                    print(marker .. "|NATIVE_MENU_SHOWN")
+                elseif shield and not shield.Visible and menuWasShown and not menuClosed then
+                    menuClosed = true
+                    print(marker .. "|NATIVE_MENU_CLOSED_AFTER_OPEN")
+                end
+            end
+        end
         if loadCoreGui and not guiReported then
             guiFrames = guiFrames + 1
             if guiFrames % 120 == 0 then

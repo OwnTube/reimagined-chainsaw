@@ -53,7 +53,7 @@ def script_source(role, marker, port, token):
     return source.replace('__RCC_MARKER__',json.dumps(marker)).replace('__RCC_PORT__',str(port)).replace('__RCC_TOKEN__',json.dumps(token)).replace('__RCC_CORE_GUI__','false')
 
 
-def press_owned_key(pid, virtual_key, duration=1, method='system'):
+def press_owned_key(pid, virtual_key, duration=1, method='system', activate=True):
     """Deliver one bounded key only while the owned Player is foreground."""
     records = windows_for_pid(pid)
     candidates = [w for w in records if w['visible'] and w['top_level'] and w['class']=='WINDOWSCLIENT']
@@ -91,8 +91,9 @@ def press_owned_key(pid, virtual_key, duration=1, method='system'):
     click = (Input*2)()
     click[0].kind=0;click[0].payload.mouse.flags=2
     click[1].kind=0;click[1].payload.mouse.flags=4
-    metadata['activation_click_accepted'] = user32.SendInput(2,click,ctypes.sizeof(Input))
-    time.sleep(2)
+    if activate:
+        metadata['activation_click_accepted'] = user32.SendInput(2,click,ctypes.sizeof(Input))
+        time.sleep(2)
     user32.GetWindowThreadProcessId(user32.GetForegroundWindow(),ctypes.byref(owner))
     if owner.value!=pid:raise RuntimeError('Owned Player lost focus before keyboard test')
     def send_scan(up):
@@ -121,6 +122,7 @@ def main():
     parser.add_argument('--core-loader',choices=('native','compat'),default='compat')
     parser.add_argument('--test-input',action='store_true',help='Send D only to the owned foreground Player after UI and walking pass')
     parser.add_argument('--input-method',choices=('system','message','scancode'),default='system')
+    parser.add_argument('--record',action='store_true',help='Record actual joining and a short native keyboard/menu demonstration')
     parser.add_argument('--output',type=Path,default=Path('hosting2013/output'))
     parser.add_argument('--timeout',type=int,default=90)
     args = parser.parse_args()
@@ -128,6 +130,7 @@ def main():
     if not 10 <= args.timeout <= 180: parser.error('Timeout must be 10..180 seconds')
     if args.player_profile=='local-signed' and not args.player:parser.error('local-signed requires the standalone Player')
     if args.test_input and (not args.player or args.player_profile!='local-signed'):parser.error('Input testing requires the configured standalone Player')
+    if args.record and not args.test_input:parser.error('Recording requires the standalone keyboard-validated test')
     studio = args.studio.resolve(strict=True)
     specs = json.loads((Path(__file__).resolve().parents[1]/'rcc2013/packages.json').read_text())
     digest = hashlib.sha256(studio.read_bytes()).hexdigest()
@@ -158,6 +161,7 @@ def main():
     backend, backend_thread = None, None
     hosts_path, hosts_line = None, None
     processes, streams = {}, []
+    recording = None
     executables = {}
     # Runtime copies are outside the evidence folder: never upload executables.
     runtime = studio.parent.parent/('join-'+secrets.token_hex(6))
@@ -311,6 +315,10 @@ def main():
         (out/role/'engine-events.log').write_text('\n'.join(lines)+'\n',encoding='utf-8')
         return '\n'.join(lines)
     try:
+        if args.record:
+            from windows_recording import DesktopRecording
+            recording=DesktopRecording(out)
+            recording.event('Studio host launch requested')
         launch('host')
         deadline = time.monotonic()+args.timeout
         while time.monotonic()<deadline and processes['host'].poll() is None:
@@ -322,14 +330,23 @@ def main():
         report['udp_port_bound_by_host'] = udp_binding(processes['host'].pid,port)
         report['server_hosting_validated'] = report['udp_port_bound_by_host'] is True
         if not report['server_hosting_validated']:raise RuntimeError('Host process has no matching UDP endpoint')
+        if recording:recording.event('Studio server ready with verified same-process UDP binding')
         try:
             from native_profile import inspect
             report['host_native_profile'] = inspect(processes['host'],executables['host'])
         except Exception as error:report['host_native_profile_error'] = str(error)
+        if recording:recording.event('standalone Roblox Player launch requested')
         launch('client')
+        maximized=False
         deadline = time.monotonic()+args.timeout
         while time.monotonic()<deadline and all(p.poll() is None for p in processes.values()):
             host, client = observe('host'), observe('client')
+            if recording and not maximized:
+                candidates=[w for w in windows_for_pid(processes['client'].pid) if w['visible'] and w['top_level'] and w['class']=='WINDOWSCLIENT']
+                if len(candidates)==1:
+                    ctypes.windll.user32.ShowWindow(wintypes.HWND(candidates[0]['handle']),3)
+                    maximized=True
+                    recording.event('owned standalone Player window maximized')
             if '|ERROR|' in host+client:raise RuntimeError('Peer Lua failed; inspect native evidence')
             if '|CONNECTION_FAILED|' in client:
                 # Retain a short diagnostic interval for asynchronous UI loading.
@@ -344,11 +361,13 @@ def main():
             if report['replicated_movement_validated'] and report['client_character_movement_validated'] and (args.player_profile!='local-signed' or report['core_gui_validated']) and (not args.test_input or '|CLIENT_WALK_STOPPED' in client):break
             time.sleep(1)
         report['keyboard_movement_validated'] = False
+        if recording:recording.event('network, character, and archived GUI observations collected')
         if args.test_input and player and report.get('core_gui_validated') and '|CLIENT_WALK_STOPPED' in client:
             time.sleep(1)
             report['keyboard_os_evidence'] = press_owned_key(processes['client'].pid,0x44,method=args.input_method)
             report['keyboard_input_sent'] = True
             report['keyboard_input_method'] = args.input_method
+            if recording:recording.event('OS D key press delivered to owned Player')
             input_deadline = time.monotonic()+8
             while time.monotonic()<input_deadline:
                 host,client = observe('host'),observe('client')
@@ -365,9 +384,32 @@ def main():
         # A verified network round trip is separate from character locomotion.
         if not report['client_character_movement_validated']:
             report['movement_limitation'] = 'Character locomotion was not verified on both peers'
+        if recording and report['passed']:
+            recording.event('native join, replication, GUI, and keyboard checks passed')
+            for key,duration in ((0x41,0.6),(0x57,0.6),(0x20,0.1)):
+                press_owned_key(processes['client'].pid,key,duration,method='scancode',activate=False)
+                time.sleep(0.8)
+            recording.event('additional native A, W, and Space keys delivered')
+            press_owned_key(processes['client'].pid,0x1b,0.1,method='scancode',activate=False)
+            time.sleep(3)
+            client=observe('client')
+            report['native_menu_opened']='|NATIVE_MENU_SHOWN' in client
+            recording.event('Escape menu demonstration')
+            from PIL import ImageGrab
+            ImageGrab.grab().save(out/'client'/'menu-desktop.png')
+            press_owned_key(processes['client'].pid,0x1b,0.1,method='scancode',activate=False)
+            time.sleep(3)
+            client=observe('client')
+            report['native_menu_closed']='|NATIVE_MENU_CLOSED_AFTER_OPEN' in client
     except Exception as error:
+        report['passed'] = False
         report['error'] = str(error)
     finally:
+        if recording:
+            report['recording']=recording.finish()
+            if not report['recording']['validated']:
+                report['passed']=False
+                report['recording_error']=report['recording'].get('error','Recording did not validate')
         from PIL import ImageGrab
         # The last-launched client is already foreground. Capture it first.
         for role, process in reversed(list(processes.items())):
