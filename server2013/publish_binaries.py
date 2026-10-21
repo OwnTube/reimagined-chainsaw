@@ -32,6 +32,13 @@ def main():
         'platform':'Windows x64','service_implementation':'native C++',
         'render_worker':'packaged original Python/NumPy CPU renderer',
         'roblox_executables_included':False,'game_join_validated':False,'files':{}}
+    evidence=json.loads(Path('server2013/output/result.json').read_text())
+    if evidence.get('custom_globals_binding_validated') is not True:
+        raise RuntimeError('Native Player did not verify server-generated globals')
+    manifest['application_globals_validated']=True
+    manifest['world_replication_implemented']=False
+    for name in ('LICENSE','PATENTS'):
+        files['server2013/bin/LICENSES/RakNet-'+name+'.txt']=(Path('hosting2013/raknet_reference')/name).read_bytes()
     root=Path('server2013/dist')
     for name in ('RCCService.exe','RCCRenderWorker.exe'):
         data=(root/name).read_bytes()

@@ -42,6 +42,18 @@ class GlobalsObservationTests(unittest.TestCase):
         result['peers']['host']['engine_marker_lines'].append('owned|SERVICE_GUID_INDEX|Players|17')
         self.assertEqual(correlate(trace,result)['matched_count'],0)
 
+    def test_custom_guid_proof_requires_all_server_only_ids(self):
+        from correlate_service_guids import verify_custom_globals
+        bindings=[{'class_name':'OwnedService'+str(i),'index':0x20000000+i} for i in range(15)]
+        state={'application_globals_sent':True,'globals_bindings':bindings}
+        lines=['owned|SERVICE_GUID_INDEX|'+b['class_name']+'|'+str(b['index']) for b in bindings]
+        self.assertTrue(verify_custom_globals(state,lines)['validated'])
+        self.assertFalse(verify_custom_globals(state,lines[:-1])['validated'])
+        altered=[line.replace(str(0x20000000),str(10)) for line in lines]
+        self.assertFalse(verify_custom_globals(state,altered)['validated'])
+        state['application_globals_sent']=False
+        self.assertFalse(verify_custom_globals(state,lines)['validated'])
+
     def test_undefined_cache_truncation_and_exact_bit_limit(self):
         payload,bits=fixture()
         for end in range(len(payload)):

@@ -314,3 +314,30 @@ The Player reported Teams, ReplicatedStorage and TestService for the three
 remaining references, but those services were absent from the host's early
 snapshot; they are not yet labeled independently verified. A later host snapshot
 at player admission is the next timing hypothesis.
+
+## Service-root order identified and native sender implementation
+
+[Run 39548487540](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39548487540),
+source `0f6e5a37d3f932dc1afd1543409044596cc3621c`, independently matched all
+15 root indices to the same classes on host and Player after player admission.
+The order is Lighting, SoundService, StarterPack, StarterGui, Workspace,
+JointsService, Players, Teams, InsertService, Chat, FriendService,
+MarketplaceService, BadgeService, ReplicatedStorage, TestService. The scope/ID
+values are per-run; only this pinned build's service order is used by the sender.
+Field evidence and provenance are in `globals-0.130.0.40915.json`.
+
+The native `Host` now contains an original globals sender using the validated
+C++ writer. It generates a fresh 35-character scope and 15 independent random
+positive GUID indices inside RCCService.exe, sends the bit-accurate reliable
+ordered `0x81` message, and reports only the class/index bindings. The client
+bootstrap knows neither the expected indices nor an expected world/token; it
+simply queries existing native service objects with GetDebugId(0). The Windows
+harness compares all 15 observed indices to the C++ server's runtime output.
+That native integration is a new hypothesis until its native workflow passes.
+
+The checkpoint now requires both transport acceptance and all server-generated
+globals observed in Player object data. It is **not an owned world proof**: no
+`0x82` dictionary is sent by the host yet, no `0x83` instance/property replication
+exists, and no Lua simulation or locomotion is implemented. `game_join_validated`
+remains false. The binary publisher refuses publication without the new globals
+proof and includes the public RakNet data's BSD license/patent notices.

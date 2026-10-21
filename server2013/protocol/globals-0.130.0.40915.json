@@ -1,0 +1,361 @@
+{
+  "scope": "owned reference service-root order, not a custom world",
+  "workflow_run": 39548487540,
+  "source_commit": "0f6e5a37d3f932dc1afd1543409044596cc3621c",
+  "service_classes": [
+    "Lighting",
+    "SoundService",
+    "StarterPack",
+    "StarterGui",
+    "Workspace",
+    "JointsService",
+    "Players",
+    "Teams",
+    "InsertService",
+    "Chat",
+    "FriendService",
+    "MarketplaceService",
+    "BadgeService",
+    "ReplicatedStorage",
+    "TestService"
+  ],
+  "peer_observations": {
+    "scope": "owned reference connection only; no custom host world",
+    "references": [
+      {
+        "position": 0,
+        "observed_index": 690,
+        "host_classes": [
+          "Lighting"
+        ],
+        "client_classes": [
+          "Lighting"
+        ],
+        "class_name_verified": true,
+        "class_name": "Lighting"
+      },
+      {
+        "position": 1,
+        "observed_index": 632,
+        "host_classes": [
+          "SoundService"
+        ],
+        "client_classes": [
+          "SoundService"
+        ],
+        "class_name_verified": true,
+        "class_name": "SoundService"
+      },
+      {
+        "position": 2,
+        "observed_index": 628,
+        "host_classes": [
+          "StarterPack"
+        ],
+        "client_classes": [
+          "StarterPack"
+        ],
+        "class_name_verified": true,
+        "class_name": "StarterPack"
+      },
+      {
+        "position": 3,
+        "observed_index": 629,
+        "host_classes": [
+          "StarterGui"
+        ],
+        "client_classes": [
+          "StarterGui"
+        ],
+        "class_name_verified": true,
+        "class_name": "StarterGui"
+      },
+      {
+        "position": 4,
+        "observed_index": 567,
+        "host_classes": [
+          "Workspace"
+        ],
+        "client_classes": [
+          "Workspace"
+        ],
+        "class_name_verified": true,
+        "class_name": "Workspace"
+      },
+      {
+        "position": 5,
+        "observed_index": 658,
+        "host_classes": [
+          "JointsService"
+        ],
+        "client_classes": [
+          "JointsService"
+        ],
+        "class_name_verified": true,
+        "class_name": "JointsService"
+      },
+      {
+        "position": 6,
+        "observed_index": 674,
+        "host_classes": [
+          "Players"
+        ],
+        "client_classes": [
+          "Players"
+        ],
+        "class_name_verified": true,
+        "class_name": "Players"
+      },
+      {
+        "position": 7,
+        "observed_index": 1248,
+        "host_classes": [
+          "Teams"
+        ],
+        "client_classes": [
+          "Teams"
+        ],
+        "class_name_verified": true,
+        "class_name": "Teams"
+      },
+      {
+        "position": 8,
+        "observed_index": 665,
+        "host_classes": [
+          "InsertService"
+        ],
+        "client_classes": [
+          "InsertService"
+        ],
+        "class_name_verified": true,
+        "class_name": "InsertService"
+      },
+      {
+        "position": 9,
+        "observed_index": 624,
+        "host_classes": [
+          "Chat"
+        ],
+        "client_classes": [
+          "Chat"
+        ],
+        "class_name_verified": true,
+        "class_name": "Chat"
+      },
+      {
+        "position": 10,
+        "observed_index": 663,
+        "host_classes": [
+          "FriendService"
+        ],
+        "client_classes": [
+          "FriendService"
+        ],
+        "class_name_verified": true,
+        "class_name": "FriendService"
+      },
+      {
+        "position": 11,
+        "observed_index": 625,
+        "host_classes": [
+          "MarketplaceService"
+        ],
+        "client_classes": [
+          "MarketplaceService"
+        ],
+        "class_name_verified": true,
+        "class_name": "MarketplaceService"
+      },
+      {
+        "position": 12,
+        "observed_index": 661,
+        "host_classes": [
+          "BadgeService"
+        ],
+        "client_classes": [
+          "BadgeService"
+        ],
+        "class_name_verified": true,
+        "class_name": "BadgeService"
+      },
+      {
+        "position": 13,
+        "observed_index": 1249,
+        "host_classes": [
+          "ReplicatedStorage"
+        ],
+        "client_classes": [
+          "ReplicatedStorage"
+        ],
+        "class_name_verified": true,
+        "class_name": "ReplicatedStorage"
+      },
+      {
+        "position": 14,
+        "observed_index": 1250,
+        "host_classes": [
+          "TestService"
+        ],
+        "client_classes": [
+          "TestService"
+        ],
+        "class_name_verified": true,
+        "class_name": "TestService"
+      }
+    ],
+    "all_service_classes_identified": true,
+    "matched_count": 15,
+    "reference_count": 15,
+    "globals_encoder_wire_validated": true,
+    "game_join_validated": false
+  },
+  "globals_framing": {
+    "id": 129,
+    "length": 133,
+    "bits": 1059,
+    "sha256": "20986f75b147094fafc65f942a46a135ad12b0615b2901af4a27821538653a3a",
+    "body_exported": false,
+    "scope_values_exported": false,
+    "candidates": [
+      {
+        "header_flag_count": 2,
+        "flags": [
+          1,
+          0
+        ],
+        "index_bits": 32,
+        "consumed_bits": 1059,
+        "remaining_bits": 0,
+        "references": [
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "literal",
+            "scope_sha256": "754d67d079d03e98e20baa4d5bd2e49f6935d74cbca2051d2af11d086b3db43a",
+            "index": 690
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "754d67d079d03e98e20baa4d5bd2e49f6935d74cbca2051d2af11d086b3db43a",
+            "index": 632
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "754d67d079d03e98e20baa4d5bd2e49f6935d74cbca2051d2af11d086b3db43a",
+            "index": 628
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "754d67d079d03e98e20baa4d5bd2e49f6935d74cbca2051d2af11d086b3db43a",
+            "index": 629
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "754d67d079d03e98e20baa4d5bd2e49f6935d74cbca2051d2af11d086b3db43a",
+            "index": 567
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "754d67d079d03e98e20baa4d5bd2e49f6935d74cbca2051d2af11d086b3db43a",
+            "index": 658
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "754d67d079d03e98e20baa4d5bd2e49f6935d74cbca2051d2af11d086b3db43a",
+            "index": 674
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "754d67d079d03e98e20baa4d5bd2e49f6935d74cbca2051d2af11d086b3db43a",
+            "index": 1248
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "754d67d079d03e98e20baa4d5bd2e49f6935d74cbca2051d2af11d086b3db43a",
+            "index": 665
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "754d67d079d03e98e20baa4d5bd2e49f6935d74cbca2051d2af11d086b3db43a",
+            "index": 624
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "754d67d079d03e98e20baa4d5bd2e49f6935d74cbca2051d2af11d086b3db43a",
+            "index": 663
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "754d67d079d03e98e20baa4d5bd2e49f6935d74cbca2051d2af11d086b3db43a",
+            "index": 625
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "754d67d079d03e98e20baa4d5bd2e49f6935d74cbca2051d2af11d086b3db43a",
+            "index": 661
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "754d67d079d03e98e20baa4d5bd2e49f6935d74cbca2051d2af11d086b3db43a",
+            "index": 1249
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "754d67d079d03e98e20baa4d5bd2e49f6935d74cbca2051d2af11d086b3db43a",
+            "index": 1250
+          }
+        ],
+        "scopes": [
+          {
+            "cache_id": 1,
+            "length": 35,
+            "sha256": "754d67d079d03e98e20baa4d5bd2e49f6935d74cbca2051d2af11d086b3db43a"
+          }
+        ],
+        "field_framing_decoded": true,
+        "service_names_identified": false,
+        "custom_host_globals_implemented": false,
+        "cpp_encoder": {
+          "native_wire_validated": true,
+          "bits": 1059,
+          "bytes": 133,
+          "masked_sha256": "20986f75b147094fafc65f942a46a135ad12b0615b2901af4a27821538653a3a",
+          "scope_value_exported": false,
+          "game_join_validated": false
+        }
+      }
+    ],
+    "errors": {
+      "1": "Undefined scope cache slot"
+    }
+  },
+  "game_join_validated": false
+}

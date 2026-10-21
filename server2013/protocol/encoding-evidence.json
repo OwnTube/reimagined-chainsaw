@@ -1,0 +1,156 @@
+{
+  "scope": "owned reference protocol observation; original C++ encoder remains separate from native host",
+  "source_commit": "6358ec85c2c302ca58cc6ca5ce345c3bda228cab",
+  "workflow_run": 39547726331,
+  "descriptor_writer": {
+    "field_roundtrip_validated": true,
+    "native_wire_prefix_validated": true,
+    "bits": 319267,
+    "bytes": 39909,
+    "sha256": "d6ee3d0df270316e36ac68fa5b7d5175d740f9dc090766a2f4a5230a6c57b409",
+    "source": "original portable C++ encoder from decoded fields; no packet replay",
+    "custom_host_world_implemented": false,
+    "game_join_validated": false
+  },
+  "globals_observation": {
+    "id": 129,
+    "length": 130,
+    "bits": 1035,
+    "sha256": "366a1fb1f3cb08f566dd4cf29e4408ce7fd95343e3af31f079f1057cc4e2cf74",
+    "body_exported": false,
+    "scope_values_exported": false,
+    "candidates": [
+      {
+        "header_flag_count": 2,
+        "flags": [
+          1,
+          0
+        ],
+        "index_bits": 32,
+        "consumed_bits": 1035,
+        "remaining_bits": 0,
+        "references": [
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "literal",
+            "scope_sha256": "5fb7c258c0f75e6b57d63184483d4d6ffb2b84f63da61bcbfd1c6af3947de4fd",
+            "index": 690
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "5fb7c258c0f75e6b57d63184483d4d6ffb2b84f63da61bcbfd1c6af3947de4fd",
+            "index": 632
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "5fb7c258c0f75e6b57d63184483d4d6ffb2b84f63da61bcbfd1c6af3947de4fd",
+            "index": 628
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "5fb7c258c0f75e6b57d63184483d4d6ffb2b84f63da61bcbfd1c6af3947de4fd",
+            "index": 629
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "5fb7c258c0f75e6b57d63184483d4d6ffb2b84f63da61bcbfd1c6af3947de4fd",
+            "index": 567
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "5fb7c258c0f75e6b57d63184483d4d6ffb2b84f63da61bcbfd1c6af3947de4fd",
+            "index": 658
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "5fb7c258c0f75e6b57d63184483d4d6ffb2b84f63da61bcbfd1c6af3947de4fd",
+            "index": 674
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "5fb7c258c0f75e6b57d63184483d4d6ffb2b84f63da61bcbfd1c6af3947de4fd",
+            "index": 1248
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "5fb7c258c0f75e6b57d63184483d4d6ffb2b84f63da61bcbfd1c6af3947de4fd",
+            "index": 665
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "5fb7c258c0f75e6b57d63184483d4d6ffb2b84f63da61bcbfd1c6af3947de4fd",
+            "index": 624
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "5fb7c258c0f75e6b57d63184483d4d6ffb2b84f63da61bcbfd1c6af3947de4fd",
+            "index": 663
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "5fb7c258c0f75e6b57d63184483d4d6ffb2b84f63da61bcbfd1c6af3947de4fd",
+            "index": 625
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "5fb7c258c0f75e6b57d63184483d4d6ffb2b84f63da61bcbfd1c6af3947de4fd",
+            "index": 661
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "5fb7c258c0f75e6b57d63184483d4d6ffb2b84f63da61bcbfd1c6af3947de4fd",
+            "index": 1249
+          },
+          {
+            "null": false,
+            "scope_cache_id": 1,
+            "scope_source": "cached",
+            "scope_sha256": "5fb7c258c0f75e6b57d63184483d4d6ffb2b84f63da61bcbfd1c6af3947de4fd",
+            "index": 1250
+          }
+        ],
+        "scopes": [
+          {
+            "cache_id": 1,
+            "length": 35,
+            "sha256": "5fb7c258c0f75e6b57d63184483d4d6ffb2b84f63da61bcbfd1c6af3947de4fd"
+          }
+        ],
+        "field_framing_decoded": true,
+        "service_names_identified": false,
+        "custom_host_globals_implemented": false
+      }
+    ],
+    "errors": {
+      "1": "Undefined scope cache slot"
+    }
+  },
+  "game_join_validated": false
+}

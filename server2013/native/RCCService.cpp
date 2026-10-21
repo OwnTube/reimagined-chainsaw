@@ -1,4 +1,4 @@
-// Original RCC2013 native service. Transport only: world replication remains
+// Original RCC2013 native service. Transport/globals: world replication remains
 // unfinished. Wire layouts were measured on our synthetic loopback fixture and
 // compared with the publicly released RakNet transport documentation.
 #define WIN32_LEAN_AND_MEAN
@@ -20,6 +20,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include "../protocol/DescriptorWriter.hpp"
 #pragma comment(lib,"Ws2_32.lib")
 #pragma comment(lib,"Bcrypt.lib")
 
@@ -42,7 +43,8 @@ struct Assembly {uint32_t count=0,order=0;std::map<uint32_t,Bytes> chunks;size_t
 class Host {
     SOCKET udp=INVALID_SOCKET;
     sockaddr_in local{},peer{};
-    bool hasPeer=false,connected=false;
+    bool hasPeer=false,connected=false,globalsSent=false;
+    std::vector<std::pair<std::string,uint32_t>> globalsBindings;
     uint64_t guid=0;
     unsigned port=0,mtu=1492,sequence=0,reliable=0,order=0;
     std::string phase="listening";
@@ -57,12 +59,40 @@ class Host {
     void event(const std::string& text){if(events.size()<256)events.push_back(text);}
     bool same(const sockaddr_in& a,const sockaddr_in& b){return a.sin_addr.s_addr==b.sin_addr.s_addr&&a.sin_port==b.sin_port;}
     void send(const Bytes& bytes){if(sendto(udp,reinterpret_cast<const char*>(bytes.data()),static_cast<int>(bytes.size()),0,reinterpret_cast<sockaddr*>(&peer),sizeof(peer))!=static_cast<int>(bytes.size()))throw std::runtime_error("UDP send failed");sent++;}
-    void message(const Bytes& payload,bool reliableSend=false,bool orderedSend=false){
+    void message(const Bytes& payload,bool reliableSend=false,bool orderedSend=false,size_t validBits=0){
         if(payload.empty()||payload.size()>1200)throw std::runtime_error("unsplit send budget");
-        const auto seq=sequence++&0xffffff;Bytes b={0x84};put(b,seq,3,true);b.push_back(orderedSend?0x60:reliableSend?0x40:0);put(b,payload.size()*8,2);
+        if(!validBits)validBits=payload.size()*8;
+        if((validBits+7)/8!=payload.size())throw std::runtime_error("invalid message bit count");
+        const auto seq=sequence++&0xffffff;Bytes b={0x84};put(b,seq,3,true);b.push_back(orderedSend?0x60:reliableSend?0x40:0);put(b,validBits,2);
         if(reliableSend||orderedSend)put(b,reliable++&0xffffff,3,true);
         if(orderedSend){put(b,order++&0xffffff,3,true);b.push_back(0);}append(b,payload);
         if(reliableSend||orderedSend){if(pending.size()>=64)throw std::runtime_error("reliable send budget");pending[seq]={b,now(),0};}send(b);
+    }
+    void sendGlobals(){
+        if(globalsSent)return;
+        // Exact pinned Player root order. Each index is generated in this server
+        // process; the client bootstrap receives neither these values nor a world.
+        const char* classes[]={"Lighting","SoundService","StarterPack","StarterGui","Workspace",
+            "JointsService","Players","Teams","InsertService","Chat","FriendService",
+            "MarketplaceService","BadgeService","ReplicatedStorage","TestService"};
+        unsigned char randomScope[16];
+        if(BCryptGenRandom(nullptr,randomScope,sizeof(randomScope),BCRYPT_USE_SYSTEM_PREFERRED_RNG)<0)
+            throw std::runtime_error("scope random generation");
+        std::string scope="RBX";const char* hex="0123456789abcdef";
+        for(auto byte:randomScope){scope+=hex[byte>>4];scope+=hex[byte&15];}
+        std::set<uint32_t> used;std::vector<uint32_t> indices;
+        for(const char* name:classes){
+            uint32_t index=0;
+            do{
+                if(BCryptGenRandom(nullptr,reinterpret_cast<unsigned char*>(&index),sizeof(index),BCRYPT_USE_SYSTEM_PREFERRED_RNG)<0)
+                    throw std::runtime_error("index random generation");
+                index=(index&0x1fffffff)|0x20000000;
+            }while(!used.insert(index).second);
+            indices.push_back(index);globalsBindings.emplace_back(name,index);
+        }
+        auto encoded=rcc2013::DescriptorWriter().globals(true,false,scope,indices);
+        message(Bytes(encoded.bytes().begin(),encoded.bytes().end()),true,true,encoded.sizeBits());
+        globalsSent=true;event("original_globals_sent");
     }
     void dispatch(const Bytes& body){
         if(body.empty())throw std::runtime_error("empty message");
@@ -76,7 +106,7 @@ class Host {
             }
         }else if(body[0]==19){
             if((phase!="accept_sent"&&phase!="connected")||body.size()!=94)throw std::runtime_error("new incoming layout/phase");
-            connected=true;phase="connected";event("new_incoming_connection");
+            connected=true;phase="connected";event("new_incoming_connection");sendGlobals();
         }else if(body[0]==0){
             if(body.size()!=9)throw std::runtime_error("ping time width");Bytes pong={3};pong.insert(pong.end(),body.begin()+1,body.end());put(pong,now(),8);message(pong);
         }else if(body[0]==3||body[0]==4){}
@@ -139,7 +169,8 @@ public:
     ~Host(){if(udp!=INVALID_SOCKET)closesocket(udp);}
     void save(){
         std::ostringstream r;r<<"{\"implementation\":\"original native C++ RCCService.exe; no Roblox engine loaded\",\"pid\":"<<GetCurrentProcessId()<<",\"port\":"<<port<<",\"phase\":"<<escaped(phase)<<",\"transport_handshake_observed\":"<<(connected?"true":"false")<<",\"game_join_validated\":false,\"world_replication_implemented\":false,\"lua_engine_implemented\":false,\"datagrams_received\":"<<received<<",\"datagrams_sent\":"<<sent<<",\"events\":[";
-        bool first=true;for(const auto& e:events){if(!first)r<<',';first=false;r<<"{\"event\":"<<escaped(e)<<"}";}r<<"],\"application_messages\":[";first=true;for(const auto& m:messages){if(!first)r<<',';first=false;r<<m;}r<<"]}\n";
+        bool first=true;for(const auto& e:events){if(!first)r<<',';first=false;r<<"{\"event\":"<<escaped(e)<<"}";}r<<"],\"application_messages\":[";first=true;for(const auto& m:messages){if(!first)r<<',';first=false;r<<m;}r<<"],\"application_globals_sent\":"<<(globalsSent?"true":"false")<<",\"globals_bindings\":[";
+        first=true;for(const auto& binding:globalsBindings){if(!first)r<<',';first=false;r<<"{\"class_name\":"<<escaped(binding.first)<<",\"index\":"<<binding.second<<"}";}r<<"]}\n";
         auto temp=output/L"server-result.tmp",path=output/L"server-result.json";{std::ofstream stream(temp,std::ios::binary);stream<<r.str();if(!stream)throw std::runtime_error("report write");}if(!MoveFileExW(temp.c_str(),path.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH))throw std::runtime_error("report replace");
     }
     void run(unsigned seconds){

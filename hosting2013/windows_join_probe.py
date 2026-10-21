@@ -430,6 +430,15 @@ def main():
             report['studio_launched']=False
             report['probe_checkpoint']='transport handshake; full game join remains false'
             report['probe_checkpoint_passed']=report.get('custom_transport_handshake_validated',False) and report['udp_port_bound_by_host']
+            if args.native_server:
+                from correlate_service_guids import verify_custom_globals
+                binding=verify_custom_globals(report.get('custom_server',{}),report['peers']['client']['engine_marker_lines'])
+                report['custom_globals_binding_observation']=binding
+                report['custom_globals_binding_validated']=binding['validated']
+                report['probe_checkpoint']='transport and server-generated built-in service GUID binding; full game join remains false'
+                report['probe_checkpoint_passed']=report['probe_checkpoint_passed'] and binding['validated']
+                report['error']=('Custom host globals checkpoint only: owned world replication and simulation remain unimplemented'
+                                 if binding['validated'] else 'Server-generated service GUIDs were not observed completely in native Player objects')
         # A verified network round trip is separate from character locomotion.
         if not report['client_character_movement_validated']:
             report['movement_limitation'] = 'Character locomotion was not verified on both peers'

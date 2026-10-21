@@ -39,3 +39,20 @@ if __name__=='__main__':
     result=correlate(json.loads(args.trace.read_text()),json.loads(args.result.read_text()))
     args.output.write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps(result,indent=2))
+
+
+def verify_custom_globals(server, client_lines):
+    """Compare server-only random IDs with native Player object API output."""
+    observed={}
+    for line in client_lines:
+        match=re.search(r'\|SERVICE_GUID_INDEX\|([A-Za-z][A-Za-z0-9_]*)\|(\d+)(?:\s|$)',line)
+        if match:observed.setdefault(match[1],set()).add(int(match[2]))
+    expected=server.get('globals_bindings',[])
+    rows=[{'class_name':item['class_name'],'server_index':item['index'],
+           'observed_in_player':item['index'] in observed.get(item['class_name'],set())} for item in expected]
+    valid=(server.get('application_globals_sent') is True and len(rows)==15
+           and len({r['class_name'] for r in rows})==15 and len({r['server_index'] for r in rows})==15
+           and all(0x20000000<=r['server_index']<0x40000000 and r['observed_in_player'] for r in rows))
+    return {'validated':valid,'bindings':rows,'expected_values_embedded_in_client_bootstrap':False,
+            'scope':'built-in service GUID identities only; no owned replicated world',
+            'game_join_validated':False}

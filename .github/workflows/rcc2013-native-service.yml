@@ -1,4 +1,4 @@
-name: Build custom RCCService.exe and record real Player transport
+name: Build custom RCCService and verify native Player globals
 on:
   push:
     branches: [rcc2013-ci]
@@ -46,6 +46,9 @@ jobs:
         run: python -m unittest -v test_software_render.py
       - name: Package the custom render worker with the same logo
         run: python -m PyInstaller --noconfirm --clean --onefile --name RCCRenderWorker --icon server2013/native/rcc2013.ico --add-data "rcc2013/static;static" --hidden-import software_render --hidden-import numpy --paths rcc2013 --distpath server2013/dist --workpath server2013/build/worker rcc2013/server.py
+      - name: Check server-only globals evidence rules
+        working-directory: hosting2013
+        run: python -m unittest -v test_bootstrap.py test_globals_observer.py
       - name: Restore only the exact 2013 Player
         working-directory: rcc2013
         run: python download.py --only player
@@ -64,7 +67,7 @@ jobs:
             'RCC2013_RESTART_IIS=1' >> $env:GITHUB_ENV
             Stop-Service W3SVC -Force -ErrorAction Stop
           }
-      - name: Record real Player connecting to our compiled service
+      - name: Record native Player receiving server-generated service GUIDs
         run: python hosting2013/windows_join_probe.py --native-server server2013/dist/RCCService.exe --player rcc2013/vendor/player/RobloxPlayerBeta.exe --player-profile local-signed --record --output server2013/output --timeout 25
       - name: Prove Studio remained absent
         shell: pwsh

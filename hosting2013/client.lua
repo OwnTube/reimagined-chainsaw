@@ -35,6 +35,7 @@ local ok, problem = pcall(function()
     stage = "connection callbacks"
     network.ConnectionAccepted:connect(function(peer, replicator)
         print(marker .. "|CONNECTION_ACCEPTED")
+        Spawn(function() wait(1); observeServiceGuidIndices() end)
         local requested, errorText = pcall(function() replicator:RequestCharacter() end)
         print(marker .. "|CHARACTER_REQUEST|" .. tostring(requested) .. "|" .. tostring(errorText))
     end)
