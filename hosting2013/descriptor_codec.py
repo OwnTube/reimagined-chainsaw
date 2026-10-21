@@ -109,5 +109,5 @@ def read_tables(payload, endian='big', table_count=3, include_configuration=Fals
             'configuration_decoded':include_configuration,
             'consumed_bits':stream.offset,'remaining_bits':stream.remaining,
             'compressed_integer_endian':endian,'table_framing_decoded':True,
-            'schema_complete':stream.remaining<=7,
+            'schema_complete':include_configuration and stream.remaining<=7,
             'application_handshake_implemented':False}

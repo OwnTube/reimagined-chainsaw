@@ -36,7 +36,7 @@ class DescriptorCodecTests(unittest.TestCase):
         bits+=word(1)+descriptor(7,'Name',bytes.fromhex('313681'))+word(0)
         payload=packed(bits)
         result=read_tables(payload)
-        self.assertTrue(result['schema_complete'])
+        self.assertFalse(result['schema_complete'])
         self.assertEqual(result['tables'][1]['entries'],[{'id':7,'name':'Name'}])
         self.assertFalse(result['application_handshake_implemented'])
         for end in range(len(payload)):
@@ -57,6 +57,13 @@ class DescriptorCodecTests(unittest.TestCase):
         self.assertNotIn('private_value',str(row))
         for end in range(13,len(payload)):
             with self.assertRaises(ValueError):read_tables(payload[:end],include_configuration=True)
+
+    def test_fourth_dictionary_precedes_configuration(self):
+        bits='10000010'+word(0)*3+word(1)+descriptor(0,'Name',bytes.fromhex('313681'))+'0'*16
+        row=read_tables(packed(bits),table_count=4,include_configuration=True)
+        self.assertTrue(row['schema_complete'])
+        self.assertEqual(row['tables'][3]['entries'][0]['name'],'Name')
+        self.assertFalse(read_tables(packed(bits),include_configuration=True)['schema_complete'])
 
     def test_invalid_lengths_counts_and_symbols(self):
         with self.assertRaises(ValueError):read_tables(b'\x82'+(4097).to_bytes(4,'big'))

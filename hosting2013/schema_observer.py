@@ -56,16 +56,21 @@ def observe(direction, payload):
     result['descriptor_candidates'] = []
     result['descriptor_errors'] = {}
     for endian in ('big','little'):
-        try:
-            candidate=read_tables(payload,endian)
-            if not candidate['schema_complete']:
+        candidates=[]
+        for table_count in (3,4):
+            try:
+                candidate=read_tables(payload,endian,table_count)
+                candidate['table_count']=table_count
                 try:
-                    candidate=read_tables(payload,endian,include_configuration=True)
+                    candidate=read_tables(payload,endian,table_count,include_configuration=True)
+                    candidate['table_count']=table_count
                 except ValueError as error:
                     candidate['configuration_error']=str(error)
-            result['descriptor_candidates'].append(candidate)
-        except ValueError as error:
-            result['descriptor_errors'][endian] = str(error)
+                candidates.append(candidate)
+            except ValueError as error:
+                result['descriptor_errors'][f'{endian}/{table_count}'] = str(error)
+        if candidates:
+            result['descriptor_candidates'].append(max(candidates,key=lambda c:(c['schema_complete'],c['consumed_bits'])))
     # A valid zlib checksum and complete bounded stream are required. We report
     # symbol fields only, even if an unrelated byte pair resembles a header.
     for offset in range(min(32, len(body)-1)):

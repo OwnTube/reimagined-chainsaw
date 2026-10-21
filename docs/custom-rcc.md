@@ -192,3 +192,14 @@ hypothesis and exports names plus value lengths/hashes, never values. This is
 separate from globals `0x81`, GUID encoding and replication `0x83`, which remain
 unimplemented in the custom native host. The published EXEs remain unchanged
 because these changes are protocol research tooling, not a verified host update.
+
+Tail observation [39542021352](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39542021352)
+on source `1f4e785d7c88eb64d0468610cc843c75a7ba8abf` passed the reference join
+and repeated the three dictionary mappings. Reading a configuration pair count
+immediately after the third dictionary produced zero, but left 26,180 bits.
+Therefore that offset is **not** the end of the schema. The exact Player's
+handler conditionally reads a fourth descriptor dictionary before the final
+configuration-pair section. The observer now tests both three/four dictionaries
+with strict complete-message accounting; partial dictionaries cannot set
+`schema_complete=true`. A new synthetic fixture covers this boundary. The next
+reference run tests the fourth-dictionary hypothesis, not transport acceptance.
