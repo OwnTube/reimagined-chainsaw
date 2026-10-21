@@ -54,7 +54,8 @@ class Host {
     std::string propertyNonce;bool propertySent=false;
     std::string instanceNonce;uint32_t instanceIndex=0,instanceParent=0;bool instanceSent=false;
     std::string ownedScope,instanceScope,secondNonce;bool firstReturn=false,secondSent=false,secondReturn=false;
-    rcc2013::PropertyReader propertyReader;unsigned parsedValues=0;
+    rcc2013::PropertyReader propertyReader{false}; // Client-to-server path has no server control bit.
+    unsigned parsedValues=0;
     std::vector<std::string> propertyReadErrors;
     bool clientSchema=false;uint32_t clientValueId=0;std::vector<uint32_t> clientCounts;
     std::string phase="listening";
@@ -266,7 +267,7 @@ public:
         first=true;for(auto count:clientCounts){if(!first)r<<',';first=false;r<<count;}r<<"]}"
             <<",\"value_roundtrip\":{\"first_client_return_validated\":"<<(firstReturn?"true":"false")
             <<",\"second_value_sent\":"<<(secondSent?"true":"false")<<",\"second_nonce\":"<<escaped(secondNonce)
-            <<",\"second_client_return_validated\":"<<(secondReturn?"true":"false")<<",\"parsed_value_properties\":"<<parsedValues
+            <<",\"second_client_return_validated\":"<<(secondReturn?"true":"false")<<",\"incoming_control_bits\":0,\"parsed_value_properties\":"<<parsedValues
             <<",\"bidirectional_stringvalue_validated\":"<<(firstReturn&&secondSent&&secondReturn?"true":"false")<<",\"read_errors\":[";
         first=true;for(const auto& error:propertyReadErrors){if(!first)r<<',';first=false;r<<escaped(error);}r<<"]}"
             <<",\"outbound_queued\":"<<outbound.queuedCount()<<",\"outbound_resident_bytes\":"<<outbound.residentBytes()<<"}\n";

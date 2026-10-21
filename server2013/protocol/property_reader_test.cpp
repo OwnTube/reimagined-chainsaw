@@ -34,5 +34,16 @@ int main(){
     for(unsigned i=0;i<4;++i)reply.uint32((0x23456789>>(8*i))&255,8);
     reply.uint32(19,8);reply.uint32(0,2);reply.bit(true);reply.uint32(1,8);reply.uint32(0,6);
     decoded=reader.read(reply.bytes(),reply.sizeBits());assert(decoded[0].value==nonce && decoded[0].scope==scope);
+    // Directional fixture: client updates omit the server's control bit. An
+    // erroneous extra read shifts literal 0x81 to an unresolved cached slot2.
+    rcc2013::BitWriter client;client.uint32(0x83,8);client.uint32(3,2);
+    auto fixedText=[&](){client.uint32(4,32);client.bit(false);client.uint32(24,32);client.uint32(0x31,8);client.uint32(0x36,8);client.uint32(0x81,8);};
+    client.uint32(0x81,8);fixedText();
+    for(unsigned i=0;i<4;++i)client.uint32((0x23456789>>(8*i))&255,8);
+    client.uint32(0xdf,8);client.uint32(2,2);client.uint32(0x81,8);fixedText();client.uint32(0,6);
+    rcc2013::PropertyReader upstream(false);decoded=upstream.read(client.bytes(),client.sizeBits());
+    assert(decoded[0].value=="Name" && decoded[0].scope=="Name");
+    rcc2013::PropertyReader downstream;rejected=false;
+    try{downstream.read(client.bytes(),client.sizeBits());}catch(const std::runtime_error&){rejected=true;}assert(rejected);
     std::cout<<"Property reader: literal/cached scopes, raw IDs, control flags, fixed Huffman word, truncation and trailing data passed\n";
 }

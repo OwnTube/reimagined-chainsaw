@@ -43,6 +43,7 @@ class PropertyReader {
     std::vector<Node> tree_;
     std::array<std::string,128> scopes_{},values_{};
     uint32_t valueDescriptor_=735;
+    bool controlBit_;
     std::string text(BitReader& in,unsigned maximum=128)const {
         const auto length=in.uint32(32),bits=in.compressed();
         if(length>maximum || bits>8192 || bits>in.remaining())throw std::runtime_error("cached text bound");
@@ -61,7 +62,7 @@ class PropertyReader {
         return cache[slot];
     }
 public:
-    PropertyReader(){
+    explicit PropertyReader(bool controlBit=true):controlBit_(controlBit){
         std::vector<int> ordered;
         auto insert=[&](int id){auto at=std::lower_bound(ordered.begin(),ordered.end(),tree_[id].weight,
             [&](int other,uint32_t w){return tree_[other].weight<w;});ordered.insert(at,id);};
@@ -104,7 +105,7 @@ public:
             if(property.scope.empty())throw std::runtime_error("null property GUID");
             property.index=in.rawLittle(32);auto descriptor=in.rawLittle(10);
             if(descriptor!=valueDescriptor_)throw std::runtime_error("unsupported property descriptor "+std::to_string(descriptor));
-            property.control=in.uint32(1)!=0;property.value=cached(in,values,"value");result.push_back(std::move(property));
+            property.control=controlBit_ && in.uint32(1)!=0;property.value=cached(in,values,"value");result.push_back(std::move(property));
         }
         throw std::runtime_error("replication item budget");
     }

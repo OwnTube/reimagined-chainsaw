@@ -564,3 +564,13 @@ in service scope cache1. This makes the first client return for that object
 introduce its scope without requiring a general startup-instance decoder. The
 second server update uses outgoing GUID cache2 and Value string cache2. This is
 a bounded interoperability fixture, not general client instance admission.
+
+Revised native probe39560741401 on source423cc1c validated the independent client
+prefix: 287classes /774properties /244events, StringValue:Value ID695. New-instance
+proof still passed, but the return reader reached unresolved Value cache slot2.
+The byte-shift pattern and exact-build base/client writer path identify a further
+hypothesis: upstream property updates omit the server-to-client control bit.
+The earlier write path with that bit was server-side context within the binary.
+The next probe explicitly uses zero upstream control bits; a fixed Huffman
+fixture reproduces how an erroneous bit read shifts literal0x81 to cache slot2.
+This is a direction-specific correction, not an attempt to disable validation.
