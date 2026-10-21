@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-21",
+  "native_run": 39554013396,
+  "source_commit": "6a9997b09fcec52cf7e5f98680f4b7c60dfa4110",
+  "binary_commit": "cc2ffbc3a86f61897ea3a87fe2edec2949fc02aa",
+  "artifact_id": 12324154719,
+  "globals_validated": true,
+  "schema_delivery_validated": true,
+  "property_replication": {
+    "property_replication_validated": true,
+    "schema_property_route_validated": true,
+    "subject": "TestService.Name",
+    "server_only_nonce_observed": true,
+    "world_replication_validated": false,
+    "game_join_validated": false,
+    "limitation": "One existing service string property; no new instances, character or playable world"
+  },
+  "recording": {
+    "validated": true,
+    "edited": false,
+    "seconds": 15.58,
+    "frames": 187,
+    "sha256": "94c781fffae7cb864ac3c25d48ef91fa4fb0733ef96ba791f7692c7a1259f19f"
+  },
+  "manifest_files": {
+    "RCCService.exe": {
+      "bytes": 505344,
+      "sha256": "b85e512b571b00659028c3f7db9891696f8c9b9629c08821289f5dbf209403f7"
+    },
+    "RCCRenderWorker.exe": {
+      "bytes": 27979785,
+      "sha256": "cc493385dc57b677e9b0a57a8cb8217b0872d259abea78318127cb2f1ce6c762"
+    }
+  },
+  "world_replication_implemented": false,
+  "game_join_validated": false
+}

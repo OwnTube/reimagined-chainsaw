@@ -443,5 +443,25 @@ only queries native service names; it contains neither the nonce nor a setter.
 The new native gate must observe the exact server value in TestService.Name.
 This tests the GUID + property-ID + string route through the delivered schema.
 It is not the planned StringValue/new-instance world proof and cannot change
-`world_replication_implemented` or `game_join_validated`. Native validation of
-this new property hypothesis is pending.
+`world_replication_implemented` or `game_join_validated`. Native run
+[39554013396](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39554013396),
+source `6a9997b09fcec52cf7e5f98680f4b7c60dfa4110`, passed: the exact server-only
+nonce was observed through the native TestService.Name property. All globals,
+schema ACKs, renderer jobs and continuous recording checks also passed. The
+workflow published both tested owned executables in `cc2ffbc`; their sizes and
+hashes are retained in `native-property-checkpoint.json` and the bundle manifest.
+This validates the compact item/GUID/truncated property ID/cache-string route for
+one existing service property. It does not validate every property type, new
+instances, simulation or playable joining.
+
+
+## Bounded StringValue reflection observation
+
+The next read-only diagnostic targets only the exact pinned Player's static
+StringValue ClassDescriptor and its bounded property vector. It exports API
+property names, flags and boolean-type identity, with at most 32 KiB of reads;
+it performs no scan, writes, injection or raw-memory export. The separate
+reflection workflow reuses the already tested owned EXE without rebuilding it.
+The purpose is to resolve new-instance property ordering before implementing
+an original StringValue creation message. This observation is research only and
+cannot count as a replicated world.

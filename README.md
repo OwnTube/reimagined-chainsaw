@@ -38,8 +38,11 @@ is retained for comparisons, with manual workflows only.
 [Native run 39553448548](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39553448548)
 also passed delivery of our original 40,010-byte descriptor message: every
 fragment was ACKed, all 15 service GUIDs still matched, and all four renders
-passed. Updated binaries are committed. Engine dictionary application remains
-unproved; a new server-only service-name property probe is pending.
+passed. Updated binaries are committed. [Native run 39554013396](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39554013396)
+then verified our first original property update: a fresh server-only nonce was
+observed as `TestService.Name` in the real Player. The tested executables are
+committed. This verifies one schema/property route, with no new world instances
+or playable game yet.
 
 ## Use the executable bundle
 
