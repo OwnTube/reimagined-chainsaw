@@ -1,0 +1,66 @@
+name: Observe exact 2013 StringValue reflection order
+on:
+  push:
+    branches: [rcc2013-ci]
+    paths: ["hosting2013/reflection_observer.py", ".github/workflows/rcc2013-reflection-observation.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reflection:
+    runs-on: windows-2022
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - run: python -m pip install cryptography
+      - name: Restore only the exact Player; use already tested owned EXE
+        working-directory: rcc2013
+        run: python download.py --only player
+      - name: Release IIS and verify Studio absence
+        shell: pwsh
+        run: |
+          if (Test-Path rcc2013/vendor/studio) { throw 'Unexpected Studio' }
+          $service = Get-Service W3SVC -ErrorAction SilentlyContinue
+          if ($service -and $service.Status -eq 'Running') {
+            'RCC2013_RESTART_IIS=1' >> $env:GITHUB_ENV
+            Stop-Service W3SVC -Force -ErrorAction Stop
+          }
+      - name: Read only the pinned StringValue reflection fields
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory hosting2013/reflection-output -Force | Out-Null
+          $runner = Start-Process python -ArgumentList @('hosting2013/windows_join_probe.py','--native-server','server2013/bin/RCCService.exe','--player','rcc2013/vendor/player/RobloxPlayerBeta.exe','--player-profile','local-signed','--output','hosting2013/reflection-output/join','--timeout','30') -PassThru -NoNewWindow
+          try {
+            $observed = $false
+            for ($attempt = 0; $attempt -lt 50; $attempt++) {
+              $player = Get-Process RobloxPlayerBeta -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($player) {
+                Start-Sleep -Seconds 1
+                python hosting2013/reflection_observer.py --pid $player.Id --original-player rcc2013/vendor/player/RobloxPlayerBeta.exe --output hosting2013/reflection-output/reflection.json
+                if ($LASTEXITCODE -eq 0) { $observed = $true; break }
+              }
+              if ($runner.HasExited) { break }
+              Start-Sleep -Milliseconds 300
+            }
+            $runner.WaitForExit()
+            if (!$observed) { throw 'Bounded reflection observation failed' }
+            if ($runner.ExitCode -ne 0) { throw 'Previously validated property checkpoint regressed' }
+          } finally {
+            if (!$runner.HasExited) { Stop-Process -Id $runner.Id -Force }
+          }
+      - name: Preserve reflection names and bounded diagnostics only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: rcc2013-reflection-observation
+          path: hosting2013/reflection-output/
+          retention-days: 7
+      - name: Restore IIS
+        if: always() && env.RCC2013_RESTART_IIS == '1'
+        shell: pwsh
+        run: Start-Service W3SVC
