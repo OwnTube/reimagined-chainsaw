@@ -132,3 +132,23 @@ worker SHA-256 is
 `848ce15a5155c97c70737fad474128a8eca3bafc40675a9784ad2d426f6649a4`.
 `game_join_validated` remains false. Subsequent source changes need a new
 verified build before replacing these binary identities.
+
+## Exact-build application research (2026-10-21)
+
+The later, MIT-licensed [Sala dissector](https://github.com/Arisstath/raknet-dissector/tree/1d25a8915c87606ed15cdefe02e8a99b37d7bb09)
+labels `0x81` globals, `0x83` replication and `0x8a` ticket submission, but its
+schema negotiation uses `0x97`, not the observed 2013 server's `0x82` message.
+Its layouts are research leads, **not validated 2013 codecs**. No implementation
+was copied into the custom host on that basis.
+
+`hosting2013/schema_observer.py` now examines only server-to-client ID `0x82`.
+It looks for a fixed allowlist of public API symbols at all eight bit alignments
+and, separately, inside complete checksum-valid bounded zlib streams starting
+within the first 32 body bytes. Output contains symbol positions and at most six
+preceding/four following format bytes, not replayable application bodies. Client
+tickets, globals, scripts, geometry and other unknown packets remain metadata
+only. It explicitly reports `layout_validated=false`. Four synthetic tests cover
+sensitive-message exclusion, bit offsets, compressed bounds/checksums, and
+out-of-order split reconstruction. The dedicated Windows observation workflow
+uses the existing owned Studio reference strictly as a protocol oracle; it does
+not change the Studio-free product or its published binary manifest.

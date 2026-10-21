@@ -2,6 +2,7 @@
 
 No packet replay, public connections, credentials, or application payload dumps.
 Transport control bytes may be retained to determine this build's wire layout.
+Allowlisted symbol observations of server ID 0x82 contain no replayable body.
 """
 import hashlib
 import json
@@ -58,7 +59,7 @@ def frames(data):
 class Trace:
     def __init__(self):
         self.started=time.monotonic();self.records=[];self.count=0;self.errors=[]
-        self.splits={};self.messages=[]
+        self.splits={};self.messages=[];self.schema_observations=[]
 
     def message(self,direction,payload,**header):
         record={'direction':direction,'id':payload[0] if payload else None,
@@ -66,6 +67,11 @@ class Trace:
         # Connection request can contain an application password: never export it.
         # The accepted/new-incoming address tables and pings are transport data.
         if payload and payload[0] in (0,3,16,19):record['control_hex']=payload.hex()
+        if len(self.schema_observations)<2:
+            from schema_observer import observe
+            observation=observe(direction,payload)
+            if observation and not any(o.get('sha256')==observation.get('sha256') for o in self.schema_observations):
+                self.schema_observations.append(observation)
         if len(self.messages)<2048:self.messages.append(record)
 
     def packet(self,direction,data):
@@ -100,6 +106,7 @@ class Trace:
     def report(self):
         return {'scope':'synthetic owned fixture on numeric loopback only','datagrams':self.count,
                 'application_payloads_exported':False,'packets':self.records,'messages':self.messages,
+                'schema_observations':self.schema_observations,
                 'decode_errors':self.errors,'incomplete_split_messages':len(self.splits)}
 
 
