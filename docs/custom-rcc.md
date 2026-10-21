@@ -574,3 +574,13 @@ The earlier write path with that bit was server-side context within the binary.
 The next probe explicitly uses zero upstream control bits; a fixed Huffman
 fixture reproduces how an erroneous bit read shifts literal0x81 to cache slot2.
 This is a direction-specific correction, not an attempt to disable validation.
+
+Native probe39623886161 (source9e0ad5e) proved the first actual Player-to-C++
+Value return and the second fresh C++-to-Player Value update. Player observed
+the second nonce, but the complete two-return gate remained false and binaries
+were preserved. The reader rejected compact item10 before the second ID3.
+Exact-build read-only writer/reader paths identify item10 as a 32-bit receipt
+field, raw 10-bit property descriptor, then GUID, without a Value payload.
+The next bounded reader handles only receipts for the resolved Value descriptor
+and continues to require a separate decoded ID3 with the exact second `_ack`.
+A receipt alone returns no property and cannot pass the bidirectional gate.

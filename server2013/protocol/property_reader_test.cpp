@@ -45,5 +45,24 @@ int main(){
     assert(decoded[0].value=="Name" && decoded[0].scope=="Name");
     rcc2013::PropertyReader downstream;rejected=false;
     try{downstream.read(client.bytes(),client.sizeBits());}catch(const std::runtime_error&){rejected=true;}assert(rejected);
+    // A receipt before a cached upstream property must not hide the update or
+    // itself satisfy a value-return proof. This fixture uses fixed Huffman data.
+    rcc2013::BitWriter receipt;receipt.uint32(0x83,8);receipt.uint32(0,2);receipt.uint32(10,4);
+    receipt.uint32(0x01020304,32);receipt.uint32(0xdf,8);receipt.uint32(2,2);
+    receipt.uint32(1,8);for(unsigned i=0;i<4;++i)receipt.uint32((0x23456789>>(8*i))&255,8);
+    auto receiptOnly=receipt;receiptOnly.uint32(0,6);
+    assert(upstream.read(receiptOnly.bytes(),receiptOnly.sizeBits()).empty());
+    assert(upstream.validatedReceipts()==1);
+    receipt.uint32(3,2);receipt.uint32(1,8);
+    for(unsigned i=0;i<4;++i)receipt.uint32((0x23456789>>(8*i))&255,8);
+    receipt.uint32(0xdf,8);receipt.uint32(2,2);receipt.uint32(1,8);receipt.uint32(0,6);
+    decoded=upstream.read(receipt.bytes(),receipt.sizeBits());
+    assert(decoded.size()==1 && decoded[0].value=="Name" && decoded[0].index==0x23456789);
+    assert(upstream.validatedReceipts()==2);
+    for(size_t n=1;n<receipt.bytes().size();++n){
+        rejected=false;try{upstream.read(std::vector<uint8_t>(receipt.bytes().begin(),receipt.bytes().begin()+n),n*8);}
+        catch(const std::runtime_error&){rejected=true;}assert(rejected);
+    }
+    assert(upstream.validatedReceipts()==2);
     std::cout<<"Property reader: literal/cached scopes, raw IDs, control flags, fixed Huffman word, truncation and trailing data passed\n";
 }

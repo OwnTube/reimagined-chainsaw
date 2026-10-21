@@ -44,6 +44,7 @@ class PropertyReader {
     std::array<std::string,128> scopes_{},values_{};
     uint32_t valueDescriptor_=735;
     bool controlBit_;
+    unsigned receipts_=0;
     std::string text(BitReader& in,unsigned maximum=128)const {
         const auto length=in.uint32(32),bits=in.compressed();
         if(length>maximum || bits>8192 || bits>in.remaining())throw std::runtime_error("cached text bound");
@@ -70,6 +71,7 @@ public:
         while(ordered.size()>1){int a=ordered[0],b=ordered[1];ordered.erase(ordered.begin(),ordered.begin()+2);
             tree_.push_back({tree_[a].weight+tree_[b].weight,-1,a,b});insert(static_cast<int>(tree_.size()-1));}
     }
+    unsigned validatedReceipts()const{return receipts_;}
     struct DescriptorPrefix {std::vector<uint32_t> counts;uint32_t valueId=0;size_t remainingBits=0;};
     DescriptorPrefix descriptors(const std::vector<uint8_t>& body,size_t bits){
         BitReader in(body,bits);if(in.uint32(8)!=0x82)throw std::runtime_error("not descriptors");
@@ -95,11 +97,20 @@ public:
     std::vector<StringProperty> read(const std::vector<uint8_t>& body,size_t bits){
         if(body.size()>4096)throw std::runtime_error("property packet size bound");
         BitReader in(body,bits);if(in.uint32(8)!=0x83)throw std::runtime_error("not replication");
-        auto scopes=scopes_,values=values_;std::vector<StringProperty> result;
+        auto scopes=scopes_,values=values_;std::vector<StringProperty> result;unsigned receipts=0;
         for(unsigned items=0;items<32;++items){
             auto id=in.uint32(2);if(!id)id=in.uint32(4);
-            if(!id){if(in.remaining()>7 || (in.remaining() && in.uint32(static_cast<unsigned>(in.remaining()))))throw std::runtime_error("replication trailing bits");scopes_=std::move(scopes);values_=std::move(values);return result;}
+            if(!id){if(in.remaining()>7 || (in.remaining() && in.uint32(static_cast<unsigned>(in.remaining()))))throw std::runtime_error("replication trailing bits");scopes_=std::move(scopes);values_=std::move(values);receipts_+=receipts;return result;}
             if(id==5||id==6){in.skip(97);continue;} // measured bit + uint64 + uint32 ping payload
+            // Exact-build upstream ID10: a 32-bit receipt field, raw property
+            // descriptor, then GUID. It precedes some actual ID3 updates and
+            // carries no property value; never count it as a client return.
+            if(id==10){
+                in.uint32(32);
+                if(in.rawLittle(10)!=valueDescriptor_)throw std::runtime_error("unsupported receipt property");
+                if(cached(in,scopes,"scope").empty())throw std::runtime_error("null receipt GUID");
+                in.rawLittle(32);++receipts;continue;
+            }
             if(id!=3)throw std::runtime_error("unsupported replication item "+std::to_string(id));
             StringProperty property;property.scope=cached(in,scopes,"scope");
             if(property.scope.empty())throw std::runtime_error("null property GUID");

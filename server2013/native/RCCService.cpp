@@ -148,7 +148,7 @@ class Host {
     void receiveProperties(const Bytes& body,size_t bits){
         std::vector<rcc2013::StringProperty> values;
         try{if(!clientSchema)throw std::runtime_error("client descriptor prefix missing");values=propertyReader.read(body,bits);}catch(const std::exception& error){
-            if(propertyReadErrors.size()<16 && std::find(propertyReadErrors.begin(),propertyReadErrors.end(),error.what())==propertyReadErrors.end())propertyReadErrors.push_back(error.what());return;
+            if(propertyReadErrors.size()<16 && std::none_of(propertyReadErrors.begin(),propertyReadErrors.end(),[&](const std::string& saved){return saved.find(error.what())!=std::string::npos;}))propertyReadErrors.push_back(std::to_string(body.size())+" bytes / "+std::to_string(bits)+" bits: "+error.what());return;
         }
         for(const auto& value:values){
             ++parsedValues;
@@ -267,7 +267,7 @@ public:
         first=true;for(auto count:clientCounts){if(!first)r<<',';first=false;r<<count;}r<<"]}"
             <<",\"value_roundtrip\":{\"first_client_return_validated\":"<<(firstReturn?"true":"false")
             <<",\"second_value_sent\":"<<(secondSent?"true":"false")<<",\"second_nonce\":"<<escaped(secondNonce)
-            <<",\"second_client_return_validated\":"<<(secondReturn?"true":"false")<<",\"incoming_control_bits\":0,\"parsed_value_properties\":"<<parsedValues
+            <<",\"second_client_return_validated\":"<<(secondReturn?"true":"false")<<",\"incoming_control_bits\":0,\"parsed_value_receipts\":"<<propertyReader.validatedReceipts()<<",\"parsed_value_properties\":"<<parsedValues
             <<",\"bidirectional_stringvalue_validated\":"<<(firstReturn&&secondSent&&secondReturn?"true":"false")<<",\"read_errors\":[";
         first=true;for(const auto& error:propertyReadErrors){if(!first)r<<',';first=false;r<<escaped(error);}r<<"]}"
             <<",\"outbound_queued\":"<<outbound.queuedCount()<<",\"outbound_resident_bytes\":"<<outbound.residentBytes()<<"}\n";
