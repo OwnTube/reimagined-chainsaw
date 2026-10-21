@@ -43,6 +43,21 @@ class DescriptorCodecTests(unittest.TestCase):
             with self.assertRaises(ValueError):read_tables(payload[:end])
         with self.assertRaises(ValueError):read_tables(payload,'little')
 
+    def test_aligned_configuration_tail_values_are_redacted(self):
+        bits='10000010'+word(0)*3+f'{1:016b}'
+        for value in (b'DebugOwnedFixture',b'private_value'):
+            bits+=f'{len(value):016b}'
+            bits+='0'*(-len(bits)%8)
+            bits+=''.join(f'{b:08b}' for b in value)
+        payload=packed(bits)
+        row=read_tables(payload,include_configuration=True)
+        self.assertTrue(row['schema_complete'])
+        self.assertEqual(row['configuration'][0]['name'],'DebugOwnedFixture')
+        self.assertEqual(row['configuration'][0]['value_length'],13)
+        self.assertNotIn('private_value',str(row))
+        for end in range(13,len(payload)):
+            with self.assertRaises(ValueError):read_tables(payload[:end],include_configuration=True)
+
     def test_invalid_lengths_counts_and_symbols(self):
         with self.assertRaises(ValueError):read_tables(b'\x82'+(4097).to_bytes(4,'big'))
         with self.assertRaises(ValueError):read_tables(packed('10000010'+word(1)+word(0)+word(256)))

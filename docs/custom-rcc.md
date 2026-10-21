@@ -172,3 +172,23 @@ pass bounds and string-length/identifier checks. It sends no application packet,
 does not replay reference messages, and does not implement a world. Static
 instruction text stays outside the repository. REA's resource inspector again
 verified the exact x86 input; its objdump provider was unavailable on this host.
+
+Native observation [39541722885](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39541722885)
+on source `ead0ec3e15077b64831a60f70e1ad55b99010160` verified the new decoder:
+all three dictionaries decoded, with 288 classes, 814 properties and 244 events.
+All IDs form contiguous sets starting at zero. Compressed integer byte order
+was big endian; the little-endian candidate failed its bit-length bound. The
+three tables consume 293,884 bits, leaving 26,196 bits in the 40,010-byte message.
+Names and IDs are preserved in
+`server2013/protocol/descriptor-0.130.0.40915.json`, with exact input/run hashes.
+For example: Part 162, Workspace 287, Players 173, StringValue 250,
+RemoteEvent 193; Instance:Name 404, Instance:Parent 442, StringValue:Value 735.
+These are this observed connection's mappings, not a universal table for all
+2013 clients. No packet body, script key, executable or engine code is included.
+
+The remaining handler reads a 16-bit pair count followed by pairs of aligned
+16-bit-length strings. The next bounded probe checks that configuration-tail
+hypothesis and exports names plus value lengths/hashes, never values. This is
+separate from globals `0x81`, GUID encoding and replication `0x83`, which remain
+unimplemented in the custom native host. The published EXEs remain unchanged
+because these changes are protocol research tooling, not a verified host update.

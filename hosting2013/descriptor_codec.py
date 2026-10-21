@@ -6,6 +6,7 @@ frequency data and its notices are in raknet_reference/. 2013 table framing
 is an exact-build hypothesis until checked against owned native traffic.
 """
 from bisect import bisect_left
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -69,7 +70,7 @@ def compressed_string(stream, maximum=255, endian='big'):
     return bytes(output)
 
 
-def read_tables(payload, endian='big', table_count=3):
+def read_tables(payload, endian='big', table_count=3, include_configuration=False):
     if not payload or payload[0]!=0x82 or len(payload)>128*1024:
         raise ValueError('Expected bounded ID 0x82')
     stream=Bits(payload);stream.uint(8);tables=[]
@@ -86,7 +87,27 @@ def read_tables(payload, endian='big', table_count=3):
                 raise ValueError(f'Table {table_index} entry {len(entries)} name framing mismatch: expected {length}, decoded {len(name)}, bit {stream.offset}')
             entries.append({'id':wire_id,'name':name.decode('ascii')});seen.add(wire_id)
         tables.append({'index':table_index,'count':count,'entries':entries,'end_bit':stream.offset})
-    return {'tables':tables,'consumed_bits':stream.offset,'remaining_bits':stream.remaining,
+    configuration = []
+    if include_configuration:
+        count=stream.uint(16)
+        if count>512:raise ValueError('Configuration pair count bound')
+        for _ in range(count):
+            pair=[]
+            for field in range(2):
+                length=stream.uint(16)
+                if length>2048:raise ValueError('Configuration string bound')
+                stream.offset=(stream.offset+7)//8*8
+                if stream.remaining<length*8:raise ValueError('Truncated configuration string')
+                value=bytes(stream.uint(8) for _ in range(length))
+                pair.append(value)
+            name,value=pair
+            if not re.fullmatch(rb'[A-Za-z_][A-Za-z0-9_]{0,254}',name):
+                raise ValueError('Configuration name framing mismatch')
+            configuration.append({'name':name.decode('ascii'),'value_length':len(value),
+                                  'value_sha256':hashlib.sha256(value).hexdigest()})
+    return {'tables':tables,'configuration':configuration,
+            'configuration_decoded':include_configuration,
+            'consumed_bits':stream.offset,'remaining_bits':stream.remaining,
             'compressed_integer_endian':endian,'table_framing_decoded':True,
             'schema_complete':stream.remaining<=7,
             'application_handshake_implemented':False}

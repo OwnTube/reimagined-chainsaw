@@ -57,7 +57,13 @@ def observe(direction, payload):
     result['descriptor_errors'] = {}
     for endian in ('big','little'):
         try:
-            result['descriptor_candidates'].append(read_tables(payload,endian))
+            candidate=read_tables(payload,endian)
+            if not candidate['schema_complete']:
+                try:
+                    candidate=read_tables(payload,endian,include_configuration=True)
+                except ValueError as error:
+                    candidate['configuration_error']=str(error)
+            result['descriptor_candidates'].append(candidate)
         except ValueError as error:
             result['descriptor_errors'][endian] = str(error)
     # A valid zlib checksum and complete bounded stream are required. We report

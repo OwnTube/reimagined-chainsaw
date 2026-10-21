@@ -1,0 +1,5423 @@
+{
+  "scope": "Observed API descriptor names and IDs only; not engine code or replayable packets",
+  "player_version": "0.130.0.40915",
+  "player_sha256": "30502f062f428d3d808e7119ddb991865c91eb4beeed9f2c6b983198c007ea41",
+  "reference_run": 39541722885,
+  "source_commit": "ead0ec3e15077b64831a60f70e1ad55b99010160",
+  "message_id": 130,
+  "message_bytes": 40010,
+  "message_sha256": "07f8029b53d1216f29e459a623cc84e7e5980085e294b57c930b861151ea774a",
+  "compressed_integer_endian": "big",
+  "schema_complete": false,
+  "game_join_validated": false,
+  "tables": [
+    {
+      "index": 0,
+      "count": 288,
+      "entries": [
+        {
+          "id": 0,
+          "name": "Accoutrement"
+        },
+        {
+          "id": 1,
+          "name": "AdvancedDragger"
+        },
+        {
+          "id": 2,
+          "name": "Animation"
+        },
+        {
+          "id": 3,
+          "name": "AnimationController"
+        },
+        {
+          "id": 4,
+          "name": "AnimationTrack"
+        },
+        {
+          "id": 5,
+          "name": "AnimationTrackState"
+        },
+        {
+          "id": 6,
+          "name": "Animator"
+        },
+        {
+          "id": 7,
+          "name": "App"
+        },
+        {
+          "id": 8,
+          "name": "ArcHandles"
+        },
+        {
+          "id": 9,
+          "name": "AssetService"
+        },
+        {
+          "id": 10,
+          "name": "Backpack"
+        },
+        {
+          "id": 11,
+          "name": "BackpackItem"
+        },
+        {
+          "id": 12,
+          "name": "BadgeService"
+        },
+        {
+          "id": 13,
+          "name": "BasePart"
+        },
+        {
+          "id": 14,
+          "name": "BasePlayerGui"
+        },
+        {
+          "id": 15,
+          "name": "BaseScript"
+        },
+        {
+          "id": 16,
+          "name": "BevelMesh"
+        },
+        {
+          "id": 17,
+          "name": "BillboardGui"
+        },
+        {
+          "id": 18,
+          "name": "BindableEvent"
+        },
+        {
+          "id": 19,
+          "name": "BindableFunction"
+        },
+        {
+          "id": 20,
+          "name": "BlockMesh"
+        },
+        {
+          "id": 21,
+          "name": "BodyAngularVelocity"
+        },
+        {
+          "id": 22,
+          "name": "BodyColors"
+        },
+        {
+          "id": 23,
+          "name": "BodyForce"
+        },
+        {
+          "id": 24,
+          "name": "BodyGyro"
+        },
+        {
+          "id": 25,
+          "name": "BodyMover"
+        },
+        {
+          "id": 26,
+          "name": "BodyPosition"
+        },
+        {
+          "id": 27,
+          "name": "BodyThrust"
+        },
+        {
+          "id": 28,
+          "name": "BodyVelocity"
+        },
+        {
+          "id": 29,
+          "name": "BoolValue"
+        },
+        {
+          "id": 30,
+          "name": "BrickColorValue"
+        },
+        {
+          "id": 31,
+          "name": "Button"
+        },
+        {
+          "id": 32,
+          "name": "ButtonBindingWidget"
+        },
+        {
+          "id": 33,
+          "name": "CFrameValue"
+        },
+        {
+          "id": 34,
+          "name": "CacheableContentProvider"
+        },
+        {
+          "id": 35,
+          "name": "Camera"
+        },
+        {
+          "id": 36,
+          "name": "ChangeHistoryService"
+        },
+        {
+          "id": 37,
+          "name": "CharacterAppearance"
+        },
+        {
+          "id": 38,
+          "name": "CharacterMesh"
+        },
+        {
+          "id": 39,
+          "name": "Chat"
+        },
+        {
+          "id": 40,
+          "name": "ChatFilter"
+        },
+        {
+          "id": 41,
+          "name": "ClickDetector"
+        },
+        {
+          "id": 42,
+          "name": "Clothing"
+        },
+        {
+          "id": 43,
+          "name": "ClusterPacketCache"
+        },
+        {
+          "id": 44,
+          "name": "CollectionService"
+        },
+        {
+          "id": 45,
+          "name": "Color3Value"
+        },
+        {
+          "id": 46,
+          "name": "Configuration"
+        },
+        {
+          "id": 47,
+          "name": "ContentFilter"
+        },
+        {
+          "id": 48,
+          "name": "ContentProvider"
+        },
+        {
+          "id": 49,
+          "name": "ContextActionService"
+        },
+        {
+          "id": 50,
+          "name": "Controller"
+        },
+        {
+          "id": 51,
+          "name": "ControllerService"
+        },
+        {
+          "id": 52,
+          "name": "CookiesService"
+        },
+        {
+          "id": 53,
+          "name": "CoreGui"
+        },
+        {
+          "id": 54,
+          "name": "CoreScript"
+        },
+        {
+          "id": 55,
+          "name": "CornerWedgePart"
+        },
+        {
+          "id": 56,
+          "name": "CustomEvent"
+        },
+        {
+          "id": 57,
+          "name": "CustomEventReceiver"
+        },
+        {
+          "id": 58,
+          "name": "CylinderMesh"
+        },
+        {
+          "id": 59,
+          "name": "DataModel"
+        },
+        {
+          "id": 60,
+          "name": "DataModelMesh"
+        },
+        {
+          "id": 61,
+          "name": "Debris"
+        },
+        {
+          "id": 62,
+          "name": "DebugSettings"
+        },
+        {
+          "id": 63,
+          "name": "DebuggerBreakpoint"
+        },
+        {
+          "id": 64,
+          "name": "DebuggerManager"
+        },
+        {
+          "id": 65,
+          "name": "DebuggerWatch"
+        },
+        {
+          "id": 66,
+          "name": "Decal"
+        },
+        {
+          "id": 67,
+          "name": "Dialog"
+        },
+        {
+          "id": 68,
+          "name": "DialogChoice"
+        },
+        {
+          "id": 69,
+          "name": "DoubleConstrainedValue"
+        },
+        {
+          "id": 70,
+          "name": "Dragger"
+        },
+        {
+          "id": 71,
+          "name": "DynamicRotate"
+        },
+        {
+          "id": 72,
+          "name": "Explosion"
+        },
+        {
+          "id": 73,
+          "name": "FWService"
+        },
+        {
+          "id": 74,
+          "name": "FaceInstance"
+        },
+        {
+          "id": 75,
+          "name": "FastLogSettings"
+        },
+        {
+          "id": 76,
+          "name": "Feature"
+        },
+        {
+          "id": 77,
+          "name": "FileMesh"
+        },
+        {
+          "id": 78,
+          "name": "Fire"
+        },
+        {
+          "id": 79,
+          "name": "Flag"
+        },
+        {
+          "id": 80,
+          "name": "FlagStand"
+        },
+        {
+          "id": 81,
+          "name": "FlagStandService"
+        },
+        {
+          "id": 82,
+          "name": "FloorWire"
+        },
+        {
+          "id": 83,
+          "name": "ForceField"
+        },
+        {
+          "id": 84,
+          "name": "FormFactorPart"
+        },
+        {
+          "id": 85,
+          "name": "Frame"
+        },
+        {
+          "id": 86,
+          "name": "FriendService"
+        },
+        {
+          "id": 87,
+          "name": "FunctionalTest"
+        },
+        {
+          "id": 88,
+          "name": "GamePassService"
+        },
+        {
+          "id": 89,
+          "name": "GameSettings"
+        },
+        {
+          "id": 90,
+          "name": "GenericSettings"
+        },
+        {
+          "id": 91,
+          "name": "Geometry"
+        },
+        {
+          "id": 92,
+          "name": "GlobalDataStore"
+        },
+        {
+          "id": 93,
+          "name": "GlobalSettings"
+        },
+        {
+          "id": 94,
+          "name": "Glue"
+        },
+        {
+          "id": 95,
+          "name": "GuiBase"
+        },
+        {
+          "id": 96,
+          "name": "GuiBase2d"
+        },
+        {
+          "id": 97,
+          "name": "GuiBase3d"
+        },
+        {
+          "id": 98,
+          "name": "GuiButton"
+        },
+        {
+          "id": 99,
+          "name": "GuiItem"
+        },
+        {
+          "id": 100,
+          "name": "GuiLabel"
+        },
+        {
+          "id": 101,
+          "name": "GuiMain"
+        },
+        {
+          "id": 102,
+          "name": "GuiObject"
+        },
+        {
+          "id": 103,
+          "name": "GuiRoot"
+        },
+        {
+          "id": 104,
+          "name": "GuiService"
+        },
+        {
+          "id": 105,
+          "name": "GuidRegistryService"
+        },
+        {
+          "id": 106,
+          "name": "Handles"
+        },
+        {
+          "id": 107,
+          "name": "HandlesBase"
+        },
+        {
+          "id": 108,
+          "name": "Hat"
+        },
+        {
+          "id": 109,
+          "name": "Hint"
+        },
+        {
+          "id": 110,
+          "name": "Hole"
+        },
+        {
+          "id": 111,
+          "name": "Hopper"
+        },
+        {
+          "id": 112,
+          "name": "HopperBin"
+        },
+        {
+          "id": 113,
+          "name": "HttpService"
+        },
+        {
+          "id": 114,
+          "name": "Humanoid"
+        },
+        {
+          "id": 115,
+          "name": "HumanoidController"
+        },
+        {
+          "id": 116,
+          "name": "ImageButton"
+        },
+        {
+          "id": 117,
+          "name": "ImageLabel"
+        },
+        {
+          "id": 118,
+          "name": "InsertService"
+        },
+        {
+          "id": 119,
+          "name": "Instance"
+        },
+        {
+          "id": 120,
+          "name": "InstancePacketCache"
+        },
+        {
+          "id": 121,
+          "name": "IntConstrainedValue"
+        },
+        {
+          "id": 122,
+          "name": "IntValue"
+        },
+        {
+          "id": 123,
+          "name": "JointInstance"
+        },
+        {
+          "id": 124,
+          "name": "JointsService"
+        },
+        {
+          "id": 125,
+          "name": "Keyframe"
+        },
+        {
+          "id": 126,
+          "name": "KeyframeSequence"
+        },
+        {
+          "id": 127,
+          "name": "KeyframeSequenceProvider"
+        },
+        {
+          "id": 128,
+          "name": "LayerCollector"
+        },
+        {
+          "id": 129,
+          "name": "Light"
+        },
+        {
+          "id": 130,
+          "name": "Lighting"
+        },
+        {
+          "id": 131,
+          "name": "LocalBackpack"
+        },
+        {
+          "id": 132,
+          "name": "LocalScript"
+        },
+        {
+          "id": 133,
+          "name": "LocalWorkspace"
+        },
+        {
+          "id": 134,
+          "name": "LoginService"
+        },
+        {
+          "id": 135,
+          "name": "LuaSettings"
+        },
+        {
+          "id": 136,
+          "name": "LuaWebService"
+        },
+        {
+          "id": 137,
+          "name": "ManualGlue"
+        },
+        {
+          "id": 138,
+          "name": "ManualSurfaceJointInstance"
+        },
+        {
+          "id": 139,
+          "name": "ManualWeld"
+        },
+        {
+          "id": 140,
+          "name": "MarketplaceService"
+        },
+        {
+          "id": 141,
+          "name": "MeshContentProvider"
+        },
+        {
+          "id": 142,
+          "name": "Message"
+        },
+        {
+          "id": 143,
+          "name": "Model"
+        },
+        {
+          "id": 144,
+          "name": "Motor"
+        },
+        {
+          "id": 145,
+          "name": "Motor6D"
+        },
+        {
+          "id": 146,
+          "name": "MotorFeature"
+        },
+        {
+          "id": 147,
+          "name": "Mouse"
+        },
+        {
+          "id": 148,
+          "name": "NetworkClient"
+        },
+        {
+          "id": 149,
+          "name": "NetworkMarker"
+        },
+        {
+          "id": 150,
+          "name": "NetworkPeer"
+        },
+        {
+          "id": 151,
+          "name": "NetworkReplicator"
+        },
+        {
+          "id": 152,
+          "name": "NetworkServer"
+        },
+        {
+          "id": 153,
+          "name": "NetworkSettings"
+        },
+        {
+          "id": 154,
+          "name": "NotificationBox"
+        },
+        {
+          "id": 155,
+          "name": "NotificationObject"
+        },
+        {
+          "id": 156,
+          "name": "NumberValue"
+        },
+        {
+          "id": 157,
+          "name": "ObjectValue"
+        },
+        {
+          "id": 158,
+          "name": "PVAdornment"
+        },
+        {
+          "id": 159,
+          "name": "PVInstance"
+        },
+        {
+          "id": 160,
+          "name": "Pants"
+        },
+        {
+          "id": 161,
+          "name": "ParallelRampPart"
+        },
+        {
+          "id": 162,
+          "name": "Part"
+        },
+        {
+          "id": 163,
+          "name": "PartAdornment"
+        },
+        {
+          "id": 164,
+          "name": "PersonalServerService"
+        },
+        {
+          "id": 165,
+          "name": "PhysicsPacketCache"
+        },
+        {
+          "id": 166,
+          "name": "PhysicsService"
+        },
+        {
+          "id": 167,
+          "name": "PhysicsSettings"
+        },
+        {
+          "id": 168,
+          "name": "Platform"
+        },
+        {
+          "id": 169,
+          "name": "Player"
+        },
+        {
+          "id": 170,
+          "name": "PlayerGui"
+        },
+        {
+          "id": 171,
+          "name": "PlayerHUD"
+        },
+        {
+          "id": 172,
+          "name": "PlayerMouse"
+        },
+        {
+          "id": 173,
+          "name": "Players"
+        },
+        {
+          "id": 174,
+          "name": "Plugin"
+        },
+        {
+          "id": 175,
+          "name": "PluginManager"
+        },
+        {
+          "id": 176,
+          "name": "PluginMouse"
+        },
+        {
+          "id": 177,
+          "name": "PointLight"
+        },
+        {
+          "id": 178,
+          "name": "Pose"
+        },
+        {
+          "id": 179,
+          "name": "PrismPart"
+        },
+        {
+          "id": 180,
+          "name": "ProfilingItem"
+        },
+        {
+          "id": 181,
+          "name": "PyramidPart"
+        },
+        {
+          "id": 182,
+          "name": "RayValue"
+        },
+        {
+          "id": 183,
+          "name": "ReflectionMetadata"
+        },
+        {
+          "id": 184,
+          "name": "ReflectionMetadataCallbacks"
+        },
+        {
+          "id": 185,
+          "name": "ReflectionMetadataClass"
+        },
+        {
+          "id": 186,
+          "name": "ReflectionMetadataClasses"
+        },
+        {
+          "id": 187,
+          "name": "ReflectionMetadataEvents"
+        },
+        {
+          "id": 188,
+          "name": "ReflectionMetadataFunctions"
+        },
+        {
+          "id": 189,
+          "name": "ReflectionMetadataItem"
+        },
+        {
+          "id": 190,
+          "name": "ReflectionMetadataMember"
+        },
+        {
+          "id": 191,
+          "name": "ReflectionMetadataProperties"
+        },
+        {
+          "id": 192,
+          "name": "ReflectionMetadataYieldFunctions"
+        },
+        {
+          "id": 193,
+          "name": "RemoteEvent"
+        },
+        {
+          "id": 194,
+          "name": "RemoteFunction"
+        },
+        {
+          "id": 195,
+          "name": "RenderHooksService"
+        },
+        {
+          "id": 196,
+          "name": "RenderSettings"
+        },
+        {
+          "id": 197,
+          "name": "ReplicatedStorage"
+        },
+        {
+          "id": 198,
+          "name": "RightAngleRampPart"
+        },
+        {
+          "id": 199,
+          "name": "RocketPropulsion"
+        },
+        {
+          "id": 200,
+          "name": "RootInstance"
+        },
+        {
+          "id": 201,
+          "name": "Rotate"
+        },
+        {
+          "id": 202,
+          "name": "RotateP"
+        },
+        {
+          "id": 203,
+          "name": "RotateV"
+        },
+        {
+          "id": 204,
+          "name": "RunService"
+        },
+        {
+          "id": 205,
+          "name": "RunningAverageItemDouble"
+        },
+        {
+          "id": 206,
+          "name": "RunningAverageItemInt"
+        },
+        {
+          "id": 207,
+          "name": "RunningAverageTimeIntervalItem"
+        },
+        {
+          "id": 208,
+          "name": "RuntimeScriptService"
+        },
+        {
+          "id": 209,
+          "name": "Scale9Frame"
+        },
+        {
+          "id": 210,
+          "name": "ScreenGui"
+        },
+        {
+          "id": 211,
+          "name": "Script"
+        },
+        {
+          "id": 212,
+          "name": "ScriptContext"
+        },
+        {
+          "id": 213,
+          "name": "ScriptDebugger"
+        },
+        {
+          "id": 214,
+          "name": "ScriptInformationProvider"
+        },
+        {
+          "id": 215,
+          "name": "ScriptService"
+        },
+        {
+          "id": 216,
+          "name": "Seat"
+        },
+        {
+          "id": 217,
+          "name": "Selection"
+        },
+        {
+          "id": 218,
+          "name": "SelectionBox"
+        },
+        {
+          "id": 219,
+          "name": "SelectionLasso"
+        },
+        {
+          "id": 220,
+          "name": "SelectionPartLasso"
+        },
+        {
+          "id": 221,
+          "name": "SelectionPointLasso"
+        },
+        {
+          "id": 222,
+          "name": "ServerReplicator"
+        },
+        {
+          "id": 223,
+          "name": "ServerScriptService"
+        },
+        {
+          "id": 224,
+          "name": "ServerStorage"
+        },
+        {
+          "id": 225,
+          "name": "ServiceProvider"
+        },
+        {
+          "id": 226,
+          "name": "Shirt"
+        },
+        {
+          "id": 227,
+          "name": "ShirtGraphic"
+        },
+        {
+          "id": 228,
+          "name": "SkateboardController"
+        },
+        {
+          "id": 229,
+          "name": "SkateboardPlatform"
+        },
+        {
+          "id": 230,
+          "name": "Skin"
+        },
+        {
+          "id": 231,
+          "name": "Sky"
+        },
+        {
+          "id": 232,
+          "name": "Smoke"
+        },
+        {
+          "id": 233,
+          "name": "Snap"
+        },
+        {
+          "id": 234,
+          "name": "SocialService"
+        },
+        {
+          "id": 235,
+          "name": "Sound"
+        },
+        {
+          "id": 236,
+          "name": "SoundService"
+        },
+        {
+          "id": 237,
+          "name": "Sparkles"
+        },
+        {
+          "id": 238,
+          "name": "SpawnLocation"
+        },
+        {
+          "id": 239,
+          "name": "SpawnerService"
+        },
+        {
+          "id": 240,
+          "name": "SpecialMesh"
+        },
+        {
+          "id": 241,
+          "name": "SpotLight"
+        },
+        {
+          "id": 242,
+          "name": "StarterGear"
+        },
+        {
+          "id": 243,
+          "name": "StarterGui"
+        },
+        {
+          "id": 244,
+          "name": "StarterPack"
+        },
+        {
+          "id": 245,
+          "name": "StarterScript"
+        },
+        {
+          "id": 246,
+          "name": "Stats"
+        },
+        {
+          "id": 247,
+          "name": "StatsItem"
+        },
+        {
+          "id": 248,
+          "name": "Status"
+        },
+        {
+          "id": 249,
+          "name": "StockSound"
+        },
+        {
+          "id": 250,
+          "name": "StringValue"
+        },
+        {
+          "id": 251,
+          "name": "Studio"
+        },
+        {
+          "id": 252,
+          "name": "StudioTool"
+        },
+        {
+          "id": 253,
+          "name": "SurfaceSelection"
+        },
+        {
+          "id": 254,
+          "name": "TaskScheduler"
+        },
+        {
+          "id": 255,
+          "name": "Team"
+        },
+        {
+          "id": 256,
+          "name": "Teams"
+        },
+        {
+          "id": 257,
+          "name": "TeleportService"
+        },
+        {
+          "id": 258,
+          "name": "Terrain"
+        },
+        {
+          "id": 259,
+          "name": "TerrainRegion"
+        },
+        {
+          "id": 260,
+          "name": "TestService"
+        },
+        {
+          "id": 261,
+          "name": "TextBox"
+        },
+        {
+          "id": 262,
+          "name": "TextButton"
+        },
+        {
+          "id": 263,
+          "name": "TextLabel"
+        },
+        {
+          "id": 264,
+          "name": "TextService"
+        },
+        {
+          "id": 265,
+          "name": "Texture"
+        },
+        {
+          "id": 266,
+          "name": "TextureContentProvider"
+        },
+        {
+          "id": 267,
+          "name": "TextureTrail"
+        },
+        {
+          "id": 268,
+          "name": "TimerService"
+        },
+        {
+          "id": 269,
+          "name": "Tool"
+        },
+        {
+          "id": 270,
+          "name": "Toolbar"
+        },
+        {
+          "id": 271,
+          "name": "TotalCountTimeIntervalItem"
+        },
+        {
+          "id": 272,
+          "name": "TouchTransmitter"
+        },
+        {
+          "id": 273,
+          "name": "TrussPart"
+        },
+        {
+          "id": 274,
+          "name": "TweenService"
+        },
+        {
+          "id": 275,
+          "name": "UniverseService"
+        },
+        {
+          "id": 276,
+          "name": "UserGameSettings"
+        },
+        {
+          "id": 277,
+          "name": "UserInputService"
+        },
+        {
+          "id": 278,
+          "name": "UserSettings"
+        },
+        {
+          "id": 279,
+          "name": "Vector3Value"
+        },
+        {
+          "id": 280,
+          "name": "VehicleController"
+        },
+        {
+          "id": 281,
+          "name": "VehicleSeat"
+        },
+        {
+          "id": 282,
+          "name": "VelocityMotor"
+        },
+        {
+          "id": 283,
+          "name": "VirtualUser"
+        },
+        {
+          "id": 284,
+          "name": "Visit"
+        },
+        {
+          "id": 285,
+          "name": "WedgePart"
+        },
+        {
+          "id": 286,
+          "name": "Weld"
+        },
+        {
+          "id": 287,
+          "name": "Workspace"
+        }
+      ],
+      "end_bit": 47736,
+      "kind": "classes"
+    },
+    {
+      "index": 1,
+      "count": 814,
+      "entries": [
+        {
+          "id": 0,
+          "name": "RenderSettings:AASamples"
+        },
+        {
+          "id": 1,
+          "name": "GuiBase2d:AbsolutePosition"
+        },
+        {
+          "id": 2,
+          "name": "GuiBase2d:AbsoluteSize"
+        },
+        {
+          "id": 3,
+          "name": "Player:AccountAge"
+        },
+        {
+          "id": 4,
+          "name": "Player:AccountAgeReplicate"
+        },
+        {
+          "id": 5,
+          "name": "BillboardGui:Active"
+        },
+        {
+          "id": 6,
+          "name": "GuiObject:Active"
+        },
+        {
+          "id": 7,
+          "name": "HopperBin:Active"
+        },
+        {
+          "id": 8,
+          "name": "RocketPropulsion:Active"
+        },
+        {
+          "id": 9,
+          "name": "BillboardGui:Adornee"
+        },
+        {
+          "id": 10,
+          "name": "PVAdornment:Adornee"
+        },
+        {
+          "id": 11,
+          "name": "PartAdornment:Adornee"
+        },
+        {
+          "id": 12,
+          "name": "UserGameSettings:AllTutorialsDisabled"
+        },
+        {
+          "id": 13,
+          "name": "FunctionalTest:AllowSleep"
+        },
+        {
+          "id": 14,
+          "name": "PhysicsSettings:AllowSleep"
+        },
+        {
+          "id": 15,
+          "name": "SpawnLocation:AllowTeamChangeOnTouch"
+        },
+        {
+          "id": 16,
+          "name": "BasePart:AlphaModifier"
+        },
+        {
+          "id": 17,
+          "name": "DebugSettings:AltCdnFailureCount"
+        },
+        {
+          "id": 18,
+          "name": "DebugSettings:AltCdnSuccessCount"
+        },
+        {
+          "id": 19,
+          "name": "RenderSettings:AlwaysDrawConnectors"
+        },
+        {
+          "id": 20,
+          "name": "BillboardGui:AlwaysOnTop"
+        },
+        {
+          "id": 21,
+          "name": "Lighting:Ambient"
+        },
+        {
+          "id": 22,
+          "name": "SoundService:AmbientReverb"
+        },
+        {
+          "id": 23,
+          "name": "BasePart:Anchored"
+        },
+        {
+          "id": 24,
+          "name": "SpotLight:Angle"
+        },
+        {
+          "id": 25,
+          "name": "Studio:Animate Hover Over"
+        },
+        {
+          "id": 26,
+          "name": "Animation:AnimationId"
+        },
+        {
+          "id": 27,
+          "name": "RenderSettings:Antialiasing"
+        },
+        {
+          "id": 28,
+          "name": "Player:AppearanceDidLoad"
+        },
+        {
+          "id": 29,
+          "name": "Instance:Archivable"
+        },
+        {
+          "id": 30,
+          "name": "PhysicsSettings:AreAnchorsShown"
+        },
+        {
+          "id": 31,
+          "name": "TaskScheduler:AreArbitersThrottled"
+        },
+        {
+          "id": 32,
+          "name": "PhysicsSettings:AreAssembliesShown"
+        },
+        {
+          "id": 33,
+          "name": "PhysicsSettings:AreAwakePartsHighlighted"
+        },
+        {
+          "id": 34,
+          "name": "PhysicsSettings:AreBodyTypesShown"
+        },
+        {
+          "id": 35,
+          "name": "PhysicsSettings:AreContactPointsShown"
+        },
+        {
+          "id": 36,
+          "name": "VehicleSeat:AreHingesDetected"
+        },
+        {
+          "id": 37,
+          "name": "PhysicsSettings:AreJointCoordinatesShown"
+        },
+        {
+          "id": 38,
+          "name": "PhysicsSettings:AreMechanismsShown"
+        },
+        {
+          "id": 39,
+          "name": "PhysicsSettings:AreModelCoordsShown"
+        },
+        {
+          "id": 40,
+          "name": "PhysicsSettings:AreOwnersShown"
+        },
+        {
+          "id": 41,
+          "name": "PhysicsSettings:ArePartCoordsShown"
+        },
+        {
+          "id": 42,
+          "name": "NetworkSettings:ArePhysicsRejectionsReported"
+        },
+        {
+          "id": 43,
+          "name": "PhysicsSettings:AreRegionsShown"
+        },
+        {
+          "id": 44,
+          "name": "LuaSettings:AreScriptStartsReported"
+        },
+        {
+          "id": 45,
+          "name": "PhysicsSettings:AreUnalignedPartsShown"
+        },
+        {
+          "id": 46,
+          "name": "PhysicsSettings:AreWorldCoordsShown"
+        },
+        {
+          "id": 47,
+          "name": "Accoutrement:AttachmentForward"
+        },
+        {
+          "id": 48,
+          "name": "Accoutrement:AttachmentPoint"
+        },
+        {
+          "id": 49,
+          "name": "Accoutrement:AttachmentPos"
+        },
+        {
+          "id": 50,
+          "name": "Accoutrement:AttachmentRight"
+        },
+        {
+          "id": 51,
+          "name": "Accoutrement:AttachmentUp"
+        },
+        {
+          "id": 52,
+          "name": "Studio:Auto Indent"
+        },
+        {
+          "id": 53,
+          "name": "Studio:Auto-Save Enabled"
+        },
+        {
+          "id": 54,
+          "name": "Studio:Auto-Save Interval (Minutes)"
+        },
+        {
+          "id": 55,
+          "name": "Studio:Auto-Save Path"
+        },
+        {
+          "id": 56,
+          "name": "Team:AutoAssignable"
+        },
+        {
+          "id": 57,
+          "name": "GuiButton:AutoButtonColor"
+        },
+        {
+          "id": 58,
+          "name": "Team:AutoColorCharacters"
+        },
+        {
+          "id": 59,
+          "name": "RenderSettings:AutoFRMLevel"
+        },
+        {
+          "id": 60,
+          "name": "TestService:AutoRuns"
+        },
+        {
+          "id": 61,
+          "name": "DebugSettings:AvailablePhysicalMemory"
+        },
+        {
+          "id": 62,
+          "name": "ArcHandles:Axes"
+        },
+        {
+          "id": 63,
+          "name": "BasePart:BackParamA"
+        },
+        {
+          "id": 64,
+          "name": "BasePart:BackParamB"
+        },
+        {
+          "id": 65,
+          "name": "BasePart:BackSurface"
+        },
+        {
+          "id": 66,
+          "name": "BasePart:BackSurfaceInput"
+        },
+        {
+          "id": 67,
+          "name": "Accoutrement:BackendAccoutrementState"
+        },
+        {
+          "id": 68,
+          "name": "Studio:Background Color"
+        },
+        {
+          "id": 69,
+          "name": "GuiObject:BackgroundColor"
+        },
+        {
+          "id": 70,
+          "name": "GuiObject:BackgroundColor3"
+        },
+        {
+          "id": 71,
+          "name": "GuiObject:BackgroundTransparency"
+        },
+        {
+          "id": 72,
+          "name": "DynamicRotate:BaseAngle"
+        },
+        {
+          "id": 73,
+          "name": "CharacterMesh:BaseTextureId"
+        },
+        {
+          "id": 74,
+          "name": "ContentProvider:BaseUrl"
+        },
+        {
+          "id": 75,
+          "name": "Studio:Basic Objects Display Mode"
+        },
+        {
+          "id": 76,
+          "name": "BevelMesh:Bevel"
+        },
+        {
+          "id": 77,
+          "name": "BevelMesh:Bevel Roundness"
+        },
+        {
+          "id": 78,
+          "name": "HopperBin:BinType"
+        },
+        {
+          "id": 79,
+          "name": "Explosion:BlastPressure"
+        },
+        {
+          "id": 80,
+          "name": "Explosion:BlastRadius"
+        },
+        {
+          "id": 81,
+          "name": "DebugSettings:BlockMeshSize"
+        },
+        {
+          "id": 82,
+          "name": "CharacterMesh:BodyPart"
+        },
+        {
+          "id": 83,
+          "name": "GuiObject:BorderColor"
+        },
+        {
+          "id": 84,
+          "name": "GuiObject:BorderColor3"
+        },
+        {
+          "id": 85,
+          "name": "GuiObject:BorderSizePixel"
+        },
+        {
+          "id": 86,
+          "name": "BasePart:BottomParamA"
+        },
+        {
+          "id": 87,
+          "name": "BasePart:BottomParamB"
+        },
+        {
+          "id": 88,
+          "name": "BasePart:BottomSurface"
+        },
+        {
+          "id": 89,
+          "name": "BasePart:BottomSurfaceInput"
+        },
+        {
+          "id": 90,
+          "name": "BasePart:BrickColor"
+        },
+        {
+          "id": 91,
+          "name": "Light:Brightness"
+        },
+        {
+          "id": 92,
+          "name": "Lighting:Brightness"
+        },
+        {
+          "id": 93,
+          "name": "ReflectionMetadataItem:Browsable"
+        },
+        {
+          "id": 94,
+          "name": "Players:BubbleChat"
+        },
+        {
+          "id": 95,
+          "name": "GameSettings:BubbleChatLifetime"
+        },
+        {
+          "id": 96,
+          "name": "GameSettings:BubbleChatMaxBubbles"
+        },
+        {
+          "id": 97,
+          "name": "BevelMesh:Bulge"
+        },
+        {
+          "id": 98,
+          "name": "JointInstance:C0"
+        },
+        {
+          "id": 99,
+          "name": "JointInstance:C1"
+        },
+        {
+          "id": 100,
+          "name": "BasePart:CFrame"
+        },
+        {
+          "id": 101,
+          "name": "Pose:CFrame"
+        },
+        {
+          "id": 102,
+          "name": "DebugSettings:CPU"
+        },
+        {
+          "id": 103,
+          "name": "Studio:Camera Mouse Wheel Speed"
+        },
+        {
+          "id": 104,
+          "name": "Studio:Camera Shift Speed"
+        },
+        {
+          "id": 105,
+          "name": "Studio:Camera Speed"
+        },
+        {
+          "id": 106,
+          "name": "Player:CameraMode"
+        },
+        {
+          "id": 107,
+          "name": "Camera:CameraSubject"
+        },
+        {
+          "id": 108,
+          "name": "Camera:CameraType"
+        },
+        {
+          "id": 109,
+          "name": "Tool:CanBeDropped"
+        },
+        {
+          "id": 110,
+          "name": "BasePart:CanCollide"
+        },
+        {
+          "id": 111,
+          "name": "Player:CanLoadCharacterAppearance"
+        },
+        {
+          "id": 112,
+          "name": "NetworkSettings:CanSendPacketBufferLimit"
+        },
+        {
+          "id": 113,
+          "name": "RocketPropulsion:CartoonFactor"
+        },
+        {
+          "id": 114,
+          "name": "DebugSettings:CdnFailureCount"
+        },
+        {
+          "id": 115,
+          "name": "DebugSettings:CdnResponceTime"
+        },
+        {
+          "id": 116,
+          "name": "DebugSettings:CdnSuccessCount"
+        },
+        {
+          "id": 117,
+          "name": "Sky:CelestialBodiesShown"
+        },
+        {
+          "id": 118,
+          "name": "Player:Character"
+        },
+        {
+          "id": 119,
+          "name": "Player:CharacterAppearance"
+        },
+        {
+          "id": 120,
+          "name": "Players:CharacterAutoLoads"
+        },
+        {
+          "id": 121,
+          "name": "GameSettings:ChatHistory"
+        },
+        {
+          "id": 122,
+          "name": "Player:ChatMode"
+        },
+        {
+          "id": 123,
+          "name": "GameSettings:ChatScrollLength"
+        },
+        {
+          "id": 124,
+          "name": "Instance:ClassName"
+        },
+        {
+          "id": 125,
+          "name": "Players:ClassicChat"
+        },
+        {
+          "id": 126,
+          "name": "TextBox:ClearTextOnFocus"
+        },
+        {
+          "id": 127,
+          "name": "GuiObject:ClipsDescendants"
+        },
+        {
+          "id": 128,
+          "name": "Terrain:ClusterGrid"
+        },
+        {
+          "id": 129,
+          "name": "Terrain:ClusterGridV2"
+        },
+        {
+          "id": 130,
+          "name": "Terrain:ClusterGridV3"
+        },
+        {
+          "id": 131,
+          "name": "GameSettings:CollisionSoundEnabled"
+        },
+        {
+          "id": 132,
+          "name": "GameSettings:CollisionSoundVolume"
+        },
+        {
+          "id": 133,
+          "name": "BasePart:Color"
+        },
+        {
+          "id": 134,
+          "name": "Fire:Color"
+        },
+        {
+          "id": 135,
+          "name": "GuiBase3d:Color"
+        },
+        {
+          "id": 136,
+          "name": "Light:Color"
+        },
+        {
+          "id": 137,
+          "name": "Smoke:Color"
+        },
+        {
+          "id": 138,
+          "name": "Sparkles:Color"
+        },
+        {
+          "id": 139,
+          "name": "Lighting:ColorShift_Bottom"
+        },
+        {
+          "id": 140,
+          "name": "Lighting:ColorShift_Top"
+        },
+        {
+          "id": 141,
+          "name": "HopperBin:Command"
+        },
+        {
+          "id": 142,
+          "name": "Studio:Comment Color"
+        },
+        {
+          "id": 143,
+          "name": "UserGameSettings:CompletedTutorials"
+        },
+        {
+          "id": 144,
+          "name": "TaskScheduler:Concurrency"
+        },
+        {
+          "id": 145,
+          "name": "DebuggerBreakpoint:Condition"
+        },
+        {
+          "id": 146,
+          "name": "DoubleConstrainedValue:ConstrainedValue"
+        },
+        {
+          "id": 147,
+          "name": "IntConstrainedValue:ConstrainedValue"
+        },
+        {
+          "id": 148,
+          "name": "ContextActionService:ContextButtonEnabled"
+        },
+        {
+          "id": 149,
+          "name": "UserGameSettings:ControlMode"
+        },
+        {
+          "id": 150,
+          "name": "SkateboardPlatform:Controller"
+        },
+        {
+          "id": 151,
+          "name": "SkateboardPlatform:ControllingHumanoid"
+        },
+        {
+          "id": 152,
+          "name": "Dialog:ConversationDistance"
+        },
+        {
+          "id": 153,
+          "name": "Camera:CoordinateFrame"
+        },
+        {
+          "id": 154,
+          "name": "PVInstance:CoordinateFrame"
+        },
+        {
+          "id": 155,
+          "name": "DebugSettings:CpuCount"
+        },
+        {
+          "id": 156,
+          "name": "DebugSettings:CpuSpeed"
+        },
+        {
+          "id": 157,
+          "name": "DataModel:CreatorId"
+        },
+        {
+          "id": 158,
+          "name": "DataModel:CreatorType"
+        },
+        {
+          "id": 159,
+          "name": "Motor:CurrentAngle"
+        },
+        {
+          "id": 160,
+          "name": "VelocityMotor:CurrentAngle"
+        },
+        {
+          "id": 161,
+          "name": "Workspace:CurrentCamera"
+        },
+        {
+          "id": 162,
+          "name": "ScriptDebugger:CurrentLine"
+        },
+        {
+          "id": 163,
+          "name": "TeleportService:CustomizedTeleportUI"
+        },
+        {
+          "id": 164,
+          "name": "FloorWire:CycleOffset"
+        },
+        {
+          "id": 165,
+          "name": "TextureTrail:CycleOffset"
+        },
+        {
+          "id": 166,
+          "name": "BodyGyro:D"
+        },
+        {
+          "id": 167,
+          "name": "BodyPosition:D"
+        },
+        {
+          "id": 168,
+          "name": "Player:DataComplexity"
+        },
+        {
+          "id": 169,
+          "name": "Player:DataComplexityLimit"
+        },
+        {
+          "id": 170,
+          "name": "Instance:DataCost"
+        },
+        {
+          "id": 171,
+          "name": "NetworkSettings:DataGCRate"
+        },
+        {
+          "id": 172,
+          "name": "DebugSettings:DataModel"
+        },
+        {
+          "id": 173,
+          "name": "NetworkSettings:DataMtuAdjust"
+        },
+        {
+          "id": 174,
+          "name": "Player:DataReady"
+        },
+        {
+          "id": 175,
+          "name": "NetworkSettings:DataSendPriority"
+        },
+        {
+          "id": 176,
+          "name": "NetworkSettings:DataSendRate"
+        },
+        {
+          "id": 177,
+          "name": "RenderSettings:DebugDisableInterpolation"
+        },
+        {
+          "id": 178,
+          "name": "DebuggerManager:DebuggingEnabled"
+        },
+        {
+          "id": 179,
+          "name": "Studio:DefaultScriptFileDir"
+        },
+        {
+          "id": 180,
+          "name": "LuaSettings:DefaultWaitTime"
+        },
+        {
+          "id": 181,
+          "name": "ReflectionMetadataItem:Deprecated"
+        },
+        {
+          "id": 182,
+          "name": "Studio:DeprecatedObjectsShown"
+        },
+        {
+          "id": 183,
+          "name": "FunctionalTest:Description"
+        },
+        {
+          "id": 184,
+          "name": "TestService:Description"
+        },
+        {
+          "id": 185,
+          "name": "Motor:DesiredAngle"
+        },
+        {
+          "id": 186,
+          "name": "VelocityMotor:DesiredAngle"
+        },
+        {
+          "id": 187,
+          "name": "BaseScript:Disabled"
+        },
+        {
+          "id": 188,
+          "name": "Seat:Disabled"
+        },
+        {
+          "id": 189,
+          "name": "VehicleSeat:Disabled"
+        },
+        {
+          "id": 190,
+          "name": "SoundService:DistanceFactor"
+        },
+        {
+          "id": 191,
+          "name": "Workspace:DistributedGameTime"
+        },
+        {
+          "id": 192,
+          "name": "SoundService:DopplerScale"
+        },
+        {
+          "id": 193,
+          "name": "GuiObject:DragBeginConnectionCount"
+        },
+        {
+          "id": 194,
+          "name": "GuiObject:DragStoppedConnectionCount"
+        },
+        {
+          "id": 195,
+          "name": "GuiObject:Draggable"
+        },
+        {
+          "id": 196,
+          "name": "BasePart:DraggingV1"
+        },
+        {
+          "id": 197,
+          "name": "SpawnLocation:Duration"
+        },
+        {
+          "id": 198,
+          "name": "RenderSettings:EagerBulkExecution"
+        },
+        {
+          "id": 199,
+          "name": "Studio:EditorEnableBackspace"
+        },
+        {
+          "id": 200,
+          "name": "DebugSettings:ElapsedTime"
+        },
+        {
+          "id": 201,
+          "name": "BasePart:Elasticity"
+        },
+        {
+          "id": 202,
+          "name": "RenderSettings:EnableFRM"
+        },
+        {
+          "id": 203,
+          "name": "NetworkSettings:EnableHeavyCompression"
+        },
+        {
+          "id": 204,
+          "name": "BillboardGui:Enabled"
+        },
+        {
+          "id": 205,
+          "name": "Fire:Enabled"
+        },
+        {
+          "id": 206,
+          "name": "Light:Enabled"
+        },
+        {
+          "id": 207,
+          "name": "Smoke:Enabled"
+        },
+        {
+          "id": 208,
+          "name": "Sparkles:Enabled"
+        },
+        {
+          "id": 209,
+          "name": "StudioTool:Enabled"
+        },
+        {
+          "id": 210,
+          "name": "Tool:Enabled"
+        },
+        {
+          "id": 211,
+          "name": "DebugSettings:EnforceInstanceCountLimit"
+        },
+        {
+          "id": 212,
+          "name": "Studio:Error Color"
+        },
+        {
+          "id": 213,
+          "name": "TestService:ErrorCount"
+        },
+        {
+          "id": 214,
+          "name": "DebugSettings:ErrorReporting"
+        },
+        {
+          "id": 215,
+          "name": "NetworkSettings:ExperimentalPhysicsEnabled"
+        },
+        {
+          "id": 216,
+          "name": "ReflectionMetadataClass:ExplorerImageIndex"
+        },
+        {
+          "id": 217,
+          "name": "ReflectionMetadataClass:ExplorerOrder"
+        },
+        {
+          "id": 218,
+          "name": "Explosion:ExplosionType"
+        },
+        {
+          "id": 219,
+          "name": "DebuggerWatch:Expression"
+        },
+        {
+          "id": 220,
+          "name": "TerrainRegion:ExtentsMax"
+        },
+        {
+          "id": 221,
+          "name": "TerrainRegion:ExtentsMin"
+        },
+        {
+          "id": 222,
+          "name": "BillboardGui:ExtentsOffset"
+        },
+        {
+          "id": 223,
+          "name": "NetworkSettings:ExtraMemoryUsed"
+        },
+        {
+          "id": 224,
+          "name": "Glue:F0"
+        },
+        {
+          "id": 225,
+          "name": "Glue:F1"
+        },
+        {
+          "id": 226,
+          "name": "Glue:F2"
+        },
+        {
+          "id": 227,
+          "name": "Glue:F3"
+        },
+        {
+          "id": 228,
+          "name": "FaceInstance:Face"
+        },
+        {
+          "id": 229,
+          "name": "Feature:FaceId"
+        },
+        {
+          "id": 230,
+          "name": "Handles:Faces"
+        },
+        {
+          "id": 231,
+          "name": "Camera:FieldOfView"
+        },
+        {
+          "id": 232,
+          "name": "Camera:Focus"
+        },
+        {
+          "id": 233,
+          "name": "Lighting:FogColor"
+        },
+        {
+          "id": 234,
+          "name": "Lighting:FogEnd"
+        },
+        {
+          "id": 235,
+          "name": "Lighting:FogStart"
+        },
+        {
+          "id": 236,
+          "name": "Studio:Font"
+        },
+        {
+          "id": 237,
+          "name": "TextBox:Font"
+        },
+        {
+          "id": 238,
+          "name": "TextButton:Font"
+        },
+        {
+          "id": 239,
+          "name": "TextLabel:Font"
+        },
+        {
+          "id": 240,
+          "name": "TextBox:FontSize"
+        },
+        {
+          "id": 241,
+          "name": "TextButton:FontSize"
+        },
+        {
+          "id": 242,
+          "name": "TextLabel:FontSize"
+        },
+        {
+          "id": 243,
+          "name": "FormFactorPart:FormFactor"
+        },
+        {
+          "id": 244,
+          "name": "RenderSettings:FrameRateManager"
+        },
+        {
+          "id": 245,
+          "name": "NetworkSettings:FreeMemoryMBytes"
+        },
+        {
+          "id": 246,
+          "name": "NetworkSettings:FreeMemoryPoolMBytes"
+        },
+        {
+          "id": 247,
+          "name": "BasePart:Friction"
+        },
+        {
+          "id": 248,
+          "name": "FloorWire:From"
+        },
+        {
+          "id": 249,
+          "name": "TextureTrail:From"
+        },
+        {
+          "id": 250,
+          "name": "BasePart:FrontParamA"
+        },
+        {
+          "id": 251,
+          "name": "BasePart:FrontParamB"
+        },
+        {
+          "id": 252,
+          "name": "BasePart:FrontSurface"
+        },
+        {
+          "id": 253,
+          "name": "BasePart:FrontSurfaceInput"
+        },
+        {
+          "id": 254,
+          "name": "UserGameSettings:Fullscreen"
+        },
+        {
+          "id": 255,
+          "name": "UserInputService:GamepadEnabled"
+        },
+        {
+          "id": 256,
+          "name": "ScriptContext:GarbageCollectionFrequency"
+        },
+        {
+          "id": 257,
+          "name": "ScriptContext:GarbageCollectionLimit"
+        },
+        {
+          "id": 258,
+          "name": "LuaSettings:GcFrequency"
+        },
+        {
+          "id": 259,
+          "name": "LuaSettings:GcLimit"
+        },
+        {
+          "id": 260,
+          "name": "LuaSettings:GcPause"
+        },
+        {
+          "id": 261,
+          "name": "LuaSettings:GcStepMul"
+        },
+        {
+          "id": 262,
+          "name": "DataModel:GearGenreSetting"
+        },
+        {
+          "id": 263,
+          "name": "DataModel:Genre"
+        },
+        {
+          "id": 264,
+          "name": "Lighting:GeographicLatitude"
+        },
+        {
+          "id": 265,
+          "name": "DebugSettings:GfxCard"
+        },
+        {
+          "id": 266,
+          "name": "Lighting:GlobalShadows"
+        },
+        {
+          "id": 267,
+          "name": "ShirtGraphic:Graphic"
+        },
+        {
+          "id": 268,
+          "name": "TerrainRegion:GridV3"
+        },
+        {
+          "id": 269,
+          "name": "Tool:Grip"
+        },
+        {
+          "id": 270,
+          "name": "Tool:GripForward"
+        },
+        {
+          "id": 271,
+          "name": "Tool:GripPos"
+        },
+        {
+          "id": 272,
+          "name": "Tool:GripRight"
+        },
+        {
+          "id": 273,
+          "name": "Tool:GripUp"
+        },
+        {
+          "id": 274,
+          "name": "Player:Guest"
+        },
+        {
+          "id": 275,
+          "name": "GameSettings:HardwareMouse"
+        },
+        {
+          "id": 276,
+          "name": "Player:HasBuildTools"
+        },
+        {
+          "id": 277,
+          "name": "FunctionalTest:HasMigratedSettingsToTestService"
+        },
+        {
+          "id": 278,
+          "name": "BodyColors:HeadColor"
+        },
+        {
+          "id": 279,
+          "name": "VehicleSeat:HeadsUpDisplay"
+        },
+        {
+          "id": 280,
+          "name": "Humanoid:Health"
+        },
+        {
+          "id": 281,
+          "name": "Fire:Heat"
+        },
+        {
+          "id": 282,
+          "name": "Mouse:Hit"
+        },
+        {
+          "id": 283,
+          "name": "VelocityMotor:Hole"
+        },
+        {
+          "id": 284,
+          "name": "Studio:Hover Animate Speed"
+        },
+        {
+          "id": 285,
+          "name": "Studio:Hover Over Color"
+        },
+        {
+          "id": 286,
+          "name": "HttpService:HttpEnabled"
+        },
+        {
+          "id": 287,
+          "name": "SelectionLasso:Humanoid"
+        },
+        {
+          "id": 288,
+          "name": "Mouse:Icon"
+        },
+        {
+          "id": 289,
+          "name": "App:Id"
+        },
+        {
+          "id": 290,
+          "name": "ImageButton:Image"
+        },
+        {
+          "id": 291,
+          "name": "ImageLabel:Image"
+        },
+        {
+          "id": 292,
+          "name": "GameSettings:ImageUploadPromptBehavior"
+        },
+        {
+          "id": 293,
+          "name": "Feature:InOut"
+        },
+        {
+          "id": 294,
+          "name": "Dialog:InUse"
+        },
+        {
+          "id": 295,
+          "name": "NetworkSettings:IncommingReplicationLag"
+        },
+        {
+          "id": 296,
+          "name": "Dialog:InitialPrompt"
+        },
+        {
+          "id": 297,
+          "name": "DebugSettings:InstanceCount"
+        },
+        {
+          "id": 298,
+          "name": "DebugSettings:InstanceCountLimit"
+        },
+        {
+          "id": 299,
+          "name": "FunctionalTest:Is30FpsThrottleEnabled"
+        },
+        {
+          "id": 300,
+          "name": "TestService:Is30FpsThrottleEnabled"
+        },
+        {
+          "id": 301,
+          "name": "RenderSettings:IsAggregationShown"
+        },
+        {
+          "id": 302,
+          "name": "ReflectionMetadataItem:IsBackend"
+        },
+        {
+          "id": 303,
+          "name": "ScriptDebugger:IsDebugging"
+        },
+        {
+          "id": 304,
+          "name": "DebuggerBreakpoint:IsEnabled"
+        },
+        {
+          "id": 305,
+          "name": "DebugSettings:IsFmodProfilingEnabled"
+        },
+        {
+          "id": 306,
+          "name": "GuiService:IsModalDialog"
+        },
+        {
+          "id": 307,
+          "name": "ScriptDebugger:IsPaused"
+        },
+        {
+          "id": 308,
+          "name": "Sound:IsPaused"
+        },
+        {
+          "id": 309,
+          "name": "DataModel:IsPersonalServer"
+        },
+        {
+          "id": 310,
+          "name": "TestService:IsPhysicsEnvironmentalThrottled"
+        },
+        {
+          "id": 311,
+          "name": "Sound:IsPlaying"
+        },
+        {
+          "id": 312,
+          "name": "DebugSettings:IsProfilingEnabled"
+        },
+        {
+          "id": 313,
+          "name": "NetworkSettings:IsQueueErrorComputed"
+        },
+        {
+          "id": 314,
+          "name": "PhysicsSettings:IsReceiveAgeShown"
+        },
+        {
+          "id": 315,
+          "name": "DebugSettings:IsScriptStackTracingEnabled"
+        },
+        {
+          "id": 316,
+          "name": "TestService:IsSleepAllowed"
+        },
+        {
+          "id": 317,
+          "name": "RenderSettings:IsSynchronizedWithPhysics"
+        },
+        {
+          "id": 318,
+          "name": "NetworkSettings:IsThrottledByCongestionControl"
+        },
+        {
+          "id": 319,
+          "name": "NetworkSettings:IsThrottledByOutgoingBandwidthLimit"
+        },
+        {
+          "id": 320,
+          "name": "PhysicsSettings:IsTreeShown"
+        },
+        {
+          "id": 321,
+          "name": "GuiService:IsWindows"
+        },
+        {
+          "id": 322,
+          "name": "DebugSettings:JobCount"
+        },
+        {
+          "id": 323,
+          "name": "DataModel:JobId"
+        },
+        {
+          "id": 324,
+          "name": "Humanoid:Jump"
+        },
+        {
+          "id": 325,
+          "name": "UserInputService:KeyboardEnabled"
+        },
+        {
+          "id": 326,
+          "name": "Studio:Keyword Color"
+        },
+        {
+          "id": 327,
+          "name": "DataModelMesh:LODX"
+        },
+        {
+          "id": 328,
+          "name": "DataModelMesh:LODY"
+        },
+        {
+          "id": 329,
+          "name": "DebugSettings:LastCdnFailureTimeSpan"
+        },
+        {
+          "id": 330,
+          "name": "BodyColors:LeftArmColor"
+        },
+        {
+          "id": 331,
+          "name": "Humanoid:LeftLeg"
+        },
+        {
+          "id": 332,
+          "name": "BodyColors:LeftLegColor"
+        },
+        {
+          "id": 333,
+          "name": "BasePart:LeftParamA"
+        },
+        {
+          "id": 334,
+          "name": "BasePart:LeftParamB"
+        },
+        {
+          "id": 335,
+          "name": "Feature:LeftRight"
+        },
+        {
+          "id": 336,
+          "name": "BasePart:LeftSurface"
+        },
+        {
+          "id": 337,
+          "name": "BasePart:LeftSurfaceInput"
+        },
+        {
+          "id": 338,
+          "name": "DebuggerBreakpoint:Line"
+        },
+        {
+          "id": 339,
+          "name": "BaseScript:LinkedSource"
+        },
+        {
+          "id": 340,
+          "name": "Players:LocalPlayer"
+        },
+        {
+          "id": 341,
+          "name": "DataModel:LocalSaveEnabled"
+        },
+        {
+          "id": 342,
+          "name": "BasePart:Locked"
+        },
+        {
+          "id": 343,
+          "name": "KeyframeSequence:Loop"
+        },
+        {
+          "id": 344,
+          "name": "Sound:Looped"
+        },
+        {
+          "id": 345,
+          "name": "Studio:Lua Debugger"
+        },
+        {
+          "id": 346,
+          "name": "DebugSettings:LuaRamLimit"
+        },
+        {
+          "id": 347,
+          "name": "NetworkReplicator:MachineAddress"
+        },
+        {
+          "id": 348,
+          "name": "Pose:MaskWeight"
+        },
+        {
+          "id": 349,
+          "name": "BasePart:Material"
+        },
+        {
+          "id": 350,
+          "name": "ClickDetector:MaxActivationDistance"
+        },
+        {
+          "id": 351,
+          "name": "GameSettings:MaxCollisionSounds"
+        },
+        {
+          "id": 352,
+          "name": "NetworkSettings:MaxDataModelSendBuffer"
+        },
+        {
+          "id": 353,
+          "name": "Terrain:MaxExtents"
+        },
+        {
+          "id": 354,
+          "name": "Humanoid:MaxHealth"
+        },
+        {
+          "id": 355,
+          "name": "Debris:MaxItems"
+        },
+        {
+          "id": 356,
+          "name": "Players:MaxPlayers"
+        },
+        {
+          "id": 357,
+          "name": "Player:MaxSimulationRadius"
+        },
+        {
+          "id": 358,
+          "name": "RocketPropulsion:MaxSpeed"
+        },
+        {
+          "id": 359,
+          "name": "VehicleSeat:MaxSpeed"
+        },
+        {
+          "id": 360,
+          "name": "RocketPropulsion:MaxThrust"
+        },
+        {
+          "id": 361,
+          "name": "RocketPropulsion:MaxTorque"
+        },
+        {
+          "id": 362,
+          "name": "DoubleConstrainedValue:MaxValue"
+        },
+        {
+          "id": 363,
+          "name": "IntConstrainedValue:MaxValue"
+        },
+        {
+          "id": 364,
+          "name": "Motor:MaxVelocity"
+        },
+        {
+          "id": 365,
+          "name": "VelocityMotor:MaxVelocity"
+        },
+        {
+          "id": 366,
+          "name": "Studio:Maximum Output Lines"
+        },
+        {
+          "id": 367,
+          "name": "Player:MaximumSimulationRadius"
+        },
+        {
+          "id": 368,
+          "name": "Player:MembershipType"
+        },
+        {
+          "id": 369,
+          "name": "Player:MembershipTypeReplicate"
+        },
+        {
+          "id": 370,
+          "name": "RenderSettings:MeshCacheSize"
+        },
+        {
+          "id": 371,
+          "name": "CharacterMesh:MeshId"
+        },
+        {
+          "id": 372,
+          "name": "FileMesh:MeshId"
+        },
+        {
+          "id": 373,
+          "name": "SpecialMesh:MeshType"
+        },
+        {
+          "id": 374,
+          "name": "Stats:MinReportInterval"
+        },
+        {
+          "id": 375,
+          "name": "DoubleConstrainedValue:MinValue"
+        },
+        {
+          "id": 376,
+          "name": "IntConstrainedValue:MinValue"
+        },
+        {
+          "id": 377,
+          "name": "GuiButton:Modal"
+        },
+        {
+          "id": 378,
+          "name": "UserInputService:ModalEnabled"
+        },
+        {
+          "id": 379,
+          "name": "Model:ModelInPrimary"
+        },
+        {
+          "id": 380,
+          "name": "GuiButton:MouseButton1ClickConnectionCount"
+        },
+        {
+          "id": 381,
+          "name": "ArcHandles:MouseButton1DownConnectionCount"
+        },
+        {
+          "id": 382,
+          "name": "GuiButton:MouseButton1DownConnectionCount"
+        },
+        {
+          "id": 383,
+          "name": "Handles:MouseButton1DownConnectionCount"
+        },
+        {
+          "id": 384,
+          "name": "ArcHandles:MouseButton1UpConnectionCount"
+        },
+        {
+          "id": 385,
+          "name": "GuiButton:MouseButton1UpConnectionCount"
+        },
+        {
+          "id": 386,
+          "name": "Handles:MouseButton1UpConnectionCount"
+        },
+        {
+          "id": 387,
+          "name": "GuiButton:MouseButton2ClickConnectionCount"
+        },
+        {
+          "id": 388,
+          "name": "GuiButton:MouseButton2DownConnectionCount"
+        },
+        {
+          "id": 389,
+          "name": "GuiButton:MouseButton2UpConnectionCount"
+        },
+        {
+          "id": 390,
+          "name": "ArcHandles:MouseDragConnectionCount"
+        },
+        {
+          "id": 391,
+          "name": "Handles:MouseDragConnectionCount"
+        },
+        {
+          "id": 392,
+          "name": "UserInputService:MouseEnabled"
+        },
+        {
+          "id": 393,
+          "name": "ArcHandles:MouseEnterConnectionCount"
+        },
+        {
+          "id": 394,
+          "name": "GuiObject:MouseEnterConnectionCount"
+        },
+        {
+          "id": 395,
+          "name": "Handles:MouseEnterConnectionCount"
+        },
+        {
+          "id": 396,
+          "name": "ArcHandles:MouseLeaveConnectionCount"
+        },
+        {
+          "id": 397,
+          "name": "GuiObject:MouseLeaveConnectionCount"
+        },
+        {
+          "id": 398,
+          "name": "Handles:MouseLeaveConnectionCount"
+        },
+        {
+          "id": 399,
+          "name": "GuiObject:MouseMovedConnectionCount"
+        },
+        {
+          "id": 400,
+          "name": "GuiObject:MouseWheelBackwardConnectionCount"
+        },
+        {
+          "id": 401,
+          "name": "GuiObject:MouseWheelForwardConnectionCount"
+        },
+        {
+          "id": 402,
+          "name": "SkateboardPlatform:MoveState"
+        },
+        {
+          "id": 403,
+          "name": "TextBox:MultiLine"
+        },
+        {
+          "id": 404,
+          "name": "Instance:Name"
+        },
+        {
+          "id": 405,
+          "name": "DebugSettings:NameDatabaseBytes"
+        },
+        {
+          "id": 406,
+          "name": "DebugSettings:NameDatabaseSize"
+        },
+        {
+          "id": 407,
+          "name": "Humanoid:NameOcclusion"
+        },
+        {
+          "id": 408,
+          "name": "BasePart:NetworkIsSleeping"
+        },
+        {
+          "id": 409,
+          "name": "NetworkSettings:NetworkOwnerRate"
+        },
+        {
+          "id": 410,
+          "name": "BasePart:NetworkOwnerV3"
+        },
+        {
+          "id": 411,
+          "name": "Player:Neutral"
+        },
+        {
+          "id": 412,
+          "name": "SpawnLocation:Neutral"
+        },
+        {
+          "id": 413,
+          "name": "Players:NumPlayers"
+        },
+        {
+          "id": 414,
+          "name": "TaskScheduler:NumRunningJobs"
+        },
+        {
+          "id": 415,
+          "name": "TaskScheduler:NumSleepingJobs"
+        },
+        {
+          "id": 416,
+          "name": "TaskScheduler:NumWaitingJobs"
+        },
+        {
+          "id": 417,
+          "name": "Studio:Number Color"
+        },
+        {
+          "id": 418,
+          "name": "TestService:NumberOfPlayers"
+        },
+        {
+          "id": 419,
+          "name": "DataModelMesh:Offset"
+        },
+        {
+          "id": 420,
+          "name": "Smoke:Opacity"
+        },
+        {
+          "id": 421,
+          "name": "Studio:Operator Color"
+        },
+        {
+          "id": 422,
+          "name": "Mouse:Origin"
+        },
+        {
+          "id": 423,
+          "name": "DebugSettings:OsIs64Bit"
+        },
+        {
+          "id": 424,
+          "name": "DebugSettings:OsPlatform"
+        },
+        {
+          "id": 425,
+          "name": "Player:OsPlatform"
+        },
+        {
+          "id": 426,
+          "name": "DebugSettings:OsPlatformId"
+        },
+        {
+          "id": 427,
+          "name": "DebugSettings:OsVer"
+        },
+        {
+          "id": 428,
+          "name": "Lighting:OutdoorAmbient"
+        },
+        {
+          "id": 429,
+          "name": "Clothing:Outfit1"
+        },
+        {
+          "id": 430,
+          "name": "Clothing:Outfit2"
+        },
+        {
+          "id": 431,
+          "name": "Lighting:Outlines"
+        },
+        {
+          "id": 432,
+          "name": "Studio:Output Layout Mode"
+        },
+        {
+          "id": 433,
+          "name": "CharacterMesh:OverlayTextureId"
+        },
+        {
+          "id": 434,
+          "name": "BodyAngularVelocity:P"
+        },
+        {
+          "id": 435,
+          "name": "BodyGyro:P"
+        },
+        {
+          "id": 436,
+          "name": "BodyPosition:P"
+        },
+        {
+          "id": 437,
+          "name": "BodyVelocity:P"
+        },
+        {
+          "id": 438,
+          "name": "DebugSettings:PageFaultsPerSecond"
+        },
+        {
+          "id": 439,
+          "name": "DebugSettings:PageFileBytes"
+        },
+        {
+          "id": 440,
+          "name": "Pants:PantsTemplate"
+        },
+        {
+          "id": 441,
+          "name": "PhysicsSettings:ParallelPhysics"
+        },
+        {
+          "id": 442,
+          "name": "Instance:Parent"
+        },
+        {
+          "id": 443,
+          "name": "SelectionPartLasso:Part"
+        },
+        {
+          "id": 444,
+          "name": "JointInstance:Part0"
+        },
+        {
+          "id": 445,
+          "name": "JointInstance:Part1"
+        },
+        {
+          "id": 446,
+          "name": "Studio:PermissionLevelShown"
+        },
+        {
+          "id": 447,
+          "name": "CustomEvent:PersistedCurrentValue"
+        },
+        {
+          "id": 448,
+          "name": "Player:PersonalServerRank"
+        },
+        {
+          "id": 449,
+          "name": "FunctionalTest:PhysicsEnvironmentalThrottle"
+        },
+        {
+          "id": 450,
+          "name": "PhysicsSettings:PhysicsEnvironmentalThrottle"
+        },
+        {
+          "id": 451,
+          "name": "NetworkSettings:PhysicsMtuAdjust"
+        },
+        {
+          "id": 452,
+          "name": "NetworkSettings:PhysicsReceive"
+        },
+        {
+          "id": 453,
+          "name": "NetworkSettings:PhysicsSend"
+        },
+        {
+          "id": 454,
+          "name": "NetworkSettings:PhysicsSendPriority"
+        },
+        {
+          "id": 455,
+          "name": "NetworkSettings:PhysicsSendRate"
+        },
+        {
+          "id": 456,
+          "name": "Sound:Pitch"
+        },
+        {
+          "id": 457,
+          "name": "DebugSettings:PixelShaderModel"
+        },
+        {
+          "id": 458,
+          "name": "DataModel:PlaceId"
+        },
+        {
+          "id": 459,
+          "name": "DataModel:PlaceVersion"
+        },
+        {
+          "id": 460,
+          "name": "Humanoid:PlatformStand"
+        },
+        {
+          "id": 461,
+          "name": "Sound:PlayCount"
+        },
+        {
+          "id": 462,
+          "name": "Sound:PlayOnRemove"
+        },
+        {
+          "id": 463,
+          "name": "DebugSettings:PlayerCount"
+        },
+        {
+          "id": 464,
+          "name": "BillboardGui:PlayerToHideFrom"
+        },
+        {
+          "id": 465,
+          "name": "Studio:PluginsDir"
+        },
+        {
+          "id": 466,
+          "name": "SelectionPointLasso:Point"
+        },
+        {
+          "id": 467,
+          "name": "NetworkReplicator:Port"
+        },
+        {
+          "id": 468,
+          "name": "NetworkServer:Port"
+        },
+        {
+          "id": 469,
+          "name": "BasePart:Position"
+        },
+        {
+          "id": 470,
+          "name": "Explosion:Position"
+        },
+        {
+          "id": 471,
+          "name": "GuiObject:Position"
+        },
+        {
+          "id": 472,
+          "name": "NetworkSettings:PreferredClientPort"
+        },
+        {
+          "id": 473,
+          "name": "ReflectionMetadataClass:PreferredParent"
+        },
+        {
+          "id": 474,
+          "name": "Studio:Preprocessor Color"
+        },
+        {
+          "id": 475,
+          "name": "Model:PrimaryPart"
+        },
+        {
+          "id": 476,
+          "name": "NetworkSettings:PrintEvents"
+        },
+        {
+          "id": 477,
+          "name": "NetworkSettings:PrintInstances"
+        },
+        {
+          "id": 478,
+          "name": "NetworkSettings:PrintPhysicsErrors"
+        },
+        {
+          "id": 479,
+          "name": "NetworkSettings:PrintProperties"
+        },
+        {
+          "id": 480,
+          "name": "NetworkSettings:PrintSplitMessage"
+        },
+        {
+          "id": 481,
+          "name": "NetworkSettings:PrintStreamInstanceQuota"
+        },
+        {
+          "id": 482,
+          "name": "NetworkSettings:PrintTouches"
+        },
+        {
+          "id": 483,
+          "name": "KeyframeSequence:Priority"
+        },
+        {
+          "id": 484,
+          "name": "TaskScheduler:PriorityMethod"
+        },
+        {
+          "id": 485,
+          "name": "DebugSettings:PrivateBytes"
+        },
+        {
+          "id": 486,
+          "name": "DebugSettings:PrivateWorkingSetBytes"
+        },
+        {
+          "id": 487,
+          "name": "DebugSettings:ProcessCores"
+        },
+        {
+          "id": 488,
+          "name": "DebugSettings:ProcessorTime"
+        },
+        {
+          "id": 489,
+          "name": "DebugSettings:ProfilingWindow"
+        },
+        {
+          "id": 490,
+          "name": "Dialog:Purpose"
+        },
+        {
+          "id": 491,
+          "name": "RenderSettings:QualityLevel"
+        },
+        {
+          "id": 492,
+          "name": "DebugSettings:RAM"
+        },
+        {
+          "id": 493,
+          "name": "PointLight:Range"
+        },
+        {
+          "id": 494,
+          "name": "SpotLight:Range"
+        },
+        {
+          "id": 495,
+          "name": "BasePart:ReceiveAge"
+        },
+        {
+          "id": 496,
+          "name": "NetworkSettings:ReceiveRate"
+        },
+        {
+          "id": 497,
+          "name": "BasePart:Reflectance"
+        },
+        {
+          "id": 498,
+          "name": "Studio:Render Throttle Percentage"
+        },
+        {
+          "id": 499,
+          "name": "NetworkSettings:RenderStreamedRegions"
+        },
+        {
+          "id": 500,
+          "name": "ScreenGui:ReplicatingAbsolutePosition"
+        },
+        {
+          "id": 501,
+          "name": "ScreenGui:ReplicatingAbsoluteSize"
+        },
+        {
+          "id": 502,
+          "name": "GameSettings:ReportAbuseChatHistory"
+        },
+        {
+          "id": 503,
+          "name": "DebugSettings:ReportExtendedMachineConfiguration"
+        },
+        {
+          "id": 504,
+          "name": "DebugSettings:ReportSoundWarnings"
+        },
+        {
+          "id": 505,
+          "name": "NetworkSettings:ReportStatURL"
+        },
+        {
+          "id": 506,
+          "name": "Stats:ReporterType"
+        },
+        {
+          "id": 507,
+          "name": "ContentProvider:RequestQueueSize"
+        },
+        {
+          "id": 508,
+          "name": "StarterGui:ResetPlayerGuiOnSpawn"
+        },
+        {
+          "id": 509,
+          "name": "BasePart:ResizeIncrement"
+        },
+        {
+          "id": 510,
+          "name": "BasePart:ResizeableFaces"
+        },
+        {
+          "id": 511,
+          "name": "DebugSettings:Resolution"
+        },
+        {
+          "id": 512,
+          "name": "RenderSettings:Resolution"
+        },
+        {
+          "id": 513,
+          "name": "DialogChoice:ResponseDialog"
+        },
+        {
+          "id": 514,
+          "name": "BodyColors:RightArmColor"
+        },
+        {
+          "id": 515,
+          "name": "Humanoid:RightLeg"
+        },
+        {
+          "id": 516,
+          "name": "BodyColors:RightLegColor"
+        },
+        {
+          "id": 517,
+          "name": "BasePart:RightParamA"
+        },
+        {
+          "id": 518,
+          "name": "BasePart:RightParamB"
+        },
+        {
+          "id": 519,
+          "name": "BasePart:RightSurface"
+        },
+        {
+          "id": 520,
+          "name": "BasePart:RightSurfaceInput"
+        },
+        {
+          "id": 521,
+          "name": "Smoke:RiseVelocity"
+        },
+        {
+          "id": 522,
+          "name": "DebugSettings:RobloxFailureCount"
+        },
+        {
+          "id": 523,
+          "name": "Instance:RobloxLocked"
+        },
+        {
+          "id": 524,
+          "name": "DebugSettings:RobloxProductName"
+        },
+        {
+          "id": 525,
+          "name": "DebugSettings:RobloxRespoceTime"
+        },
+        {
+          "id": 526,
+          "name": "DebugSettings:RobloxSuccessCount"
+        },
+        {
+          "id": 527,
+          "name": "DebugSettings:RobloxVersion"
+        },
+        {
+          "id": 528,
+          "name": "PersonalServerService:RoleSets"
+        },
+        {
+          "id": 529,
+          "name": "SoundService:RolloffScale"
+        },
+        {
+          "id": 530,
+          "name": "BasePart:RotVelocity"
+        },
+        {
+          "id": 531,
+          "name": "BasePart:Rotation"
+        },
+        {
+          "id": 532,
+          "name": "Studio:RuntimeUndoBehavior"
+        },
+        {
+          "id": 533,
+          "name": "DebugSettings:SIMD"
+        },
+        {
+          "id": 534,
+          "name": "UserGameSettings:SavedQualityLevel"
+        },
+        {
+          "id": 535,
+          "name": "DataModelMesh:Scale"
+        },
+        {
+          "id": 536,
+          "name": "Scale9Frame:ScaleEdgeSize"
+        },
+        {
+          "id": 537,
+          "name": "TaskScheduler:SchedulerDutyCycle"
+        },
+        {
+          "id": 538,
+          "name": "TaskScheduler:SchedulerRate"
+        },
+        {
+          "id": 539,
+          "name": "Team:Score"
+        },
+        {
+          "id": 540,
+          "name": "ScriptDebugger:Script"
+        },
+        {
+          "id": 541,
+          "name": "ScriptDebugger:ScriptPath"
+        },
+        {
+          "id": 542,
+          "name": "ScriptContext:ScriptsDisabled"
+        },
+        {
+          "id": 543,
+          "name": "Fire:SecondaryColor"
+        },
+        {
+          "id": 544,
+          "name": "Studio:Select Color"
+        },
+        {
+          "id": 545,
+          "name": "GuiButton:Selected"
+        },
+        {
+          "id": 546,
+          "name": "Studio:Selection Background Color"
+        },
+        {
+          "id": 547,
+          "name": "Studio:Selection Color"
+        },
+        {
+          "id": 548,
+          "name": "NetworkSettings:SendPacketBufferLimit"
+        },
+        {
+          "id": 549,
+          "name": "RenderSettings:Shadow"
+        },
+        {
+          "id": 550,
+          "name": "Lighting:ShadowColor"
+        },
+        {
+          "id": 551,
+          "name": "Part:Shape"
+        },
+        {
+          "id": 552,
+          "name": "Decal:Shiny"
+        },
+        {
+          "id": 553,
+          "name": "Shirt:ShirtTemplate"
+        },
+        {
+          "id": 554,
+          "name": "Studio:Show Diagnostics Bar"
+        },
+        {
+          "id": 555,
+          "name": "Studio:Show Dragger Grid"
+        },
+        {
+          "id": 556,
+          "name": "Studio:Show Hover Over"
+        },
+        {
+          "id": 557,
+          "name": "RenderSettings:ShowBoundingBoxes"
+        },
+        {
+          "id": 558,
+          "name": "StarterGui:ShowDevelopmentGui"
+        },
+        {
+          "id": 559,
+          "name": "GuiService:ShowLegacyPlayerList"
+        },
+        {
+          "id": 560,
+          "name": "PrismPart:Sides"
+        },
+        {
+          "id": 561,
+          "name": "PyramidPart:Sides"
+        },
+        {
+          "id": 562,
+          "name": "Player:SimulationRadius"
+        },
+        {
+          "id": 563,
+          "name": "Humanoid:Sit"
+        },
+        {
+          "id": 564,
+          "name": "BasePart:Size"
+        },
+        {
+          "id": 565,
+          "name": "BillboardGui:Size"
+        },
+        {
+          "id": 566,
+          "name": "Fire:Size"
+        },
+        {
+          "id": 567,
+          "name": "GuiObject:Size"
+        },
+        {
+          "id": 568,
+          "name": "Smoke:Size"
+        },
+        {
+          "id": 569,
+          "name": "GuiObject:SizeConstraint"
+        },
+        {
+          "id": 570,
+          "name": "TerrainRegion:SizeInCells"
+        },
+        {
+          "id": 571,
+          "name": "BillboardGui:SizeOffset"
+        },
+        {
+          "id": 572,
+          "name": "Skin:SkinColor"
+        },
+        {
+          "id": 573,
+          "name": "Sky:SkyboxBk"
+        },
+        {
+          "id": 574,
+          "name": "Sky:SkyboxDn"
+        },
+        {
+          "id": 575,
+          "name": "Sky:SkyboxFt"
+        },
+        {
+          "id": 576,
+          "name": "Sky:SkyboxLf"
+        },
+        {
+          "id": 577,
+          "name": "Sky:SkyboxRt"
+        },
+        {
+          "id": 578,
+          "name": "Sky:SkyboxUp"
+        },
+        {
+          "id": 579,
+          "name": "TaskScheduler:SleepAdjustMethod"
+        },
+        {
+          "id": 580,
+          "name": "Scale9Frame:SlicePrefix"
+        },
+        {
+          "id": 581,
+          "name": "GameSettings:SoftwareSound"
+        },
+        {
+          "id": 582,
+          "name": "GameSettings:SoundEnabled"
+        },
+        {
+          "id": 583,
+          "name": "Sound:SoundId"
+        },
+        {
+          "id": 584,
+          "name": "CustomEventReceiver:Source"
+        },
+        {
+          "id": 585,
+          "name": "Script:Source"
+        },
+        {
+          "id": 586,
+          "name": "Sparkles:SparkleColor"
+        },
+        {
+          "id": 587,
+          "name": "BasePart:SpecificGravity"
+        },
+        {
+          "id": 588,
+          "name": "Decal:Specular"
+        },
+        {
+          "id": 589,
+          "name": "Sky:StarCount"
+        },
+        {
+          "id": 590,
+          "name": "SkateboardController:Steer"
+        },
+        {
+          "id": 591,
+          "name": "SkateboardPlatform:Steer"
+        },
+        {
+          "id": 592,
+          "name": "VehicleSeat:Steer"
+        },
+        {
+          "id": 593,
+          "name": "SkateboardPlatform:StickyWheels"
+        },
+        {
+          "id": 594,
+          "name": "Humanoid:Strafe"
+        },
+        {
+          "id": 595,
+          "name": "Workspace:StreamingEnabled"
+        },
+        {
+          "id": 596,
+          "name": "Studio:String Color"
+        },
+        {
+          "id": 597,
+          "name": "FloorWire:StudsBetweenTextures"
+        },
+        {
+          "id": 598,
+          "name": "TextureTrail:StudsBetweenTextures"
+        },
+        {
+          "id": 599,
+          "name": "BillboardGui:StudsOffset"
+        },
+        {
+          "id": 600,
+          "name": "Texture:StudsPerTileU"
+        },
+        {
+          "id": 601,
+          "name": "Texture:StudsPerTileV"
+        },
+        {
+          "id": 602,
+          "name": "Frame:Style"
+        },
+        {
+          "id": 603,
+          "name": "GuiButton:Style"
+        },
+        {
+          "id": 604,
+          "name": "Handles:Style"
+        },
+        {
+          "id": 605,
+          "name": "TrussPart:Style"
+        },
+        {
+          "id": 606,
+          "name": "Player:SuperSafeChatReplicate"
+        },
+        {
+          "id": 607,
+          "name": "ManualSurfaceJointInstance:Surface0"
+        },
+        {
+          "id": 608,
+          "name": "ManualSurfaceJointInstance:Surface1"
+        },
+        {
+          "id": 609,
+          "name": "DebugSettings:SystemProductName"
+        },
+        {
+          "id": 610,
+          "name": "Studio:Tab Width"
+        },
+        {
+          "id": 611,
+          "name": "Mouse:Target"
+        },
+        {
+          "id": 612,
+          "name": "RocketPropulsion:Target"
+        },
+        {
+          "id": 613,
+          "name": "Mouse:TargetFilter"
+        },
+        {
+          "id": 614,
+          "name": "RocketPropulsion:TargetOffset"
+        },
+        {
+          "id": 615,
+          "name": "Humanoid:TargetPoint"
+        },
+        {
+          "id": 616,
+          "name": "RocketPropulsion:TargetRadius"
+        },
+        {
+          "id": 617,
+          "name": "Mouse:TargetSurface"
+        },
+        {
+          "id": 618,
+          "name": "SurfaceSelection:TargetSurface"
+        },
+        {
+          "id": 619,
+          "name": "Flag:TeamColor"
+        },
+        {
+          "id": 620,
+          "name": "FlagStand:TeamColor"
+        },
+        {
+          "id": 621,
+          "name": "Player:TeamColor"
+        },
+        {
+          "id": 622,
+          "name": "SpawnLocation:TeamColor"
+        },
+        {
+          "id": 623,
+          "name": "Team:TeamColor"
+        },
+        {
+          "id": 624,
+          "name": "Workspace:Terrain"
+        },
+        {
+          "id": 625,
+          "name": "TestService:TestCount"
+        },
+        {
+          "id": 626,
+          "name": "Message:Text"
+        },
+        {
+          "id": 627,
+          "name": "TextBox:Text"
+        },
+        {
+          "id": 628,
+          "name": "TextButton:Text"
+        },
+        {
+          "id": 629,
+          "name": "TextLabel:Text"
+        },
+        {
+          "id": 630,
+          "name": "Studio:Text Color"
+        },
+        {
+          "id": 631,
+          "name": "Studio:Text Wrapping"
+        },
+        {
+          "id": 632,
+          "name": "TextBox:TextBounds"
+        },
+        {
+          "id": 633,
+          "name": "TextButton:TextBounds"
+        },
+        {
+          "id": 634,
+          "name": "TextLabel:TextBounds"
+        },
+        {
+          "id": 635,
+          "name": "TextBox:TextColor"
+        },
+        {
+          "id": 636,
+          "name": "TextButton:TextColor"
+        },
+        {
+          "id": 637,
+          "name": "TextLabel:TextColor"
+        },
+        {
+          "id": 638,
+          "name": "TextBox:TextColor3"
+        },
+        {
+          "id": 639,
+          "name": "TextButton:TextColor3"
+        },
+        {
+          "id": 640,
+          "name": "TextLabel:TextColor3"
+        },
+        {
+          "id": 641,
+          "name": "TextBox:TextFits"
+        },
+        {
+          "id": 642,
+          "name": "TextButton:TextFits"
+        },
+        {
+          "id": 643,
+          "name": "TextLabel:TextFits"
+        },
+        {
+          "id": 644,
+          "name": "TextBox:TextScaled"
+        },
+        {
+          "id": 645,
+          "name": "TextButton:TextScaled"
+        },
+        {
+          "id": 646,
+          "name": "TextLabel:TextScaled"
+        },
+        {
+          "id": 647,
+          "name": "TextBox:TextStrokeColor3"
+        },
+        {
+          "id": 648,
+          "name": "TextButton:TextStrokeColor3"
+        },
+        {
+          "id": 649,
+          "name": "TextLabel:TextStrokeColor3"
+        },
+        {
+          "id": 650,
+          "name": "TextBox:TextStrokeTransparency"
+        },
+        {
+          "id": 651,
+          "name": "TextButton:TextStrokeTransparency"
+        },
+        {
+          "id": 652,
+          "name": "TextLabel:TextStrokeTransparency"
+        },
+        {
+          "id": 653,
+          "name": "TextBox:TextTransparency"
+        },
+        {
+          "id": 654,
+          "name": "TextButton:TextTransparency"
+        },
+        {
+          "id": 655,
+          "name": "TextLabel:TextTransparency"
+        },
+        {
+          "id": 656,
+          "name": "TextBox:TextWrap"
+        },
+        {
+          "id": 657,
+          "name": "TextButton:TextWrap"
+        },
+        {
+          "id": 658,
+          "name": "TextLabel:TextWrap"
+        },
+        {
+          "id": 659,
+          "name": "TextBox:TextWrapped"
+        },
+        {
+          "id": 660,
+          "name": "TextButton:TextWrapped"
+        },
+        {
+          "id": 661,
+          "name": "TextLabel:TextWrapped"
+        },
+        {
+          "id": 662,
+          "name": "TextBox:TextXAlignment"
+        },
+        {
+          "id": 663,
+          "name": "TextButton:TextXAlignment"
+        },
+        {
+          "id": 664,
+          "name": "TextLabel:TextXAlignment"
+        },
+        {
+          "id": 665,
+          "name": "TextBox:TextYAlignment"
+        },
+        {
+          "id": 666,
+          "name": "TextButton:TextYAlignment"
+        },
+        {
+          "id": 667,
+          "name": "TextLabel:TextYAlignment"
+        },
+        {
+          "id": 668,
+          "name": "Decal:Texture"
+        },
+        {
+          "id": 669,
+          "name": "FloorWire:Texture"
+        },
+        {
+          "id": 670,
+          "name": "TextureTrail:Texture"
+        },
+        {
+          "id": 671,
+          "name": "RenderSettings:TextureCacheSize"
+        },
+        {
+          "id": 672,
+          "name": "BackpackItem:TextureId"
+        },
+        {
+          "id": 673,
+          "name": "FileMesh:TextureId"
+        },
+        {
+          "id": 674,
+          "name": "HopperBin:TextureName"
+        },
+        {
+          "id": 675,
+          "name": "FloorWire:TextureSize"
+        },
+        {
+          "id": 676,
+          "name": "TextureTrail:TextureSize"
+        },
+        {
+          "id": 677,
+          "name": "TaskScheduler:ThreadAffinity"
+        },
+        {
+          "id": 678,
+          "name": "TaskScheduler:ThreadPoolConfig"
+        },
+        {
+          "id": 679,
+          "name": "TaskScheduler:ThreadPoolSize"
+        },
+        {
+          "id": 680,
+          "name": "SkateboardController:Throttle"
+        },
+        {
+          "id": 681,
+          "name": "SkateboardPlatform:Throttle"
+        },
+        {
+          "id": 682,
+          "name": "VehicleSeat:Throttle"
+        },
+        {
+          "id": 683,
+          "name": "PhysicsSettings:ThrottleAdjustTime"
+        },
+        {
+          "id": 684,
+          "name": "TaskScheduler:ThrottledJobSleepTime"
+        },
+        {
+          "id": 685,
+          "name": "RocketPropulsion:ThrustD"
+        },
+        {
+          "id": 686,
+          "name": "RocketPropulsion:ThrustP"
+        },
+        {
+          "id": 687,
+          "name": "DebugSettings:TickCountPreciseOverride"
+        },
+        {
+          "id": 688,
+          "name": "NetworkClient:Ticket"
+        },
+        {
+          "id": 689,
+          "name": "Keyframe:Time"
+        },
+        {
+          "id": 690,
+          "name": "Lighting:TimeOfDay"
+        },
+        {
+          "id": 691,
+          "name": "FunctionalTest:Timeout"
+        },
+        {
+          "id": 692,
+          "name": "TestService:Timeout"
+        },
+        {
+          "id": 693,
+          "name": "FloorWire:To"
+        },
+        {
+          "id": 694,
+          "name": "TextureTrail:To"
+        },
+        {
+          "id": 695,
+          "name": "Dialog:Tone"
+        },
+        {
+          "id": 696,
+          "name": "Tool:ToolTip"
+        },
+        {
+          "id": 697,
+          "name": "Feature:TopBottom"
+        },
+        {
+          "id": 698,
+          "name": "BasePart:TopParamA"
+        },
+        {
+          "id": 699,
+          "name": "BasePart:TopParamB"
+        },
+        {
+          "id": 700,
+          "name": "BasePart:TopSurface"
+        },
+        {
+          "id": 701,
+          "name": "BasePart:TopSurfaceInput"
+        },
+        {
+          "id": 702,
+          "name": "VehicleSeat:Torque"
+        },
+        {
+          "id": 703,
+          "name": "Humanoid:Torso"
+        },
+        {
+          "id": 704,
+          "name": "BodyColors:TorsoColor"
+        },
+        {
+          "id": 705,
+          "name": "DebugSettings:TotalPhysicalMemory"
+        },
+        {
+          "id": 706,
+          "name": "DebugSettings:TotalProcessorTime"
+        },
+        {
+          "id": 707,
+          "name": "UserInputService:TouchEnabled"
+        },
+        {
+          "id": 708,
+          "name": "NetworkSettings:TouchSendRate"
+        },
+        {
+          "id": 709,
+          "name": "NetworkSettings:TrackDataTypes"
+        },
+        {
+          "id": 710,
+          "name": "NetworkSettings:TrackPhysicsDetails"
+        },
+        {
+          "id": 711,
+          "name": "BasePart:Transparency"
+        },
+        {
+          "id": 712,
+          "name": "Decal:Transparency"
+        },
+        {
+          "id": 713,
+          "name": "GuiBase3d:Transparency"
+        },
+        {
+          "id": 714,
+          "name": "GuiObject:Transparency"
+        },
+        {
+          "id": 715,
+          "name": "RocketPropulsion:TurnD"
+        },
+        {
+          "id": 716,
+          "name": "RocketPropulsion:TurnP"
+        },
+        {
+          "id": 717,
+          "name": "VehicleSeat:TurnSpeed"
+        },
+        {
+          "id": 718,
+          "name": "Studio:UIStyle"
+        },
+        {
+          "id": 719,
+          "name": "Mouse:UnitRay"
+        },
+        {
+          "id": 720,
+          "name": "NetworkSettings:UseInstancePacketCache"
+        },
+        {
+          "id": 721,
+          "name": "GuiService:UseLuaChat"
+        },
+        {
+          "id": 722,
+          "name": "NetworkSettings:UsePhysicsPacketCache"
+        },
+        {
+          "id": 723,
+          "name": "DialogChoice:UserDialog"
+        },
+        {
+          "id": 724,
+          "name": "RenderSettings:UsesPaintMessage"
+        },
+        {
+          "id": 725,
+          "name": "BoolValue:Value"
+        },
+        {
+          "id": 726,
+          "name": "BrickColorValue:Value"
+        },
+        {
+          "id": 727,
+          "name": "CFrameValue:Value"
+        },
+        {
+          "id": 728,
+          "name": "Color3Value:Value"
+        },
+        {
+          "id": 729,
+          "name": "DoubleConstrainedValue:Value"
+        },
+        {
+          "id": 730,
+          "name": "IntConstrainedValue:Value"
+        },
+        {
+          "id": 731,
+          "name": "IntValue:Value"
+        },
+        {
+          "id": 732,
+          "name": "NumberValue:Value"
+        },
+        {
+          "id": 733,
+          "name": "ObjectValue:Value"
+        },
+        {
+          "id": 734,
+          "name": "RayValue:Value"
+        },
+        {
+          "id": 735,
+          "name": "StringValue:Value"
+        },
+        {
+          "id": 736,
+          "name": "Vector3Value:Value"
+        },
+        {
+          "id": 737,
+          "name": "BasePart:Velocity"
+        },
+        {
+          "id": 738,
+          "name": "FloorWire:Velocity"
+        },
+        {
+          "id": 739,
+          "name": "TextureTrail:Velocity"
+        },
+        {
+          "id": 740,
+          "name": "CoreGui:Version"
+        },
+        {
+          "id": 741,
+          "name": "GuiService:Version"
+        },
+        {
+          "id": 742,
+          "name": "DataModelMesh:VertexColor"
+        },
+        {
+          "id": 743,
+          "name": "DebugSettings:VertexShaderModel"
+        },
+        {
+          "id": 744,
+          "name": "GameSettings:VideoCaptureEnabled"
+        },
+        {
+          "id": 745,
+          "name": "DebugSettings:VideoMemory"
+        },
+        {
+          "id": 746,
+          "name": "GameSettings:VideoQuality"
+        },
+        {
+          "id": 747,
+          "name": "UserGameSettings:VideoUploadPromptBehavior"
+        },
+        {
+          "id": 748,
+          "name": "Mouse:ViewSizeX"
+        },
+        {
+          "id": 749,
+          "name": "Mouse:ViewSizeY"
+        },
+        {
+          "id": 750,
+          "name": "DebugSettings:VirtualBytes"
+        },
+        {
+          "id": 751,
+          "name": "GuiBase3d:Visible"
+        },
+        {
+          "id": 752,
+          "name": "GuiObject:Visible"
+        },
+        {
+          "id": 753,
+          "name": "Sound:Volume"
+        },
+        {
+          "id": 754,
+          "name": "NetworkSettings:WaitingForCharacterLogRate"
+        },
+        {
+          "id": 755,
+          "name": "LuaSettings:WaitingThreadsBudget"
+        },
+        {
+          "id": 756,
+          "name": "Humanoid:WalkAngleError"
+        },
+        {
+          "id": 757,
+          "name": "Humanoid:WalkDirection"
+        },
+        {
+          "id": 758,
+          "name": "Humanoid:WalkSpeed"
+        },
+        {
+          "id": 759,
+          "name": "Humanoid:WalkToPart"
+        },
+        {
+          "id": 760,
+          "name": "Humanoid:WalkToPoint"
+        },
+        {
+          "id": 761,
+          "name": "TestService:WarnCount"
+        },
+        {
+          "id": 762,
+          "name": "Pose:Weight"
+        },
+        {
+          "id": 763,
+          "name": "FloorWire:WireRadius"
+        },
+        {
+          "id": 764,
+          "name": "DataModel:Workspace"
+        },
+        {
+          "id": 765,
+          "name": "Mouse:X"
+        },
+        {
+          "id": 766,
+          "name": "Mouse:Y"
+        },
+        {
+          "id": 767,
+          "name": "GuiObject:ZIndex"
+        },
+        {
+          "id": 768,
+          "name": "BodyAngularVelocity:angularvelocity"
+        },
+        {
+          "id": 769,
+          "name": "Instance:archivable"
+        },
+        {
+          "id": 770,
+          "name": "BasePart:brickColor"
+        },
+        {
+          "id": 771,
+          "name": "BodyGyro:cframe"
+        },
+        {
+          "id": 772,
+          "name": "Instance:className"
+        },
+        {
+          "id": 773,
+          "name": "Camera:focus"
+        },
+        {
+          "id": 774,
+          "name": "BodyForce:force"
+        },
+        {
+          "id": 775,
+          "name": "BodyThrust:force"
+        },
+        {
+          "id": 776,
+          "name": "FormFactorPart:formFactor"
+        },
+        {
+          "id": 777,
+          "name": "FormFactorPart:formFactorRaw"
+        },
+        {
+          "id": 778,
+          "name": "RenderSettings:graphicsMode"
+        },
+        {
+          "id": 779,
+          "name": "Fire:heat_xml"
+        },
+        {
+          "id": 780,
+          "name": "Mouse:hit"
+        },
+        {
+          "id": 781,
+          "name": "Sound:isPlaying"
+        },
+        {
+          "id": 782,
+          "name": "DataModel:lighting"
+        },
+        {
+          "id": 783,
+          "name": "DebuggerBreakpoint:line"
+        },
+        {
+          "id": 784,
+          "name": "Players:localPlayer"
+        },
+        {
+          "id": 785,
+          "name": "BodyThrust:location"
+        },
+        {
+          "id": 786,
+          "name": "BodyPosition:maxForce"
+        },
+        {
+          "id": 787,
+          "name": "BodyVelocity:maxForce"
+        },
+        {
+          "id": 788,
+          "name": "Humanoid:maxHealth"
+        },
+        {
+          "id": 789,
+          "name": "BodyAngularVelocity:maxTorque"
+        },
+        {
+          "id": 790,
+          "name": "BodyGyro:maxTorque"
+        },
+        {
+          "id": 791,
+          "name": "Players:numPlayers"
+        },
+        {
+          "id": 792,
+          "name": "Smoke:opacity_xml"
+        },
+        {
+          "id": 793,
+          "name": "JointInstance:part1"
+        },
+        {
+          "id": 794,
+          "name": "BodyPosition:position"
+        },
+        {
+          "id": 795,
+          "name": "RenderSettings:profileName"
+        },
+        {
+          "id": 796,
+          "name": "Smoke:riseVelocity_xml"
+        },
+        {
+          "id": 797,
+          "name": "Part:shap"
+        },
+        {
+          "id": 798,
+          "name": "Part:shape"
+        },
+        {
+          "id": 799,
+          "name": "PrismPart:sides"
+        },
+        {
+          "id": 800,
+          "name": "PyramidPart:sides"
+        },
+        {
+          "id": 801,
+          "name": "BasePart:siz"
+        },
+        {
+          "id": 802,
+          "name": "BasePart:size"
+        },
+        {
+          "id": 803,
+          "name": "Fire:size"
+        },
+        {
+          "id": 804,
+          "name": "Fire:size_xml"
+        },
+        {
+          "id": 805,
+          "name": "Smoke:size_xml"
+        },
+        {
+          "id": 806,
+          "name": "TrussPart:style"
+        },
+        {
+          "id": 807,
+          "name": "ReflectionMetadataItem:summary"
+        },
+        {
+          "id": 808,
+          "name": "Mouse:target"
+        },
+        {
+          "id": 809,
+          "name": "Player:userId"
+        },
+        {
+          "id": 810,
+          "name": "DoubleConstrainedValue:value"
+        },
+        {
+          "id": 811,
+          "name": "IntConstrainedValue:value"
+        },
+        {
+          "id": 812,
+          "name": "BodyVelocity:velocity"
+        },
+        {
+          "id": 813,
+          "name": "DataModel:workspace"
+        }
+      ],
+      "end_bit": 236208,
+      "kind": "properties"
+    },
+    {
+      "index": 2,
+      "count": 244,
+      "entries": [
+        {
+          "id": 0,
+          "name": "StudioTool:Activated"
+        },
+        {
+          "id": 1,
+          "name": "Tool:Activated"
+        },
+        {
+          "id": 2,
+          "name": "AnimationTrackState:AdjustAnimation"
+        },
+        {
+          "id": 3,
+          "name": "AnimationTrackState:AdjustAnimation"
+        },
+        {
+          "id": 4,
+          "name": "DataModel:AllowedGearTypeChanged"
+        },
+        {
+          "id": 5,
+          "name": "Instance:AncestryChanged"
+        },
+        {
+          "id": 6,
+          "name": "SkateboardController:AxisChanged"
+        },
+        {
+          "id": 7,
+          "name": "BadgeService:BadgeAwarded"
+        },
+        {
+          "id": 8,
+          "name": "ScriptDebugger:BreakpointAdded"
+        },
+        {
+          "id": 9,
+          "name": "ScriptDebugger:BreakpointRemoved"
+        },
+        {
+          "id": 10,
+          "name": "GuiService:BrowserWindowClosed"
+        },
+        {
+          "id": 11,
+          "name": "Mouse:Button1Down"
+        },
+        {
+          "id": 12,
+          "name": "Mouse:Button1Up"
+        },
+        {
+          "id": 13,
+          "name": "Mouse:Button2Down"
+        },
+        {
+          "id": 14,
+          "name": "Mouse:Button2Up"
+        },
+        {
+          "id": 15,
+          "name": "Controller:ButtonChanged"
+        },
+        {
+          "id": 16,
+          "name": "ScriptContext:CamelCaseViolation"
+        },
+        {
+          "id": 17,
+          "name": "BoolValue:Changed"
+        },
+        {
+          "id": 18,
+          "name": "BrickColorValue:Changed"
+        },
+        {
+          "id": 19,
+          "name": "CFrameValue:Changed"
+        },
+        {
+          "id": 20,
+          "name": "Color3Value:Changed"
+        },
+        {
+          "id": 21,
+          "name": "DoubleConstrainedValue:Changed"
+        },
+        {
+          "id": 22,
+          "name": "Instance:Changed"
+        },
+        {
+          "id": 23,
+          "name": "IntConstrainedValue:Changed"
+        },
+        {
+          "id": 24,
+          "name": "IntValue:Changed"
+        },
+        {
+          "id": 25,
+          "name": "NumberValue:Changed"
+        },
+        {
+          "id": 26,
+          "name": "ObjectValue:Changed"
+        },
+        {
+          "id": 27,
+          "name": "RayValue:Changed"
+        },
+        {
+          "id": 28,
+          "name": "StringValue:Changed"
+        },
+        {
+          "id": 29,
+          "name": "Vector3Value:Changed"
+        },
+        {
+          "id": 30,
+          "name": "Player:CharacterAdded"
+        },
+        {
+          "id": 31,
+          "name": "Player:CharacterRemoving"
+        },
+        {
+          "id": 32,
+          "name": "Chat:Chatted"
+        },
+        {
+          "id": 33,
+          "name": "Player:Chatted"
+        },
+        {
+          "id": 34,
+          "name": "Instance:ChildAdded"
+        },
+        {
+          "id": 35,
+          "name": "Instance:ChildRemoved"
+        },
+        {
+          "id": 36,
+          "name": "Button:Click"
+        },
+        {
+          "id": 37,
+          "name": "MarketplaceService:ClientPurchaseSuccess"
+        },
+        {
+          "id": 38,
+          "name": "Humanoid:Climbing"
+        },
+        {
+          "id": 39,
+          "name": "ServiceProvider:Close"
+        },
+        {
+          "id": 40,
+          "name": "ServiceProvider:CloseLate"
+        },
+        {
+          "id": 41,
+          "name": "Player:ConnectDiedSignalBackend"
+        },
+        {
+          "id": 42,
+          "name": "NetworkClient:ConnectionAccepted"
+        },
+        {
+          "id": 43,
+          "name": "NetworkClient:ConnectionFailed"
+        },
+        {
+          "id": 44,
+          "name": "NetworkClient:ConnectionRejected"
+        },
+        {
+          "id": 45,
+          "name": "StarterGui:CoreGuiChangedSignal"
+        },
+        {
+          "id": 46,
+          "name": "Humanoid:CustomStatusAdded"
+        },
+        {
+          "id": 47,
+          "name": "Humanoid:CustomStatusRemoved"
+        },
+        {
+          "id": 48,
+          "name": "NetworkServer:DataBasicFiltered"
+        },
+        {
+          "id": 49,
+          "name": "NetworkServer:DataCustomFiltered"
+        },
+        {
+          "id": 50,
+          "name": "StudioTool:Deactivated"
+        },
+        {
+          "id": 51,
+          "name": "Tool:Deactivated"
+        },
+        {
+          "id": 52,
+          "name": "Plugin:Deactivation"
+        },
+        {
+          "id": 53,
+          "name": "DebuggerManager:DebuggerAdded"
+        },
+        {
+          "id": 54,
+          "name": "DebuggerManager:DebuggerRemoved"
+        },
+        {
+          "id": 55,
+          "name": "Instance:DescendantAdded"
+        },
+        {
+          "id": 56,
+          "name": "Instance:DescendantRemoving"
+        },
+        {
+          "id": 57,
+          "name": "HopperBin:Deselected"
+        },
+        {
+          "id": 58,
+          "name": "Dialog:DialogChoiceSelected"
+        },
+        {
+          "id": 59,
+          "name": "Humanoid:Died"
+        },
+        {
+          "id": 60,
+          "name": "NetworkReplicator:Disconnection"
+        },
+        {
+          "id": 61,
+          "name": "GuiObject:DragBegin"
+        },
+        {
+          "id": 62,
+          "name": "GuiObject:DragStopped"
+        },
+        {
+          "id": 63,
+          "name": "ScriptDebugger:EncounteredBreak"
+        },
+        {
+          "id": 64,
+          "name": "SkateboardPlatform:Equipped"
+        },
+        {
+          "id": 65,
+          "name": "StudioTool:Equipped"
+        },
+        {
+          "id": 66,
+          "name": "Tool:Equipped"
+        },
+        {
+          "id": 67,
+          "name": "ScriptContext:Error"
+        },
+        {
+          "id": 68,
+          "name": "GuiService:EscapeKeyPressed"
+        },
+        {
+          "id": 69,
+          "name": "BindableEvent:Event"
+        },
+        {
+          "id": 70,
+          "name": "CustomEventReceiver:EventConnected"
+        },
+        {
+          "id": 71,
+          "name": "CustomEventReceiver:EventDisconnected"
+        },
+        {
+          "id": 72,
+          "name": "Humanoid:FallingDown"
+        },
+        {
+          "id": 73,
+          "name": "Camera:FirstPersonTransition"
+        },
+        {
+          "id": 74,
+          "name": "FlagStand:FlagCaptured"
+        },
+        {
+          "id": 75,
+          "name": "TextBox:FocusLost"
+        },
+        {
+          "id": 76,
+          "name": "Humanoid:FreeFalling"
+        },
+        {
+          "id": 77,
+          "name": "Players:FriendRequestEvent"
+        },
+        {
+          "id": 78,
+          "name": "Player:FriendStatusChanged"
+        },
+        {
+          "id": 79,
+          "name": "UserGameSettings:FullscreenChanged"
+        },
+        {
+          "id": 80,
+          "name": "Players:GameAnnounce"
+        },
+        {
+          "id": 81,
+          "name": "Humanoid:GettingUp"
+        },
+        {
+          "id": 82,
+          "name": "DataModel:GraphicsQualityChangeRequest"
+        },
+        {
+          "id": 83,
+          "name": "Humanoid:HealthChanged"
+        },
+        {
+          "id": 84,
+          "name": "RunService:Heartbeat"
+        },
+        {
+          "id": 85,
+          "name": "Explosion:Hit"
+        },
+        {
+          "id": 86,
+          "name": "Mouse:Idle"
+        },
+        {
+          "id": 87,
+          "name": "Player:Idled"
+        },
+        {
+          "id": 88,
+          "name": "NetworkServer:IncommingConnection"
+        },
+        {
+          "id": 89,
+          "name": "GuiObject:InputBegan"
+        },
+        {
+          "id": 90,
+          "name": "UserInputService:InputBegan"
+        },
+        {
+          "id": 91,
+          "name": "GuiObject:InputChanged"
+        },
+        {
+          "id": 92,
+          "name": "UserInputService:InputChanged"
+        },
+        {
+          "id": 93,
+          "name": "GuiObject:InputEnded"
+        },
+        {
+          "id": 94,
+          "name": "UserInputService:InputEnded"
+        },
+        {
+          "id": 95,
+          "name": "InsertService:InsertError"
+        },
+        {
+          "id": 96,
+          "name": "InsertService:InsertReady"
+        },
+        {
+          "id": 97,
+          "name": "InsertService:InsertRequest"
+        },
+        {
+          "id": 98,
+          "name": "InsertService:InsertRequestAsset"
+        },
+        {
+          "id": 99,
+          "name": "InsertService:InsertRequestAssetVersion"
+        },
+        {
+          "id": 100,
+          "name": "Camera:InterpolationFinished"
+        },
+        {
+          "id": 101,
+          "name": "CollectionService:ItemAdded"
+        },
+        {
+          "id": 102,
+          "name": "DataModel:ItemChanged"
+        },
+        {
+          "id": 103,
+          "name": "CollectionService:ItemRemoved"
+        },
+        {
+          "id": 104,
+          "name": "UserInputService:JumpRequest"
+        },
+        {
+          "id": 105,
+          "name": "Humanoid:Jumping"
+        },
+        {
+          "id": 106,
+          "name": "Mouse:KeyDown"
+        },
+        {
+          "id": 107,
+          "name": "GuiService:KeyPressed"
+        },
+        {
+          "id": 108,
+          "name": "Mouse:KeyUp"
+        },
+        {
+          "id": 109,
+          "name": "AnimationTrack:KeyframeReached"
+        },
+        {
+          "id": 110,
+          "name": "AnimationTrackState:KeyframeReached"
+        },
+        {
+          "id": 111,
+          "name": "Player:Kill"
+        },
+        {
+          "id": 112,
+          "name": "Lighting:LightingChanged"
+        },
+        {
+          "id": 113,
+          "name": "DataModel:Loaded"
+        },
+        {
+          "id": 114,
+          "name": "BasePart:LocalSimulationTouched"
+        },
+        {
+          "id": 115,
+          "name": "ContextActionService:LocalToolEquipped"
+        },
+        {
+          "id": 116,
+          "name": "ContextActionService:LocalToolUnequipped"
+        },
+        {
+          "id": 117,
+          "name": "LoginService:LoginFailed"
+        },
+        {
+          "id": 118,
+          "name": "LoginService:LoginSucceeded"
+        },
+        {
+          "id": 119,
+          "name": "GuiButton:MouseButton1Click"
+        },
+        {
+          "id": 120,
+          "name": "ArcHandles:MouseButton1Down"
+        },
+        {
+          "id": 121,
+          "name": "GuiButton:MouseButton1Down"
+        },
+        {
+          "id": 122,
+          "name": "Handles:MouseButton1Down"
+        },
+        {
+          "id": 123,
+          "name": "ArcHandles:MouseButton1Up"
+        },
+        {
+          "id": 124,
+          "name": "GuiButton:MouseButton1Up"
+        },
+        {
+          "id": 125,
+          "name": "Handles:MouseButton1Up"
+        },
+        {
+          "id": 126,
+          "name": "GuiButton:MouseButton2Click"
+        },
+        {
+          "id": 127,
+          "name": "GuiButton:MouseButton2Down"
+        },
+        {
+          "id": 128,
+          "name": "GuiButton:MouseButton2Up"
+        },
+        {
+          "id": 129,
+          "name": "ClickDetector:MouseClick"
+        },
+        {
+          "id": 130,
+          "name": "ArcHandles:MouseDrag"
+        },
+        {
+          "id": 131,
+          "name": "Handles:MouseDrag"
+        },
+        {
+          "id": 132,
+          "name": "ArcHandles:MouseEnter"
+        },
+        {
+          "id": 133,
+          "name": "GuiObject:MouseEnter"
+        },
+        {
+          "id": 134,
+          "name": "Handles:MouseEnter"
+        },
+        {
+          "id": 135,
+          "name": "ClickDetector:MouseHoverEnter"
+        },
+        {
+          "id": 136,
+          "name": "ClickDetector:MouseHoverLeave"
+        },
+        {
+          "id": 137,
+          "name": "ArcHandles:MouseLeave"
+        },
+        {
+          "id": 138,
+          "name": "GuiObject:MouseLeave"
+        },
+        {
+          "id": 139,
+          "name": "Handles:MouseLeave"
+        },
+        {
+          "id": 140,
+          "name": "GuiObject:MouseMoved"
+        },
+        {
+          "id": 141,
+          "name": "GuiObject:MouseWheelBackward"
+        },
+        {
+          "id": 142,
+          "name": "GuiObject:MouseWheelForward"
+        },
+        {
+          "id": 143,
+          "name": "Mouse:Move"
+        },
+        {
+          "id": 144,
+          "name": "SkateboardPlatform:MoveStateChanged"
+        },
+        {
+          "id": 145,
+          "name": "RemoteEvent:OnClientEvent"
+        },
+        {
+          "id": 146,
+          "name": "RemoteEvent:OnServerEvent"
+        },
+        {
+          "id": 147,
+          "name": "Player:OnTeleport"
+        },
+        {
+          "id": 148,
+          "name": "BasePart:OutfitChanged"
+        },
+        {
+          "id": 149,
+          "name": "Humanoid:PlatformStanding"
+        },
+        {
+          "id": 150,
+          "name": "AnimationTrackState:PlayAnimation"
+        },
+        {
+          "id": 151,
+          "name": "Players:PlayerAdded"
+        },
+        {
+          "id": 152,
+          "name": "Players:PlayerAddedEarly"
+        },
+        {
+          "id": 153,
+          "name": "Players:PlayerChatted"
+        },
+        {
+          "id": 154,
+          "name": "Players:PlayerRemoving"
+        },
+        {
+          "id": 155,
+          "name": "Players:PlayerRemovingLate"
+        },
+        {
+          "id": 156,
+          "name": "MarketplaceService:PromptProductPurchaseFinished"
+        },
+        {
+          "id": 157,
+          "name": "MarketplaceService:PromptProductPurchaseRequested"
+        },
+        {
+          "id": 158,
+          "name": "MarketplaceService:PromptPurchaseFinished"
+        },
+        {
+          "id": 159,
+          "name": "MarketplaceService:PromptPurchaseRequested"
+        },
+        {
+          "id": 160,
+          "name": "Humanoid:Ragdoll"
+        },
+        {
+          "id": 161,
+          "name": "BodyPosition:ReachedTarget"
+        },
+        {
+          "id": 162,
+          "name": "RocketPropulsion:ReachedTarget"
+        },
+        {
+          "id": 163,
+          "name": "NetworkMarker:Received"
+        },
+        {
+          "id": 164,
+          "name": "CustomEvent:ReceiverConnected"
+        },
+        {
+          "id": 165,
+          "name": "CustomEvent:ReceiverDisconnected"
+        },
+        {
+          "id": 166,
+          "name": "FriendService:RemoteFriendEventSignal"
+        },
+        {
+          "id": 167,
+          "name": "Player:RemoteFriendServiceSignal"
+        },
+        {
+          "id": 168,
+          "name": "FriendService:RemoteFriendStatusSignal"
+        },
+        {
+          "id": 169,
+          "name": "Player:RemoteInsert"
+        },
+        {
+          "id": 170,
+          "name": "RemoteFunction:RemoteOnInvokeClient"
+        },
+        {
+          "id": 171,
+          "name": "RemoteFunction:RemoteOnInvokeError"
+        },
+        {
+          "id": 172,
+          "name": "RemoteFunction:RemoteOnInvokeServer"
+        },
+        {
+          "id": 173,
+          "name": "RemoteFunction:RemoteOnInvokeSuccess"
+        },
+        {
+          "id": 174,
+          "name": "HopperBin:ReplicatedSelected"
+        },
+        {
+          "id": 175,
+          "name": "ScriptDebugger:Resuming"
+        },
+        {
+          "id": 176,
+          "name": "Humanoid:Running"
+        },
+        {
+          "id": 177,
+          "name": "Player:ScriptSecurityError"
+        },
+        {
+          "id": 178,
+          "name": "Humanoid:Seated"
+        },
+        {
+          "id": 179,
+          "name": "HopperBin:Selected"
+        },
+        {
+          "id": 180,
+          "name": "Selection:SelectionChanged"
+        },
+        {
+          "id": 181,
+          "name": "TestService:ServerCollectConditionalResult"
+        },
+        {
+          "id": 182,
+          "name": "TestService:ServerCollectResult"
+        },
+        {
+          "id": 183,
+          "name": "Humanoid:ServerEquipTool"
+        },
+        {
+          "id": 184,
+          "name": "MarketplaceService:ServerPurchaseVerification"
+        },
+        {
+          "id": 185,
+          "name": "ServiceProvider:ServiceAdded"
+        },
+        {
+          "id": 186,
+          "name": "ServiceProvider:ServiceRemoving"
+        },
+        {
+          "id": 187,
+          "name": "CustomEventReceiver:SourceValueChanged"
+        },
+        {
+          "id": 188,
+          "name": "GuiService:SpecialKeyPressed"
+        },
+        {
+          "id": 189,
+          "name": "Player:StatsAvailable"
+        },
+        {
+          "id": 190,
+          "name": "Humanoid:StatusAdded"
+        },
+        {
+          "id": 191,
+          "name": "Humanoid:StatusRemoved"
+        },
+        {
+          "id": 192,
+          "name": "RunService:Stepped"
+        },
+        {
+          "id": 193,
+          "name": "AnimationTrackState:StopAnimation"
+        },
+        {
+          "id": 194,
+          "name": "AnimationTrack:Stopped"
+        },
+        {
+          "id": 195,
+          "name": "AnimationTrackState:Stopped"
+        },
+        {
+          "id": 196,
+          "name": "BasePart:StoppedTouching"
+        },
+        {
+          "id": 197,
+          "name": "Humanoid:Strafing"
+        },
+        {
+          "id": 198,
+          "name": "UserGameSettings:StudioModeChanged"
+        },
+        {
+          "id": 199,
+          "name": "Humanoid:Swimming"
+        },
+        {
+          "id": 200,
+          "name": "ServerReplicator:TicketProcessed"
+        },
+        {
+          "id": 201,
+          "name": "BasePart:TouchEnded"
+        },
+        {
+          "id": 202,
+          "name": "UserInputService:TouchEnded"
+        },
+        {
+          "id": 203,
+          "name": "GuiObject:TouchLongPress"
+        },
+        {
+          "id": 204,
+          "name": "UserInputService:TouchLongPress"
+        },
+        {
+          "id": 205,
+          "name": "UserInputService:TouchMoved"
+        },
+        {
+          "id": 206,
+          "name": "GuiObject:TouchPan"
+        },
+        {
+          "id": 207,
+          "name": "UserInputService:TouchPan"
+        },
+        {
+          "id": 208,
+          "name": "GuiObject:TouchPinch"
+        },
+        {
+          "id": 209,
+          "name": "UserInputService:TouchPinch"
+        },
+        {
+          "id": 210,
+          "name": "GuiObject:TouchRotate"
+        },
+        {
+          "id": 211,
+          "name": "UserInputService:TouchRotate"
+        },
+        {
+          "id": 212,
+          "name": "UserInputService:TouchStarted"
+        },
+        {
+          "id": 213,
+          "name": "GuiObject:TouchSwipe"
+        },
+        {
+          "id": 214,
+          "name": "UserInputService:TouchSwipe"
+        },
+        {
+          "id": 215,
+          "name": "GuiObject:TouchTap"
+        },
+        {
+          "id": 216,
+          "name": "UserInputService:TouchTap"
+        },
+        {
+          "id": 217,
+          "name": "BasePart:Touched"
+        },
+        {
+          "id": 218,
+          "name": "SkateboardPlatform:Unequipped"
+        },
+        {
+          "id": 219,
+          "name": "StudioTool:Unequipped"
+        },
+        {
+          "id": 220,
+          "name": "Tool:Unequipped"
+        },
+        {
+          "id": 221,
+          "name": "GameSettings:VideoRecordingChangeRequest"
+        },
+        {
+          "id": 222,
+          "name": "ScriptDebugger:WatchAdded"
+        },
+        {
+          "id": 223,
+          "name": "ScriptDebugger:WatchRemoved"
+        },
+        {
+          "id": 224,
+          "name": "Mouse:WheelBackward"
+        },
+        {
+          "id": 225,
+          "name": "Mouse:WheelForward"
+        },
+        {
+          "id": 226,
+          "name": "BoolValue:changed"
+        },
+        {
+          "id": 227,
+          "name": "BrickColorValue:changed"
+        },
+        {
+          "id": 228,
+          "name": "CFrameValue:changed"
+        },
+        {
+          "id": 229,
+          "name": "Color3Value:changed"
+        },
+        {
+          "id": 230,
+          "name": "DoubleConstrainedValue:changed"
+        },
+        {
+          "id": 231,
+          "name": "IntConstrainedValue:changed"
+        },
+        {
+          "id": 232,
+          "name": "IntValue:changed"
+        },
+        {
+          "id": 233,
+          "name": "NumberValue:changed"
+        },
+        {
+          "id": 234,
+          "name": "ObjectValue:changed"
+        },
+        {
+          "id": 235,
+          "name": "RayValue:changed"
+        },
+        {
+          "id": 236,
+          "name": "StringValue:changed"
+        },
+        {
+          "id": 237,
+          "name": "Vector3Value:changed"
+        },
+        {
+          "id": 238,
+          "name": "Instance:childAdded"
+        },
+        {
+          "id": 239,
+          "name": "SkateboardPlatform:equipped"
+        },
+        {
+          "id": 240,
+          "name": "Mouse:keyDown"
+        },
+        {
+          "id": 241,
+          "name": "ClickDetector:mouseClick"
+        },
+        {
+          "id": 242,
+          "name": "BasePart:touched"
+        },
+        {
+          "id": 243,
+          "name": "SkateboardPlatform:unequipped"
+        }
+      ],
+      "end_bit": 293884,
+      "kind": "events"
+    }
+  ]
+}
