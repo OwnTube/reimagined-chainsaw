@@ -81,6 +81,7 @@ local ok, problem = pcall(function()
     stage = "player admission callback"
     players.PlayerAdded:connect(function(player)
         print(marker .. "|PLAYER_ADDED|" .. tostring(player.userId))
+        observeServiceGuidIndices()
         local character = game:GetObjects("rbxasset://fonts/character3.rbxm")[1]
         character.Name = "RccLocalPlayer"
         local positions = {

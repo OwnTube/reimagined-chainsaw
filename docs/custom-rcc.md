@@ -302,3 +302,15 @@ no security-level changes or memory writes are made if it is unavailable. A
 class is identified only if host/client observations uniquely agree. These are
 new hypotheses; the already verified dictionary format is only a regression
 check in the combined bounded run.
+
+Native [run 39548253205](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39548253205),
+source `e2572d2edeb81bc5ffc692d022516683074a20db`, passed the generated C++
+globals-to-wire comparison as well as the dictionary gate. The masked globals
+message used 1,059 valid bits / 133 bytes in this run; scope compression size
+can vary, so the 1,035-bit observation is not a fixed packet size. The parsed
+flags/cache/index layout and 15-reference count were unchanged. Scope plaintext
+was not exported. Twelve service classes uniquely agreed between host and Player.
+The Player reported Teams, ReplicatedStorage and TestService for the three
+remaining references, but those services were absent from the host's early
+snapshot; they are not yet labeled independently verified. A later host snapshot
+at player admission is the next timing hypothesis.
