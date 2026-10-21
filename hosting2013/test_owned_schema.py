@@ -16,3 +16,16 @@ class DeliveryEvidenceTests(unittest.TestCase):
         self.assertFalse(verify_delivery({})['transport_delivery_validated'])
 
 if __name__=='__main__':unittest.main()
+
+class PropertyEvidenceTests(unittest.TestCase):
+    def test_requires_actual_scene_property_matching_server_only_nonce(self):
+        from verify_owned_schema import verify_property
+        nonce='RCC2013_'+'a1'*16
+        server={'property_probe':{'sent':True,'class_name':'TestService','property_name':'Instance:Name','nonce':nonce}}
+        lines=['owned|SERVICE_NAME|TestService|'+nonce]
+        self.assertTrue(verify_property(server,lines)['property_replication_validated'])
+        self.assertFalse(verify_property(server,[])['property_replication_validated'])
+        self.assertFalse(verify_property(server,['owned|SERVICE_NAME|Workspace|'+nonce])['property_replication_validated'])
+        self.assertFalse(verify_property(server,['owned|SERVICE_NAME|TestService|RCC2013_'+'b2'*16])['property_replication_validated'])
+        self.assertFalse(verify_property(server,lines)['world_replication_validated'])
+        self.assertFalse(verify_property(server,lines)['game_join_validated'])

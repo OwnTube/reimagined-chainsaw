@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-21",
+  "native_run": 39553448548,
+  "source_commit": "67cca6289b3647344c98137a658bdfcaf57593a9",
+  "binary_commit": "3774160ef401b51a899409d2cbc0058bb10bacf2",
+  "artifact_id": 12323684460,
+  "custom_globals_binding_validated": true,
+  "custom_schema_delivery": {
+    "transport_delivery_validated": true,
+    "application_acceptance_validated": false,
+    "world_replication_validated": false,
+    "game_join_validated": false,
+    "limitation": "ACKs verify datagram delivery only; engine schema application needs a separate proof"
+  },
+  "schema_delivery": {
+    "queued": true,
+    "all_fragments_acked": true,
+    "bits": 320080,
+    "bytes": 40010,
+    "sha256": "7f12d60aa1491cefdd0dba70884f71daa9de4a8553072b519fdaa7166c72676b",
+    "application_acceptance_validated": false
+  },
+  "recording": {
+    "validated": true,
+    "edited": false,
+    "seconds": 14.5,
+    "frames": 174,
+    "sha256": "0bfc4b3b7a6327074196aeeeac5ca74d14270571c97c95c30e7543199356dd90"
+  },
+  "game_join_validated": false,
+  "scope": "Original schema transport delivery and existing service GUID binding; engine dictionary application and new world instances unproved"
+}

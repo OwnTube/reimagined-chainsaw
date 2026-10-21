@@ -13,6 +13,7 @@ local function observeServiceGuidIndices()
         else
             print(marker .. "|SERVICE_GUID_INDEX_UNAVAILABLE|" .. service.ClassName)
         end
+        print(marker .. "|SERVICE_NAME|" .. service.ClassName .. "|" .. service.Name)
         count = count + 1
     end
 end

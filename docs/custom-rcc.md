@@ -402,8 +402,17 @@ The new native hypothesis requires both the existing 15-object GUID proof and
 ACKs for every original schema fragment. Reports explicitly separate
 `schema_transport_delivery_validated` from `schema_application_validated=false`.
 ACKs alone cannot prove engine dictionary application, owned world replication,
-character control or playable joining. Native results are pending for this new
-implementation; the previously published EXEs remain the last tested bundle.
+character control or playable joining. Native run
+[39553448548](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39553448548)
+passed this new hypothesis on source `67cca6289b3647344c98137a658bdfcaf57593a9`.
+Every schema fragment was ACKed and all 15 native service GUIDs matched. All four
+packaged render types passed. Binary commit `3774160` published the tested
+service (500,736 bytes, SHA-256
+`563fa4e677a895014a991c7133a7ad43da223ce8c6ed772e9585b3fdc11c4102`) and worker
+(27,980,410 bytes, SHA-256
+`8b8cdd7460d490d9714f0f08409955f3f9aa64f8cbfaf3c6faff97f2ea742401`).
+A continuous 14.5-second recording validated. Compact evidence is retained in
+`server2013/protocol/native-schema-checkpoint.json`.
 
 For a source build, run the descriptor generator before compiling the native
 service (the native workflow contains the complete MSVC/icon build commands):
@@ -415,3 +424,24 @@ python server2013/protocol/generate_descriptor_header.py --output server2013/bui
 Next: exact `0x83` new-instance/property encoding and a server-only StringValue
 nonce observed in native Player scene data, then bidirectional updates. Do not
 inject expected server data into the client bootstrap.
+
+
+## First original property replication hypothesis
+
+Read-only analysis of the exact pinned Player indicates compact replication item
+IDs: 1..3 use two bits; other IDs use a zero two-bit prefix and four-bit value.
+ID 3 selects property changes, followed by a GUID, a ten-bit property dictionary
+index and a control bit. The truncated integer follows raw x86 byte order, so
+`Instance:Name` ID 404 uses the low byte then two high bits. The string value uses
+a per-property cached literal with the already validated Huffman string format.
+A six-bit zero terminates the replication-item stream. These are protocol field
+hypotheses; no proprietary disassembly or engine implementation is published.
+
+The new original `serviceName` encoder targets only the existing TestService and
+uses a fresh 128-bit server-generated random nonce as its name. Client source
+only queries native service names; it contains neither the nonce nor a setter.
+The new native gate must observe the exact server value in TestService.Name.
+This tests the GUID + property-ID + string route through the delivered schema.
+It is not the planned StringValue/new-instance world proof and cannot change
+`world_replication_implemented` or `game_join_validated`. Native validation of
+this new property hypothesis is pending.

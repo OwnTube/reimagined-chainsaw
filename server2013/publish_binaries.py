@@ -38,7 +38,11 @@ def main():
     if evidence.get('custom_schema_delivery_validated') is not True:
         raise RuntimeError('Native Player did not ACK the complete original schema')
     manifest['schema_transport_delivery_validated']=True
-    manifest['schema_application_validated']=False
+    if evidence.get('custom_property_replication_validated') is not True:
+        raise RuntimeError('Server-only service name was not observed in native Player')
+    manifest['schema_property_route_validated']=True
+    manifest['property_replication_validated']=True
+    manifest['new_instance_replication_validated']=False
     manifest['application_globals_validated']=True
     manifest['world_replication_implemented']=False
     for name in ('LICENSE','PATENTS'):

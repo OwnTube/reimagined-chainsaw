@@ -35,9 +35,11 @@ See [custom service development](docs/custom-rcc.md) for exact evidence, limits,
 and the next protocol work. The old [Studio reference](docs/studio-reference-renderer.md)
 is retained for comparisons, with manual workflows only.
 
-The next source revision adds bounded reliable fragmentation and an original
-40,010-byte descriptor sender. Its new native validation is pending; ACKs will
-prove transport delivery only, not world replication or playable joining.
+[Native run 39553448548](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39553448548)
+also passed delivery of our original 40,010-byte descriptor message: every
+fragment was ACKed, all 15 service GUIDs still matched, and all four renders
+passed. Updated binaries are committed. Engine dictionary application remains
+unproved; a new server-only service-name property probe is pending.
 
 ## Use the executable bundle
 

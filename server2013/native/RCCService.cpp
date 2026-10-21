@@ -50,6 +50,7 @@ class Host {
     unsigned port=0,mtu=1492;
     rcc2013::ReliableSender outbound;
     uint64_t schemaTicket=0;size_t schemaBits=0,schemaBytes=0;std::string schemaHash;
+    std::string propertyNonce;bool propertySent=false;
     std::string phase="listening";
     std::vector<std::string> events,messages;
     std::set<uint32_t> seenDatagrams,seenReliable;
@@ -71,6 +72,20 @@ class Host {
         schemaBits=encoded.sizeBits();schemaBytes=encoded.bytes().size();schemaHash=sha256(encoded.bytes());
         schemaTicket=outbound.enqueue(encoded.bytes(),schemaBits,mtu,true,true);pump();
         event("original_schema_queued");
+    }
+    void sendPropertyProbe(){
+        if(propertySent)return;
+        unsigned char random[16];
+        if(BCryptGenRandom(nullptr,random,sizeof(random),BCRYPT_USE_SYSTEM_PREFERRED_RNG)<0)
+            throw std::runtime_error("property nonce random generation");
+        propertyNonce="RCC2013_";const char* hex="0123456789abcdef";
+        for(auto byte:random){propertyNonce+=hex[byte>>4];propertyNonce+=hex[byte&15];}
+        const auto target=std::find_if(globalsBindings.begin(),globalsBindings.end(),
+            [](const auto& b){return b.first=="TestService";});
+        if(target==globalsBindings.end())throw std::runtime_error("missing probe service GUID");
+        const auto encoded=rcc2013::DescriptorWriter().serviceName(target->second,propertyNonce);
+        message(encoded.bytes(),true,true,encoded.sizeBits());propertySent=true;
+        event("original_service_name_property_sent");
     }
     void sendGlobals(){
         if(globalsSent)return;
@@ -110,7 +125,7 @@ class Host {
             }
         }else if(body[0]==19){
             if((phase!="accept_sent"&&phase!="connected")||body.size()!=94)throw std::runtime_error("new incoming layout/phase");
-            connected=true;phase="connected";event("new_incoming_connection");sendGlobals();sendSchema();
+            connected=true;phase="connected";event("new_incoming_connection");sendGlobals();sendSchema();sendPropertyProbe();
         }else if(body[0]==0){
             if(body.size()!=9)throw std::runtime_error("ping time width");Bytes pong={3};pong.insert(pong.end(),body.begin()+1,body.end());put(pong,now(),8);message(pong);
         }else if(body[0]==3||body[0]==4){}
@@ -178,6 +193,8 @@ public:
             <<",\"all_fragments_acked\":"<<(outbound.complete(schemaTicket)?"true":"false")
             <<",\"bits\":"<<schemaBits<<",\"bytes\":"<<schemaBytes<<",\"sha256\":"<<escaped(schemaHash)
             <<",\"application_acceptance_validated\":false},\"outbound_pending\":"<<outbound.pendingCount()
+            <<",\"property_probe\":{\"sent\":"<<(propertySent?"true":"false")
+            <<",\"class_name\":\"TestService\",\"property_name\":\"Instance:Name\",\"nonce\":"<<escaped(propertyNonce)<<"}"
             <<",\"outbound_queued\":"<<outbound.queuedCount()<<",\"outbound_resident_bytes\":"<<outbound.residentBytes()<<"}\n";
         auto temp=output/L"server-result.tmp",path=output/L"server-result.json";{std::ofstream stream(temp,std::ios::binary);stream<<r.str();if(!stream)throw std::runtime_error("report write");}if(!MoveFileExW(temp.c_str(),path.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH))throw std::runtime_error("report replace");
     }

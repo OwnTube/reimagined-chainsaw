@@ -119,6 +119,22 @@ public:
         }
         return output;
     }
+    // Exact-build property hypothesis: cached scope 1 established by globals,
+    // ID3 compact item, raw x86 10-bit property ID, one false control bit,
+    // a fresh per-property string-cache literal, then compact terminator 0.
+    BitWriter serviceName(uint32_t index,const std::string& value) const {
+        if(index<0x20000000 || index>0x3fffffff || value.empty() || value.size()>128)
+            throw std::runtime_error("owned service name bounds");
+        for(unsigned char c:value)if(!((c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='_'))
+            throw std::runtime_error("owned service name alphabet");
+        BitWriter out;out.uint32(0x83,8);out.uint32(3,2);out.uint32(1,8);
+        for(unsigned byte=0;byte<4;++byte)out.uint32((index>>(byte*8))&255,8);
+        // Instance:Name = 404 (0x0194). ReadBits(...,10,true) fills x86
+        // memory byte 0 first, then a right-aligned two-bit high byte.
+        out.uint32(0x94,8);out.uint32(1,2);out.bit(false);
+        out.uint32(0x81,8);out.uint32(static_cast<uint32_t>(value.size()),32);string(out,value);
+        out.uint32(0,6);return out;
+    }
     BitWriter globals(bool flag0,bool flag1,const std::string& scope,const std::vector<uint32_t>& indices) const {
         if(scope.empty() || scope.size()>128 || indices.empty() || indices.size()>128)
             throw std::runtime_error("globals scope/reference bound exceeded");
