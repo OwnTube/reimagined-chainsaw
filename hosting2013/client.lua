@@ -76,7 +76,8 @@ local ok, problem = pcall(function()
         end)
         print(marker .. "|KEYBOARD_OBSERVER_READY|" .. tostring(inputOk) .. "|" .. tostring(inputProblem))
     end
-    local ownedValueReported = false
+    local ownedValueReported, ownedUpdateReported = false, false
+    local firstOwnedNonce = nil
     local guiReported, guiFrames = false, 0
     local menuFrames, menuWasShown, menuClosed = 0, false, false
     run.Stepped:connect(function()
@@ -121,6 +122,16 @@ local ok, problem = pcall(function()
         if value and value.ClassName == "StringValue" and not ownedValueReported then
             ownedValueReported = true
             print(marker .. "|OWNED_STRINGVALUE|Workspace|StringValue|" .. value.Name .. "|" .. value.Value .. "|" .. value:GetDebugId(0))
+            if string.len(value.Value) == 40 and string.sub(value.Value,1,8) == "RCC2013_" then
+                firstOwnedNonce = value.Value
+                value.Value = firstOwnedNonce .. "_ack"
+            end
+        end
+        if firstOwnedNonce and value and not ownedUpdateReported and value.Value ~= firstOwnedNonce
+            and string.len(value.Value) == 40 and string.sub(value.Value,1,8) == "RCC2013_" then
+            ownedUpdateReported = true
+            print(marker .. "|OWNED_VALUE_UPDATE|" .. value.Value .. "|" .. value:GetDebugId(0))
+            value.Value = value.Value .. "_ack"
         end
         local beacon = world:FindFirstChild("RccReplicationBeacon")
         local signal = world:FindFirstChild("RccJoinSignal")

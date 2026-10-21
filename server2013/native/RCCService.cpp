@@ -22,6 +22,7 @@
 #include <vector>
 #include "../protocol/DescriptorWriter.hpp"
 #include "../protocol/ReliableSender.hpp"
+#include "../protocol/PropertyReader.hpp"
 #include "../build/DescriptorData.generated.hpp"
 #pragma comment(lib,"Ws2_32.lib")
 #pragma comment(lib,"Bcrypt.lib")
@@ -39,8 +40,8 @@ static Bytes addr(const sockaddr_in& sa){Bytes b={4};auto ip=reinterpret_cast<co
 static std::string escaped(const std::string& s){std::string t="\"";for(unsigned char c:s){if(c=='"'||c=='\\')t+='\\';if(c>=32&&c<127)t+=c;else t+='?';}return t+'"';}
 static std::string sha256(const Bytes& bytes){BCRYPT_ALG_HANDLE alg=nullptr;BCRYPT_HASH_HANDLE hash=nullptr;unsigned char digest[32];if(BCryptOpenAlgorithmProvider(&alg,BCRYPT_SHA256_ALGORITHM,nullptr,0)<0)throw std::runtime_error("SHA provider");if(BCryptCreateHash(alg,&hash,nullptr,0,nullptr,0,0)<0){BCryptCloseAlgorithmProvider(alg,0);throw std::runtime_error("SHA allocation");}auto status=BCryptHashData(hash,const_cast<unsigned char*>(bytes.data()),static_cast<ULONG>(bytes.size()),0);if(status>=0)status=BCryptFinishHash(hash,digest,32,0);BCryptDestroyHash(hash);BCryptCloseAlgorithmProvider(alg,0);if(status<0)throw std::runtime_error("SHA failed");std::ostringstream out;for(auto c:digest){const char* hex="0123456789abcdef";out<<hex[c>>4]<<hex[c&15];}return out.str();}
 
-struct Frame {int reliability=0,channel=0;bool split=false;uint32_t reliable=0,order=0,count=0,index=0;uint16_t splitId=0;Bytes payload;};
-struct Assembly {uint32_t count=0,order=0;std::map<uint32_t,Bytes> chunks;size_t bytes=0;};
+struct Frame {int reliability=0,channel=0;bool split=false;uint32_t reliable=0,order=0,count=0,index=0;uint16_t splitId=0;size_t bits=0;Bytes payload;};
+struct Assembly {uint32_t count=0,order=0;std::map<uint32_t,Bytes> chunks;size_t bytes=0,tailBits=0;};
 class Host {
     SOCKET udp=INVALID_SOCKET;
     sockaddr_in local{},peer{};
@@ -52,6 +53,9 @@ class Host {
     uint64_t schemaTicket=0;size_t schemaBits=0,schemaBytes=0;std::string schemaHash;
     std::string propertyNonce;bool propertySent=false;
     std::string instanceNonce;uint32_t instanceIndex=0,instanceParent=0;bool instanceSent=false;
+    std::string ownedScope,secondNonce;bool firstReturn=false,secondSent=false,secondReturn=false;
+    rcc2013::PropertyReader propertyReader;unsigned parsedValues=0;
+    std::vector<std::string> propertyReadErrors;
     std::string phase="listening";
     std::vector<std::string> events,messages;
     std::set<uint32_t> seenDatagrams,seenReliable;
@@ -120,6 +124,7 @@ class Host {
             throw std::runtime_error("scope random generation");
         std::string scope="RBX";const char* hex="0123456789abcdef";
         for(auto byte:randomScope){scope+=hex[byte>>4];scope+=hex[byte&15];}
+        ownedScope=scope;
         std::set<uint32_t> used;std::vector<uint32_t> indices;
         for(const char* name:classes){
             uint32_t index=0;
@@ -134,9 +139,36 @@ class Host {
         message(Bytes(encoded.bytes().begin(),encoded.bytes().end()),true,true,encoded.sizeBits());
         globalsSent=true;event("original_globals_sent");
     }
-    void dispatch(const Bytes& body){
+    void receiveProperties(const Bytes& body,size_t bits){
+        std::vector<rcc2013::StringProperty> values;
+        try{values=propertyReader.read(body,bits);}catch(const std::exception& error){
+            if(propertyReadErrors.size()<16)propertyReadErrors.push_back(error.what());return;
+        }
+        for(const auto& value:values){
+            ++parsedValues;
+            if(!instanceSent || value.scope!=ownedScope || value.index!=instanceIndex)continue;
+            if(!firstReturn && value.value==instanceNonce+"_ack"){
+                firstReturn=true;event("native_client_initial_value_return_validated");
+                unsigned char random[16];
+                if(BCryptGenRandom(nullptr,random,sizeof(random),BCRYPT_USE_SYSTEM_PREFERRED_RNG)<0)
+                    throw std::runtime_error("second nonce random generation");
+                secondNonce="RCC2013_";const char* hex="0123456789abcdef";
+                for(auto byte:random){secondNonce+=hex[byte>>4];secondNonce+=hex[byte&15];}
+                auto encoded=rcc2013::DescriptorWriter().valueProperty(instanceIndex,secondNonce,2);
+                message(encoded.bytes(),true,true,encoded.sizeBits());secondSent=true;
+                event("second_server_value_sent_after_native_client_return");
+            }else if(firstReturn && secondSent && value.value==secondNonce+"_ack"){
+                secondReturn=true;event("native_client_second_value_return_validated");
+            }
+        }
+    }
+    void observeMessage(const Bytes& body){
+        if(messages.size()<64){std::ostringstream row;row<<"{\"id\":"<<int(body[0])<<",\"length\":"<<body.size()<<",\"sha256\":"<<escaped(sha256(body))<<"}";messages.push_back(row.str());}
+    }
+    void dispatch(const Bytes& body,size_t bits=0){
         if(body.empty())throw std::runtime_error("empty message");
-        if(body[0]==9){
+        if(body[0]==0x83 && connected){observeMessage(body);receiveProperties(body,bits?bits:body.size()*8);}
+        else if(body[0]==9){
             if(phase!="offline_ready"&&phase!="accept_sent")throw std::runtime_error("connection request phase");
             if(body.size()<18||body[17]!=0)throw std::runtime_error("unsupported secure connection");
             event("connection_request_received");
@@ -154,12 +186,12 @@ class Host {
         else if(messages.size()<64){std::ostringstream row;row<<"{\"id\":"<<int(body[0])<<",\"length\":"<<body.size()<<",\"sha256\":"<<escaped(sha256(body))<<"}";messages.push_back(row.str());}
     }
     void deliver(Frame f){
-        if(f.reliability!=3){dispatch(f.payload);return;}
+        if(f.reliability!=3){dispatch(f.payload,f.bits);return;}
         auto key=std::make_pair(f.channel,f.order);auto& next=expected[f.channel];const auto delta=(f.order-next)&0xffffff;
         if(delta>0x7fffff)return;if(delta>512)throw std::runtime_error("ordered receive window");
         if(delta){if(ordered.size()>=512)throw std::runtime_error("ordered receive budget");ordered.emplace(key,std::move(f));return;}
-        dispatch(f.payload);next=(next+1)&0xffffff;
-        while(true){auto it=ordered.find({f.channel,next});if(it==ordered.end())break;dispatch(it->second.payload);ordered.erase(it);next=(next+1)&0xffffff;}
+        dispatch(f.payload,f.bits);next=(next+1)&0xffffff;
+        while(true){auto it=ordered.find({f.channel,next});if(it==ordered.end())break;dispatch(it->second.payload,it->second.bits);ordered.erase(it);next=(next+1)&0xffffff;}
     }
     void datagram(const Bytes& b,const sockaddr_in& remote){
         if(remote.sin_addr.s_addr!=htonl(INADDR_LOOPBACK)||b.empty()||b.size()>1500)return;
@@ -184,7 +216,7 @@ class Host {
         if(!seenDatagrams.insert(seq).second)return;if(seenDatagrams.size()>4096)seenDatagrams.erase(seenDatagrams.begin());
         int frames=0;
         while(pos<b.size()){
-            if(++frames>256)throw std::runtime_error("frame count budget");Frame f;auto flags=get(b,pos,1);f.reliability=static_cast<int>(flags>>5);f.split=(flags&16)!=0;auto bits=get(b,pos,2);if(f.reliability>4||bits==0)throw std::runtime_error("frame flags/length");
+            if(++frames>256)throw std::runtime_error("frame count budget");Frame f;auto flags=get(b,pos,1);f.reliability=static_cast<int>(flags>>5);f.split=(flags&16)!=0;auto bits=get(b,pos,2);f.bits=static_cast<size_t>(bits);if(f.reliability>4||bits==0)throw std::runtime_error("frame flags/length");
             if(f.reliability==2||f.reliability==3||f.reliability==4)f.reliable=static_cast<uint32_t>(get(b,pos,3,true));
             if(f.reliability==1||f.reliability==4)get(b,pos,3,true);
             if(f.reliability==1||f.reliability==3||f.reliability==4){f.order=static_cast<uint32_t>(get(b,pos,3,true));f.channel=static_cast<int>(get(b,pos,1));if(f.channel>=32)throw std::runtime_error("ordered channel");}
@@ -194,8 +226,9 @@ class Host {
             if(f.split){
                 if(f.count==0||f.count>1024||f.index>=f.count)throw std::runtime_error("split count/index");auto key=std::make_pair(f.channel,f.splitId);auto it=assemblies.find(key);
                 if(it==assemblies.end()){if(assemblies.size()>=4)throw std::runtime_error("assembly budget");Assembly a;a.count=f.count;a.order=f.order;it=assemblies.emplace(key,std::move(a)).first;}
-                auto& a=it->second;if(a.count!=f.count||a.order!=f.order)throw std::runtime_error("inconsistent split");if(a.chunks.count(f.index)==0){a.bytes+=f.payload.size();a.chunks.emplace(f.index,f.payload);}if(a.bytes>1024*1024)throw std::runtime_error("split byte budget");if(a.chunks.size()!=a.count)continue;
-                f.payload.clear();for(uint32_t i=0;i<a.count;i++)append(f.payload,a.chunks.at(i));assemblies.erase(it);event("split_message_reassembled");
+                if(f.index+1<f.count && f.bits%8)throw std::runtime_error("partial non-final fragment");
+                auto& a=it->second;if(f.index+1==f.count)a.tailBits=f.bits;if(a.count!=f.count||a.order!=f.order)throw std::runtime_error("inconsistent split");if(a.chunks.count(f.index)==0){a.bytes+=f.payload.size();a.chunks.emplace(f.index,f.payload);}if(a.bytes>1024*1024)throw std::runtime_error("split byte budget");if(a.chunks.size()!=a.count)continue;
+                f.payload.clear();for(uint32_t i=0;i<a.count;i++)append(f.payload,a.chunks.at(i));f.bits=f.payload.size()*8-a.chunks.at(a.count-1).size()*8+a.tailBits;assemblies.erase(it);event("split_message_reassembled");
             }
             deliver(std::move(f));
         }
@@ -219,6 +252,11 @@ public:
             <<",\"owned_instance_probe\":{\"sent\":"<<(instanceSent?"true":"false")
             <<",\"class_name\":\"StringValue\",\"name\":\"RccServerToken\",\"nonce\":"<<escaped(instanceNonce)
             <<",\"index\":"<<instanceIndex<<",\"parent_index\":"<<instanceParent<<"}"
+            <<",\"value_roundtrip\":{\"first_client_return_validated\":"<<(firstReturn?"true":"false")
+            <<",\"second_value_sent\":"<<(secondSent?"true":"false")<<",\"second_nonce\":"<<escaped(secondNonce)
+            <<",\"second_client_return_validated\":"<<(secondReturn?"true":"false")<<",\"parsed_value_properties\":"<<parsedValues
+            <<",\"bidirectional_stringvalue_validated\":"<<(firstReturn&&secondSent&&secondReturn?"true":"false")<<",\"read_errors\":[";
+        first=true;for(const auto& error:propertyReadErrors){if(!first)r<<',';first=false;r<<escaped(error);}r<<"]}"
             <<",\"outbound_queued\":"<<outbound.queuedCount()<<",\"outbound_resident_bytes\":"<<outbound.residentBytes()<<"}\n";
         auto temp=output/L"server-result.tmp",path=output/L"server-result.json";{std::ofstream stream(temp,std::ios::binary);stream<<r.str();if(!stream)throw std::runtime_error("report write");}if(!MoveFileExW(temp.c_str(),path.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH))throw std::runtime_error("report replace");
     }

@@ -46,3 +46,18 @@ class InstanceEvidenceTests(unittest.TestCase):
             self.assertFalse(verify_instance(server,[lines[0].replace(before,after)])['new_instance_replication_validated'])
         server['owned_instance_probe']['parent_index']=0x3456789b
         self.assertFalse(verify_instance(server,lines)['new_instance_replication_validated'])
+
+class RoundtripEvidenceTests(unittest.TestCase):
+    def test_requires_native_returns_and_second_received_value(self):
+        from verify_owned_schema import verify_roundtrip
+        second='RCC2013_'+'b2'*16
+        state={'owned_instance_probe':{'index':0x23456789,'nonce':'RCC2013_'+'a1'*16},
+               'value_roundtrip':{'first_client_return_validated':True,'second_value_sent':True,'second_nonce':second,
+                                  'second_client_return_validated':True,'bidirectional_stringvalue_validated':True,'parsed_value_properties':2}}
+        lines=['owned|OWNED_VALUE_UPDATE|'+second+'|'+str(0x23456789)]
+        self.assertTrue(verify_roundtrip(state,lines)['bidirectional_stringvalue_validated'])
+        self.assertFalse(verify_roundtrip(state,[])['bidirectional_stringvalue_validated'])
+        for field in ['first_client_return_validated','second_value_sent','second_client_return_validated','bidirectional_stringvalue_validated']:
+            altered=copy.deepcopy(state);altered['value_roundtrip'][field]=False
+            self.assertFalse(verify_roundtrip(altered,lines)['bidirectional_stringvalue_validated'])
+        self.assertFalse(verify_roundtrip(state,lines)['game_join_validated'])

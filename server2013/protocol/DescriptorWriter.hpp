@@ -156,6 +156,19 @@ public:
         for(unsigned byte=0;byte<4;++byte)out.uint32((parent>>(byte*8))&255,8);
         out.uint32(0,6);return out;
     }
+    BitWriter valueProperty(uint32_t index,const std::string& value,unsigned cacheSlot=2,
+                            const std::string& literalScope="",bool control=false) const {
+        if(index<0x20000000 || index>0x3fffffff || value.empty() || value.size()>128 || !cacheSlot || cacheSlot>127)
+            throw std::runtime_error("owned value property bound");
+        for(unsigned char c:value)if(c<32||c>126)throw std::runtime_error("owned value alphabet");
+        if(literalScope.size()>128)throw std::runtime_error("literal scope bound");
+        BitWriter out;out.uint32(0x83,8);out.uint32(3,2);out.uint32(literalScope.empty()?1:0x81,8);
+        if(!literalScope.empty()){out.uint32(static_cast<uint32_t>(literalScope.size()),32);string(out,literalScope);}
+        for(unsigned byte=0;byte<4;++byte)out.uint32((index>>(byte*8))&255,8);
+        out.uint32(735&255,8);out.uint32(735>>8,2);out.bit(control);
+        out.uint32(128|cacheSlot,8);out.uint32(static_cast<uint32_t>(value.size()),32);string(out,value);
+        out.uint32(0,6);return out;
+    }
     BitWriter globals(bool flag0,bool flag1,const std::string& scope,const std::vector<uint32_t>& indices) const {
         if(scope.empty() || scope.size()>128 || indices.empty() || indices.size()>128)
             throw std::runtime_error("globals scope/reference bound exceeded");

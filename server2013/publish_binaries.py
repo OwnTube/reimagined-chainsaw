@@ -45,6 +45,9 @@ def main():
     if evidence.get('custom_instance_replication_validated') is not True:
         raise RuntimeError('Owned StringValue nonce/GUID was not observed in native Player scene')
     manifest['new_instance_replication_validated']=True
+    if evidence.get('custom_bidirectional_replication_validated') is not True:
+        raise RuntimeError('Native StringValue replication roundtrip was not verified')
+    manifest['bidirectional_stringvalue_validated']=True
     manifest['playable_world_validated']=False
     manifest['application_globals_validated']=True
     manifest['world_replication_implemented']=False

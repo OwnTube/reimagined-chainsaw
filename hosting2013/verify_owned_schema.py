@@ -98,6 +98,22 @@ def verify_instance(server,client_lines):
             'playable_world_validated':False,'game_join_validated':False,
             'limitation':'One owned StringValue instance; geometry, character, simulation and bidirectional updates unimplemented'}
 
+def verify_roundtrip(server,client_lines):
+    import re
+    probe=server.get('owned_instance_probe',{});roundtrip=server.get('value_roundtrip',{})
+    nonce=roundtrip.get('second_nonce','');index=probe.get('index',0)
+    observed=set()
+    for line in client_lines:
+        match=re.search(r'\|OWNED_VALUE_UPDATE\|(RCC2013_[0-9a-f]{32})\|([0-9]+)(?:\s|$)',line)
+        if match:observed.add((match.group(1),int(match.group(2))))
+    valid=(roundtrip.get('first_client_return_validated') is True and roundtrip.get('second_value_sent') is True
+           and roundtrip.get('second_client_return_validated') is True and roundtrip.get('bidirectional_stringvalue_validated') is True
+           and roundtrip.get('parsed_value_properties',0)>=2 and re.fullmatch(r'RCC2013_[0-9a-f]{32}',nonce) is not None
+           and nonce!=probe.get('nonce') and 0x20000000<=index<=0x3fffffff and (nonce,index) in observed)
+    return {'bidirectional_stringvalue_validated':valid,'native_server_decoded_client_updates':valid,
+            'second_server_only_nonce_observed_in_player':valid,'game_join_validated':False,
+            'limitation':'Owned string-property round trip only; no geometry, simulation, character or playable game'}
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--encoder',required=True,type=Path)

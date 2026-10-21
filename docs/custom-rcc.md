@@ -527,3 +527,23 @@ a 64-bit integer and a 32-bit integer. Client property writer emits a control bi
 before the value; later-client assumptions about extra version fields must be
 verified for this build. Retain actual incoming frame bit lengths and per-direction
 scope/property caches before implementing a general decoder.
+
+## Bidirectional StringValue hypothesis
+
+The new bounded original PropertyReader consumes exact frame bit lengths and
+supports only the measured compact ID3 StringValue.Value route and ID5/6 ping
+framing. It maintains independent incoming scope/value caches and validates
+Huffman decoded lengths, IDs, item count, trailing bits and message size.
+Unsupported fields remain bounded metadata; no engine code or raw packet bodies
+are exported. Its offline tests include an independent fixed Huffman word,
+literal/cached scopes, raw x86 IDs, truncation and trailing-data rejection.
+
+For the native hypothesis, client Lua first reports the existing object then
+sets its Value to the value it actually received plus `_ack`. Only after decoding
+that actual replication update for the owned scope/index does C++ generate and
+send a second independent random value. The client must read that second value
+and return its derived acknowledgement through the same native property path.
+The publication gate requires both native server returns and the second observed
+Player value. No expected nonce is supplied in client source, and HTTP/log-only
+callbacks cannot pass this gate. This new bidirectional hypothesis is pending;
+playable world and game_join_validated remain false.

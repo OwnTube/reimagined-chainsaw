@@ -435,7 +435,7 @@ def main():
                 binding=verify_custom_globals(report.get('custom_server',{}),report['peers']['client']['engine_marker_lines'])
                 report['custom_globals_binding_observation']=binding
                 report['custom_globals_binding_validated']=binding['validated']
-                from verify_owned_schema import verify_delivery,verify_property,verify_instance
+                from verify_owned_schema import verify_delivery,verify_property,verify_instance,verify_roundtrip
                 schema_delivery=verify_delivery(report.get('custom_server',{}))
                 report['custom_schema_delivery']=schema_delivery
                 report['custom_schema_delivery_validated']=schema_delivery['transport_delivery_validated']
@@ -445,8 +445,11 @@ def main():
                 instance_evidence=verify_instance(report.get('custom_server',{}),report['peers']['client']['engine_marker_lines'])
                 report['custom_instance_replication']=instance_evidence
                 report['custom_instance_replication_validated']=instance_evidence['new_instance_replication_validated']
+                roundtrip_evidence=verify_roundtrip(report.get('custom_server',{}),report['peers']['client']['engine_marker_lines'])
+                report['custom_bidirectional_replication']=roundtrip_evidence
+                report['custom_bidirectional_replication_validated']=roundtrip_evidence['bidirectional_stringvalue_validated']
                 report['probe_checkpoint']='transport, server-generated service GUID binding and schema datagram ACKs and server-only service-name property and owned StringValue; full game join remains unproved'
-                report['probe_checkpoint_passed']=report['probe_checkpoint_passed'] and binding['validated'] and schema_delivery['transport_delivery_validated'] and property_evidence['property_replication_validated'] and instance_evidence['new_instance_replication_validated']
+                report['probe_checkpoint_passed']=report['probe_checkpoint_passed'] and binding['validated'] and schema_delivery['transport_delivery_validated'] and property_evidence['property_replication_validated'] and instance_evidence['new_instance_replication_validated'] and roundtrip_evidence['bidirectional_stringvalue_validated']
                 if not binding['validated']:
                     report['error']='Server-generated service GUIDs were not observed completely in native Player objects'
                 elif not schema_delivery['transport_delivery_validated']:
@@ -455,8 +458,10 @@ def main():
                     report['error']='Server-only TestService.Name was not observed in native Player'
                 elif not instance_evidence['new_instance_replication_validated']:
                     report['error']='Owned StringValue class, value, GUID and Workspace parent proof was incomplete'
+                elif not roundtrip_evidence['bidirectional_stringvalue_validated']:
+                    report['error']='Two actual Roblox property returns and second server-only update were not verified'
                 else:
-                    report['error']='Owned single-instance replication checkpoint only; playable world and simulation remain unimplemented'
+                    report['error']='Owned StringValue roundtrip checkpoint only; playable world and simulation remain unimplemented'
         # A verified network round trip is separate from character locomotion.
         if not report['client_character_movement_validated']:
             report['movement_limitation'] = 'Character locomotion was not verified on both peers'
