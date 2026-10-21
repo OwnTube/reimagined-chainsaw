@@ -26,6 +26,16 @@ class SchemaObservationTests(unittest.TestCase):
         self.assertFalse(row['body_exported'])
         self.assertFalse(row['layout_validated'])
 
+    def test_native_prefix_hash_masks_only_padding(self):
+        import hashlib
+        from test_descriptor_codec import packed,word
+        # Four empty owned dictionaries followed by a zero configuration count.
+        payload=packed('10000010'+word(0)*4+'0'*16)
+        row=observe('server_to_client',payload)
+        candidate=next(c for c in row['descriptor_candidates'] if c['schema_complete'])
+        self.assertEqual(candidate['dictionary_prefix_bits'],136)
+        self.assertEqual(candidate['dictionary_prefix_sha256'],hashlib.sha256(payload[:17]).hexdigest())
+
     def test_shifted_bit_positions(self):
         # Prefix 3 zero bits, then exactly the ASCII symbol and a zero byte.
         bits='000'+''.join(f'{b:08b}' for b in b'Workspace\0')

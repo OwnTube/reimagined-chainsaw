@@ -59,7 +59,7 @@ def frames(data):
 class Trace:
     def __init__(self):
         self.started=time.monotonic();self.records=[];self.count=0;self.errors=[]
-        self.splits={};self.messages=[];self.schema_observations=[]
+        self.splits={};self.messages=[];self.schema_observations=[];self.globals_observations=[]
 
     def message(self,direction,payload,**header):
         record={'direction':direction,'id':payload[0] if payload else None,
@@ -72,6 +72,11 @@ class Trace:
             observation=observe(direction,payload)
             if observation and not any(o.get('sha256')==observation.get('sha256') for o in self.schema_observations):
                 self.schema_observations.append(observation)
+        if len(self.globals_observations)<2:
+            from globals_observer import observe_globals
+            observation=observe_globals(direction,payload,header.get('bits',len(payload)*8))
+            if observation and not any(o['sha256']==observation['sha256'] for o in self.globals_observations):
+                self.globals_observations.append(observation)
         if len(self.messages)<2048:self.messages.append(record)
 
     def packet(self,direction,data):
@@ -106,7 +111,7 @@ class Trace:
     def report(self):
         return {'scope':'synthetic owned fixture on numeric loopback only','datagrams':self.count,
                 'application_payloads_exported':False,'packets':self.records,'messages':self.messages,
-                'schema_observations':self.schema_observations,
+                'schema_observations':self.schema_observations,'globals_observations':self.globals_observations,
                 'decode_errors':self.errors,'incomplete_split_messages':len(self.splits)}
 
 

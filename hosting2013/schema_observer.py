@@ -70,7 +70,13 @@ def observe(direction, payload):
             except ValueError as error:
                 result['descriptor_errors'][f'{endian}/{table_count}'] = str(error)
         if candidates:
-            result['descriptor_candidates'].append(max(candidates,key=lambda c:(c['schema_complete'],c['consumed_bits'])))
+            candidate=max(candidates,key=lambda c:(c['schema_complete'],c['consumed_bits']))
+            prefix_bits=candidate['tables'][-1]['end_bit']
+            prefix=bytearray(payload[:(prefix_bits+7)//8])
+            if prefix_bits%8:prefix[-1]&=255<<(8-prefix_bits%8)&255
+            candidate['dictionary_prefix_bits']=prefix_bits
+            candidate['dictionary_prefix_sha256']=hashlib.sha256(prefix).hexdigest()
+            result['descriptor_candidates'].append(candidate)
     # A valid zlib checksum and complete bounded stream are required. We report
     # symbol fields only, even if an unrelated byte pair resembles a header.
     for offset in range(min(32, len(body)-1)):

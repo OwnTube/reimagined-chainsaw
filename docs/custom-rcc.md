@@ -245,3 +245,32 @@ changing the message hash each caused rejection. The gate itself is a new
 post-processing step for future native observations; it was not a step in that
 already-completed run. No unchanged native run was repeated merely to add this
 evidence check.
+
+## Original encoding and globals investigation
+
+`server2013/protocol/DescriptorWriter.hpp` adds a portable original C++ bit
+writer and Huffman encoder for the four descriptor dictionaries. It consumes
+ID/name fields, validates dense IDs without collapsing repeated names, and
+generates dictionary bits independently. It does not load or replay captured
+packets. The tiny `descriptor_writer_probe.cpp` is an offline test executable,
+not a replacement host or an engine runtime. The public RakNet frequency table
+retains its BSD attribution and notices. The shipped EXEs are unchanged.
+
+On Linux, GCC C++17 compilation with warnings treated as errors passed. Encoding
+the decoded reference fields in their observed order produced 319,267 bits /
+39,909 padded bytes; the independent Python decoder recovered all four tables
+and exact field boundaries. Hash was
+`d6ee3d0df270316e36ac68fa5b7d5175d740f9dc090766a2f4a5230a6c57b409`.
+This is a field round trip until compared against the actual wire prefix hash.
+The Windows observation workflow now compiles this C++ encoder with MSVC and
+requires its generated prefix hash to match the fresh native reference's masked
+dictionary prefix. No native engine packet body is exported.
+
+The same new observation tests `0x81` globals with one/two header bits, bounded
+cached scope strings (literal flag in the cache byte's high bit), and 32-bit
+raw little-endian indices. These framing hypotheses follow read-only exact-build
+inspection; scopes are exported as hashes/lengths only. A complete candidate
+must consume the RakNet frame's exact valid bit count. Three synthetic tests
+cover literal/cache scopes, x86 byte order, sensitive-message exclusion and
+truncation. Even a complete candidate does not identify which GUID belongs to
+which service, and it does not implement globals in the native host.
