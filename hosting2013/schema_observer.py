@@ -1,7 +1,7 @@
 """Non-replayable, bounded observations of the owned reference's ID 0x82.
 
 Packet names/layouts from later clients are hypotheses, not a 2013 schema.
-Only allowlisted public API symbols and adjacent format bytes are exported;
+Only allowlisted symbol spans and fully parsed descriptor-table names/IDs are exported;
 no ticket, globals, script, world or unknown application body is retained.
 """
 import hashlib
@@ -52,6 +52,14 @@ def observe(direction, payload):
               "sha256": hashlib.sha256(payload).hexdigest(),
               "layout_validated": False, "body_exported": False,
               "symbols": symbol_spans(body), "zlib_candidates": []}
+    from descriptor_codec import read_tables
+    result['descriptor_candidates'] = []
+    result['descriptor_errors'] = {}
+    for endian in ('big','little'):
+        try:
+            result['descriptor_candidates'].append(read_tables(payload,endian))
+        except ValueError as error:
+            result['descriptor_errors'][endian] = str(error)
     # A valid zlib checksum and complete bounded stream are required. We report
     # symbol fields only, even if an unrelated byte pair resembles a header.
     for offset in range(min(32, len(body)-1)):

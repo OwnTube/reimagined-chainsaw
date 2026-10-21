@@ -6,6 +6,9 @@ on:
     paths:
       - 'hosting2013/schema_observer.py'
       - 'hosting2013/test_schema_observer.py'
+      - 'hosting2013/descriptor_codec.py'
+      - 'hosting2013/test_descriptor_codec.py'
+      - 'hosting2013/raknet_reference/**'
       - '.github/workflows/rcc2013-schema-observation.yml'
 permissions:
   contents: read
@@ -26,7 +29,7 @@ jobs:
       - run: python -m pip install Pillow cryptography
       - name: Test bounded observations and sensitive-message exclusion
         working-directory: hosting2013
-        run: python -m unittest -v test_schema_observer.py test_bootstrap.py test_local_player.py
+        run: python -m unittest -v test_schema_observer.py test_descriptor_codec.py test_bootstrap.py test_local_player.py
       - name: Restore pinned reference programs only on disposable runner
         working-directory: rcc2013
         run: python download.py

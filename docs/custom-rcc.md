@@ -152,3 +152,23 @@ sensitive-message exclusion, bit offsets, compressed bounds/checksums, and
 out-of-order split reconstruction. The dedicated Windows observation workflow
 uses the existing owned Studio reference strictly as a protocol oracle; it does
 not change the Studio-free product or its published binary manifest.
+
+Reference observation [39525404964](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39525404964)
+passed on source `7c99a9228afa1bf7adde46332b968b71d2d296cf`: 362 datagrams,
+170 messages, zero frame decode errors, and reference-only replication/movement
+checks passed. ID `0x82` was again 40,010 bytes (SHA-256
+`07f8029b53d1216f29e459a623cc84e7e5980085e294b57c930b861151ea774a`).
+No allowlisted symbols or complete zlib stream were found. This rules out those
+specific encodings; it does not show that the message lacks a descriptor table.
+
+Read-only inspection of the exact hash-pinned Player identified a separate
+`0x82` handler that reads three counted descriptor dictionaries and uses a
+RakNet-style compressed-string path. `descriptor_codec.py` implements bounded
+MSB-first reading and the public BSD-licensed RakNet Huffman format, with the
+upstream frequency data/license/patent notice retained under `raknet_reference`.
+The table framing and compressed integer byte order are new hypotheses requiring
+a native observation. The decoder exports names/IDs only after all three tables
+pass bounds and string-length/identifier checks. It sends no application packet,
+does not replay reference messages, and does not implement a world. Static
+instruction text stays outside the repository. REA's resource inspector again
+verified the exact x86 input; its objdump provider was unavailable on this host.
