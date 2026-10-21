@@ -1,6 +1,6 @@
 {
-  "source_commit": "ff3674c8bf5c4e75f73ccbdd158829f5e898abb3",
-  "workflow_run": "39518669688",
+  "source_commit": "3fe4a2d6dd7e743449af8f43ead6c1bdfd9d7566",
+  "workflow_run": "39548968777",
   "platform": "Windows x64",
   "service_implementation": "native C++",
   "render_worker": "packaged original Python/NumPy CPU renderer",
@@ -8,12 +8,14 @@
   "game_join_validated": false,
   "files": {
     "RCCService.exe": {
-      "bytes": 344064,
-      "sha256": "abf02a2d7f0160b46fa409c67c7d97ab0b46628ef22a13b15a93cdf6ed83c7cb"
+      "bytes": 361984,
+      "sha256": "00bfd0f1473d8e527efbc51fdb9b08cdb6572d605d9c732c0f90c7b46ea09d94"
     },
     "RCCRenderWorker.exe": {
-      "bytes": 27980248,
-      "sha256": "848ce15a5155c97c70737fad474128a8eca3bafc40675a9784ad2d426f6649a4"
+      "bytes": 27980982,
+      "sha256": "938a810336a7d9d4051975740e1f2959829e8f7fc37fa5653fc021d4fd7836d3"
     }
-  }
+  },
+  "application_globals_validated": true,
+  "world_replication_implemented": false
 }
