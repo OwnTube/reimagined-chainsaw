@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 #include "../protocol/DescriptorWriter.hpp"
+#include "../protocol/ReliableSender.hpp"
+#include "../build/DescriptorData.generated.hpp"
 #pragma comment(lib,"Ws2_32.lib")
 #pragma comment(lib,"Bcrypt.lib")
 
@@ -38,7 +40,6 @@ static std::string escaped(const std::string& s){std::string t="\"";for(unsigned
 static std::string sha256(const Bytes& bytes){BCRYPT_ALG_HANDLE alg=nullptr;BCRYPT_HASH_HANDLE hash=nullptr;unsigned char digest[32];if(BCryptOpenAlgorithmProvider(&alg,BCRYPT_SHA256_ALGORITHM,nullptr,0)<0)throw std::runtime_error("SHA provider");if(BCryptCreateHash(alg,&hash,nullptr,0,nullptr,0,0)<0){BCryptCloseAlgorithmProvider(alg,0);throw std::runtime_error("SHA allocation");}auto status=BCryptHashData(hash,const_cast<unsigned char*>(bytes.data()),static_cast<ULONG>(bytes.size()),0);if(status>=0)status=BCryptFinishHash(hash,digest,32,0);BCryptDestroyHash(hash);BCryptCloseAlgorithmProvider(alg,0);if(status<0)throw std::runtime_error("SHA failed");std::ostringstream out;for(auto c:digest){const char* hex="0123456789abcdef";out<<hex[c>>4]<<hex[c&15];}return out.str();}
 
 struct Frame {int reliability=0,channel=0;bool split=false;uint32_t reliable=0,order=0,count=0,index=0;uint16_t splitId=0;Bytes payload;};
-struct Pending {Bytes bytes;uint64_t sent=0;int attempts=0;};
 struct Assembly {uint32_t count=0,order=0;std::map<uint32_t,Bytes> chunks;size_t bytes=0;};
 class Host {
     SOCKET udp=INVALID_SOCKET;
@@ -46,10 +47,11 @@ class Host {
     bool hasPeer=false,connected=false,globalsSent=false;
     std::vector<std::pair<std::string,uint32_t>> globalsBindings;
     uint64_t guid=0;
-    unsigned port=0,mtu=1492,sequence=0,reliable=0,order=0;
+    unsigned port=0,mtu=1492;
+    rcc2013::ReliableSender outbound;
+    uint64_t schemaTicket=0;size_t schemaBits=0,schemaBytes=0;std::string schemaHash;
     std::string phase="listening";
     std::vector<std::string> events,messages;
-    std::map<uint32_t,Pending> pending;
     std::set<uint32_t> seenDatagrams,seenReliable;
     std::map<int,uint32_t> expected;
     std::map<std::pair<int,uint32_t>,Frame> ordered;
@@ -59,14 +61,16 @@ class Host {
     void event(const std::string& text){if(events.size()<256)events.push_back(text);}
     bool same(const sockaddr_in& a,const sockaddr_in& b){return a.sin_addr.s_addr==b.sin_addr.s_addr&&a.sin_port==b.sin_port;}
     void send(const Bytes& bytes){if(sendto(udp,reinterpret_cast<const char*>(bytes.data()),static_cast<int>(bytes.size()),0,reinterpret_cast<sockaddr*>(&peer),sizeof(peer))!=static_cast<int>(bytes.size()))throw std::runtime_error("UDP send failed");sent++;}
+    void pump(){for(const auto& transmission:outbound.poll(now()))send(transmission.bytes);}
     void message(const Bytes& payload,bool reliableSend=false,bool orderedSend=false,size_t validBits=0){
-        if(payload.empty()||payload.size()>1200)throw std::runtime_error("unsplit send budget");
-        if(!validBits)validBits=payload.size()*8;
-        if((validBits+7)/8!=payload.size())throw std::runtime_error("invalid message bit count");
-        const auto seq=sequence++&0xffffff;Bytes b={0x84};put(b,seq,3,true);b.push_back(orderedSend?0x60:reliableSend?0x40:0);put(b,validBits,2);
-        if(reliableSend||orderedSend)put(b,reliable++&0xffffff,3,true);
-        if(orderedSend){put(b,order++&0xffffff,3,true);b.push_back(0);}append(b,payload);
-        if(reliableSend||orderedSend){if(pending.size()>=64)throw std::runtime_error("reliable send budget");pending[seq]={b,now(),0};}send(b);
+        outbound.enqueue(payload,validBits?validBits:payload.size()*8,mtu,reliableSend,orderedSend);pump();
+    }
+    void sendSchema(){
+        if(schemaTicket)return;
+        const auto encoded=rcc2013::ownedSchema();
+        schemaBits=encoded.sizeBits();schemaBytes=encoded.bytes().size();schemaHash=sha256(encoded.bytes());
+        schemaTicket=outbound.enqueue(encoded.bytes(),schemaBits,mtu,true,true);pump();
+        event("original_schema_queued");
     }
     void sendGlobals(){
         if(globalsSent)return;
@@ -106,7 +110,7 @@ class Host {
             }
         }else if(body[0]==19){
             if((phase!="accept_sent"&&phase!="connected")||body.size()!=94)throw std::runtime_error("new incoming layout/phase");
-            connected=true;phase="connected";event("new_incoming_connection");sendGlobals();
+            connected=true;phase="connected";event("new_incoming_connection");sendGlobals();sendSchema();
         }else if(body[0]==0){
             if(body.size()!=9)throw std::runtime_error("ping time width");Bytes pong={3};pong.insert(pong.end(),body.begin()+1,body.end());put(pong,now(),8);message(pong);
         }else if(body[0]==3||body[0]==4){}
@@ -135,8 +139,8 @@ class Host {
         }
         if((b[0]&0xc0)==0xc0){
             size_t pos=1;auto count=get(b,pos,2);if(count>128)throw std::runtime_error("ACK range count");
-            for(unsigned i=0;i<count;i++){auto single=get(b,pos,1);if(single>1)throw std::runtime_error("ACK flag");auto low=get(b,pos,3,true),high=single?low:get(b,pos,3,true);if(high<low||high-low>4096)throw std::runtime_error("ACK span");for(auto it=pending.begin();it!=pending.end();){if(it->first>=low&&it->first<=high)it=pending.erase(it);else++it;}}
-            if(pos!=b.size())throw std::runtime_error("trailing ACK bytes");return;
+            for(unsigned i=0;i<count;i++){auto single=get(b,pos,1);if(single>1)throw std::runtime_error("ACK flag");auto low=get(b,pos,3,true),high=single?low:get(b,pos,3,true);if(high<low||high-low>4096)throw std::runtime_error("ACK span");for(uint32_t seq=static_cast<uint32_t>(low);seq<=high;++seq)outbound.acknowledge(seq);}
+            if(pos!=b.size())throw std::runtime_error("trailing ACK bytes");pump();return;
         }
         if((b[0]&0xe0)==0xa0){event("negative_ack_received");return;}
         if((b[0]&0xe0)!=0x80)return;
@@ -170,7 +174,11 @@ public:
     void save(){
         std::ostringstream r;r<<"{\"implementation\":\"original native C++ RCCService.exe; no Roblox engine loaded\",\"pid\":"<<GetCurrentProcessId()<<",\"port\":"<<port<<",\"phase\":"<<escaped(phase)<<",\"transport_handshake_observed\":"<<(connected?"true":"false")<<",\"game_join_validated\":false,\"world_replication_implemented\":false,\"lua_engine_implemented\":false,\"datagrams_received\":"<<received<<",\"datagrams_sent\":"<<sent<<",\"events\":[";
         bool first=true;for(const auto& e:events){if(!first)r<<',';first=false;r<<"{\"event\":"<<escaped(e)<<"}";}r<<"],\"application_messages\":[";first=true;for(const auto& m:messages){if(!first)r<<',';first=false;r<<m;}r<<"],\"application_globals_sent\":"<<(globalsSent?"true":"false")<<",\"globals_bindings\":[";
-        first=true;for(const auto& binding:globalsBindings){if(!first)r<<',';first=false;r<<"{\"class_name\":"<<escaped(binding.first)<<",\"index\":"<<binding.second<<"}";}r<<"]}\n";
+        first=true;for(const auto& binding:globalsBindings){if(!first)r<<',';first=false;r<<"{\"class_name\":"<<escaped(binding.first)<<",\"index\":"<<binding.second<<"}";}r<<"],\"schema_delivery\":{\"queued\":"<<(schemaTicket?"true":"false")
+            <<",\"all_fragments_acked\":"<<(outbound.complete(schemaTicket)?"true":"false")
+            <<",\"bits\":"<<schemaBits<<",\"bytes\":"<<schemaBytes<<",\"sha256\":"<<escaped(schemaHash)
+            <<",\"application_acceptance_validated\":false},\"outbound_pending\":"<<outbound.pendingCount()
+            <<",\"outbound_queued\":"<<outbound.queuedCount()<<",\"outbound_resident_bytes\":"<<outbound.residentBytes()<<"}\n";
         auto temp=output/L"server-result.tmp",path=output/L"server-result.json";{std::ofstream stream(temp,std::ios::binary);stream<<r.str();if(!stream)throw std::runtime_error("report write");}if(!MoveFileExW(temp.c_str(),path.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH))throw std::runtime_error("report replace");
     }
     void run(unsigned seconds){
@@ -179,7 +187,7 @@ public:
         while(!InterlockedCompareExchange(&stopRequested,0,0)&&(seconds==0||now()<deadline)){
             fd_set read;FD_ZERO(&read);FD_SET(udp,&read);timeval wait{0,100000};int ready=select(0,&read,nullptr,nullptr,&wait);if(ready==SOCKET_ERROR)throw std::runtime_error("UDP select");
             if(ready){unsigned char buffer[2048];sockaddr_in remote{};int len=sizeof(remote);int size=recvfrom(udp,reinterpret_cast<char*>(buffer),sizeof(buffer),0,reinterpret_cast<sockaddr*>(&remote),&len);if(size>0){try{datagram(Bytes(buffer,buffer+size),remote);}catch(const std::exception& e){event(std::string("protocol_error: ")+e.what());}}}
-            for(auto& entry:pending){auto& p=entry.second;if(now()-p.sent<500)continue;if(p.attempts++>=8)throw std::runtime_error("unacknowledged control message");send(p.bytes);p.sent=now();}
+            pump();
             if(now()-lastSave>=100){save();lastSave=now();}
         }save();
     }

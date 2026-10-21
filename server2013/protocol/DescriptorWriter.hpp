@@ -39,6 +39,7 @@ public:
         const bool nibble=raw[0]<16;
         bit(nibble);uint32(raw[0],nibble?4:8);
     }
+    void align() {while(bits_%8)bit(false);}
     size_t sizeBits() const {return bits_;}
     const std::vector<uint8_t>& bytes() const {return data_;}
 };
@@ -103,6 +104,18 @@ public:
                 output.uint32(entry.id,32);output.uint32(static_cast<uint32_t>(entry.name.size()),32);
                 string(output,entry.name);
             }
+        }
+        return output;
+    }
+    BitWriter schema(const std::vector<Dictionary>& tables,
+                     const std::vector<std::pair<std::string,std::string>>& configuration) const {
+        if(configuration.size()>512)throw std::runtime_error("configuration count bound");
+        auto output=dictionaries(tables);
+        output.uint32(static_cast<uint32_t>(configuration.size()),16);
+        for(const auto& pair:configuration)for(const auto* field:{&pair.first,&pair.second}) {
+            if(field->size()>2048)throw std::runtime_error("configuration string bound");
+            output.uint32(static_cast<uint32_t>(field->size()),16);output.align();
+            for(unsigned char c:*field)output.uint32(c,8);
         }
         return output;
     }

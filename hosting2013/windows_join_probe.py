@@ -435,8 +435,12 @@ def main():
                 binding=verify_custom_globals(report.get('custom_server',{}),report['peers']['client']['engine_marker_lines'])
                 report['custom_globals_binding_observation']=binding
                 report['custom_globals_binding_validated']=binding['validated']
-                report['probe_checkpoint']='transport and server-generated built-in service GUID binding; full game join remains false'
-                report['probe_checkpoint_passed']=report['probe_checkpoint_passed'] and binding['validated']
+                from verify_owned_schema import verify_delivery
+                schema_delivery=verify_delivery(report.get('custom_server',{}))
+                report['custom_schema_delivery']=schema_delivery
+                report['custom_schema_delivery_validated']=schema_delivery['transport_delivery_validated']
+                report['probe_checkpoint']='transport, server-generated service GUID binding and schema datagram ACKs; schema application and full game join remain unproved'
+                report['probe_checkpoint_passed']=report['probe_checkpoint_passed'] and binding['validated'] and schema_delivery['transport_delivery_validated']
                 report['error']=('Custom host globals checkpoint only: owned world replication and simulation remain unimplemented'
                                  if binding['validated'] else 'Server-generated service GUIDs were not observed completely in native Player objects')
         # A verified network round trip is separate from character locomotion.

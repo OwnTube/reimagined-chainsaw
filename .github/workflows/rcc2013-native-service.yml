@@ -2,7 +2,7 @@ name: Build custom RCCService and verify native Player globals
 on:
   push:
     branches: [rcc2013-ci]
-    paths: ["server2013/native/**", "server2013/publish_binaries.py", "server2013/windows_exe_render_probe.py", "hosting2013/windows_join_probe.py", "rcc2013/**", ".github/workflows/rcc2013-native-service.yml"]
+    paths: ["server2013/native/**", "server2013/protocol/**", "server2013/publish_binaries.py", "server2013/windows_exe_render_probe.py", "hosting2013/windows_join_probe.py", "rcc2013/**", ".github/workflows/rcc2013-native-service.yml"]
   workflow_dispatch:
 permissions:
   contents: write
@@ -18,6 +18,8 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install Pillow==11.3.0 numpy==2.2.6 pyinstaller==6.16.0 cryptography imageio-ffmpeg==0.6.0
+      - name: Generate embedded exact-build API descriptors
+        run: python server2013/protocol/generate_descriptor_header.py --output server2013/build/DescriptorData.generated.hpp
       - name: Compile our native Windows service with the owner's icon
         shell: pwsh
         run: |
@@ -28,6 +30,12 @@ jobs:
           @"
           @echo off
           call "$install\VC\Auxiliary\Build\vcvars64.bat"
+          if errorlevel 1 exit /b 1
+          cl /nologo /std:c++17 /O2 /EHsc /MT ../protocol/sender_test.cpp /Fe:"$dist\sender_test.exe"
+          if errorlevel 1 exit /b 1
+          "$dist\sender_test.exe"
+          if errorlevel 1 exit /b 1
+          cl /nologo /std:c++17 /O2 /EHsc /MT ../protocol/schema_probe.cpp /Fe:"$dist\schema_probe.exe"
           if errorlevel 1 exit /b 1
           rc /nologo /fo RCCService.res RCCService.rc
           if errorlevel 1 exit /b 1
@@ -41,6 +49,8 @@ jobs:
           if ($buildExit -ne 0) { throw 'Native compilation failed' }
           & server2013/dist/RCCService.exe --help
           Get-FileHash server2013/dist/RCCService.exe -Algorithm SHA256
+      - name: Independently decode our complete embedded schema
+        run: python hosting2013/verify_owned_schema.py --encoder server2013/dist/schema_probe.exe
       - name: Test custom renderer with process launches forbidden
         working-directory: rcc2013
         run: python -m unittest -v test_software_render.py
@@ -48,7 +58,7 @@ jobs:
         run: python -m PyInstaller --noconfirm --clean --onefile --name RCCRenderWorker --icon server2013/native/rcc2013.ico --add-data "rcc2013/static;static" --hidden-import software_render --hidden-import numpy --paths rcc2013 --distpath server2013/dist --workpath server2013/build/worker rcc2013/server.py
       - name: Check server-only globals evidence rules
         working-directory: hosting2013
-        run: python -m unittest -v test_bootstrap.py test_globals_observer.py
+        run: python -m unittest -v test_bootstrap.py test_globals_observer.py test_owned_schema.py
       - name: Restore only the exact 2013 Player
         working-directory: rcc2013
         run: python download.py --only player

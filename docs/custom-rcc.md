@@ -373,3 +373,45 @@ implement exact `0x83` instance/property serialization for a server-owned world
 and StringValue token. Require the server-only token in actual Player scene data
 and bidirectional updates before changing `game_join_validated`. No dictionary
 replay or locally fabricated client world should be used as evidence.
+
+## Original descriptor delivery implementation (2026-10-21)
+
+The native host now queues an original `0x82` after its `0x81`. Build-time
+`generate_descriptor_header.py` embeds the measured API ID/name fields into the
+EXE; no captured packet or runtime JSON dependency is included. IDs remain
+unchanged even when names repeat. Our canonical entry order is ID order, so its
+message hash differs from the reference's enumeration order. The three explicit
+owned settings are `false`; their lengths/hashes match the reference observation.
+
+The complete original message is 40,010 bytes / 320,080 bits, SHA-256
+`7f12d60aa1491cefdd0dba70884f71daa9de4a8553072b519fdaa7166c72676b`.
+An independent Python decoder checks every ID/name, configuration field and
+consumption boundary against the measured fixture. This is field equivalence,
+not a replay or a claim that the Player applied the schema.
+
+`ReliableSender.hpp` handles negotiated MTUs 576..1492, ordered reliable
+fragmentation, shared message order/split IDs, distinct reliable indices and
+partial final bytes. The queue caps resident wire bytes at 1 MiB, active messages
+at 128 and in-flight datagrams at 64. ACKs free window slots; unacknowledged
+packets retry unchanged every 500 ms with at most eight retries. This remains a
+bounded loopback research transport, without full congestion control or reconnect.
+Offline tests recover 20 size/MTU/partial-bit combinations in reversed fragment
+order and exercise lost packets, retry expiry, duplicate ACKs and queue limits.
+
+The new native hypothesis requires both the existing 15-object GUID proof and
+ACKs for every original schema fragment. Reports explicitly separate
+`schema_transport_delivery_validated` from `schema_application_validated=false`.
+ACKs alone cannot prove engine dictionary application, owned world replication,
+character control or playable joining. Native results are pending for this new
+implementation; the previously published EXEs remain the last tested bundle.
+
+For a source build, run the descriptor generator before compiling the native
+service (the native workflow contains the complete MSVC/icon build commands):
+
+```text
+python server2013/protocol/generate_descriptor_header.py --output server2013/build/DescriptorData.generated.hpp
+```
+
+Next: exact `0x83` new-instance/property encoding and a server-only StringValue
+nonce observed in native Player scene data, then bidirectional updates. Do not
+inject expected server data into the client bootstrap.

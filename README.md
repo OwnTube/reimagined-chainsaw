@@ -35,6 +35,10 @@ See [custom service development](docs/custom-rcc.md) for exact evidence, limits,
 and the next protocol work. The old [Studio reference](docs/studio-reference-renderer.md)
 is retained for comparisons, with manual workflows only.
 
+The next source revision adds bounded reliable fragmentation and an original
+40,010-byte descriptor sender. Its new native validation is pending; ACKs will
+prove transport delivery only, not world replication or playable joining.
+
 ## Use the executable bundle
 
 The native workflow commits the two tested executables and a hash/build manifest

@@ -35,6 +35,10 @@ def main():
     evidence=json.loads(Path('server2013/output/result.json').read_text())
     if evidence.get('custom_globals_binding_validated') is not True:
         raise RuntimeError('Native Player did not verify server-generated globals')
+    if evidence.get('custom_schema_delivery_validated') is not True:
+        raise RuntimeError('Native Player did not ACK the complete original schema')
+    manifest['schema_transport_delivery_validated']=True
+    manifest['schema_application_validated']=False
     manifest['application_globals_validated']=True
     manifest['world_replication_implemented']=False
     for name in ('LICENSE','PATENTS'):
