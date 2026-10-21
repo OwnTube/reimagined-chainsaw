@@ -9,21 +9,23 @@ currently uses our Python/NumPy rasterizer bundled into an executable; it has
 not yet been rewritten in C++.
 
 **Hosting is unfinished.** The real, locally configured November 2013 Player
-accepts the custom service's RakNet transport connection. Roblox world
-replication, character admission, Lua simulation, and playable joining are not
-implemented. A successful transport checkpoint must never be called a full join.
+accepts the custom service's connection and applies all 15 server-generated
+built-in service GUIDs. Roblox world replication, character admission, Lua
+simulation, and playable joining are not implemented. This application checkpoint
+must never be called a full join.
 
 ## Verified checkpoint
 
-[Native Windows run 39509102731](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39509102731),
-source `a24836d8b1a434864445c49a4f5fdc4f76c66baf`, verified:
+[Native Windows run 39548968777](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39548968777),
+source `3fe4a2d6dd7e743449af8f43ead6c1bdfd9d7566`, verified:
 
 | Capability | Actual result |
 | --- | --- |
 | Native C++ service builds with owner icon | Passed |
 | UDP port belongs to `RCCService.exe` | Passed |
 | Real Player `ConnectionAccepted`, with Studio absent | Passed |
-| Continuous native recording | Passed; transport connection only |
+| Original globals sender: 15 server-only random GUIDs observed in native Player objects | Passed; no Studio |
+| Continuous native recording | Passed; globals checkpoint, no playable world |
 | Headshot, full body, game and item rendering through EXE entry point | All four passed |
 | Transparent avatars/items and no GUI objects created | Passed for tested fixtures |
 | Original 2013 lighting/material parity | Unverified; current lighting is our approximation |
@@ -51,7 +53,7 @@ RCCService.exe -console
 
 Open `http://127.0.0.1:64313/` for the console. Our native host listens on numeric
 loopback UDP port 53640. Close the console or press Ctrl+C to stop the service
-and its worker. `--network-only` runs the transport experiment without a renderer.
+and its worker. `--network-only` runs the globals/network experiment without a renderer.
 Use `--help` for port, content, data, output and bounded-duration options.
 
 The helper checks the full pinned archive hash, extracts only six `.mesh` files

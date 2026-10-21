@@ -341,3 +341,35 @@ globals observed in Player object data. It is **not an owned world proof**: no
 exists, and no Lua simulation or locomotion is implemented. `game_join_validated`
 remains false. The binary publisher refuses publication without the new globals
 proof and includes the public RakNet data's BSD license/patent notices.
+
+## Native application globals proof and published binaries
+
+[Native run 39548968777](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39548968777),
+source `3fe4a2d6dd7e743449af8f43ead6c1bdfd9d7566`, passed the updated native
+application checkpoint. All **15 fresh random indices generated only inside
+RCCService.exe were observed on the matching built-in service objects in the
+real 2013 Player**. The client source contained no expected indices or server
+world/token. Studio absence was checked before and after; UDP belonged to the
+native service. This verifies the original `0x81` sender and service GUID binding.
+It does not verify new world instances, a local Player character, Lua simulation,
+movement or a playable game. The game's `passed`/`game_join_validated` fields
+remain false; only the explicitly named application checkpoint is true.
+
+The same job passed all four packaged custom render types and published both
+owned EXEs plus runtime/RakNet notices in binary commit `de4a530`. Authoritative
+manifest: `server2013/bin/build.json`. The service is 361,984 bytes, SHA-256
+`00bfd0f1473d8e527efbc51fdb9b08cdb6572d605d9c732c0f90c7b46ea09d94`;
+the worker is 27,980,982 bytes, SHA-256
+`938a810336a7d9d4051975740e1f2959829e8f7fc37fa5653fc021d4fd7836d3`.
+A continuous 13.5-second, 162-frame 1024x768/12 FPS silent recording validated,
+SHA-256 `9b2df58e06dd195737e2cb2a2ee82cd0c2eba57e9c351db2c75b6228c26c852a`.
+It records this globals checkpoint, not a playable join. Compact source/run
+evidence is retained in `server2013/protocol/native-globals-checkpoint.json`.
+The concurrent reference regression run 39548968678 also passed.
+
+Next: send the already independently validated original `0x82` dictionaries from
+the native host, adding bounded outgoing fragmentation/reliable queuing; then
+implement exact `0x83` instance/property serialization for a server-owned world
+and StringValue token. Require the server-only token in actual Player scene data
+and bidirectional updates before changing `game_join_validated`. No dictionary
+replay or locally fabricated client world should be used as evidence.

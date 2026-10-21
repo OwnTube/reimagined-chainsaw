@@ -1,0 +1,146 @@
+{
+  "probe_checkpoint": "transport and server-generated built-in service GUID binding; full game join remains false",
+  "probe_checkpoint_passed": true,
+  "custom_globals_binding_validated": true,
+  "custom_globals_binding_observation": {
+    "validated": true,
+    "bindings": [
+      {
+        "class_name": "Lighting",
+        "server_index": 652287147,
+        "observed_in_player": true
+      },
+      {
+        "class_name": "SoundService",
+        "server_index": 584814872,
+        "observed_in_player": true
+      },
+      {
+        "class_name": "StarterPack",
+        "server_index": 942970203,
+        "observed_in_player": true
+      },
+      {
+        "class_name": "StarterGui",
+        "server_index": 987030161,
+        "observed_in_player": true
+      },
+      {
+        "class_name": "Workspace",
+        "server_index": 834330028,
+        "observed_in_player": true
+      },
+      {
+        "class_name": "JointsService",
+        "server_index": 912007748,
+        "observed_in_player": true
+      },
+      {
+        "class_name": "Players",
+        "server_index": 640791861,
+        "observed_in_player": true
+      },
+      {
+        "class_name": "Teams",
+        "server_index": 978943852,
+        "observed_in_player": true
+      },
+      {
+        "class_name": "InsertService",
+        "server_index": 659881402,
+        "observed_in_player": true
+      },
+      {
+        "class_name": "Chat",
+        "server_index": 570880755,
+        "observed_in_player": true
+      },
+      {
+        "class_name": "FriendService",
+        "server_index": 836649794,
+        "observed_in_player": true
+      },
+      {
+        "class_name": "MarketplaceService",
+        "server_index": 763564187,
+        "observed_in_player": true
+      },
+      {
+        "class_name": "BadgeService",
+        "server_index": 902105926,
+        "observed_in_player": true
+      },
+      {
+        "class_name": "ReplicatedStorage",
+        "server_index": 655255354,
+        "observed_in_player": true
+      },
+      {
+        "class_name": "TestService",
+        "server_index": 756829709,
+        "observed_in_player": true
+      }
+    ],
+    "expected_values_embedded_in_client_bootstrap": false,
+    "scope": "built-in service GUID identities only; no owned replicated world",
+    "game_join_validated": false
+  },
+  "studio_launched": false,
+  "game_join_validated": false,
+  "custom_executable_sha256": "00bfd0f1473d8e527efbc51fdb9b08cdb6572d605d9c732c0f90c7b46ea09d94",
+  "recording": {
+    "validated": true,
+    "capture": "continuous FFmpeg gdigrab of the disposable native Windows desktop",
+    "edited": false,
+    "audio": false,
+    "events": [
+      {
+        "seconds": 0.75,
+        "event": "continuous desktop capture started"
+      },
+      {
+        "seconds": 0.75,
+        "event": "custom RCC host launch requested; no Studio"
+      },
+      {
+        "seconds": 1.766,
+        "event": "custom RCC ready with verified same-process UDP binding"
+      },
+      {
+        "seconds": 1.766,
+        "event": "standalone Roblox Player launch requested"
+      },
+      {
+        "seconds": 8.172,
+        "event": "owned standalone Player window maximized"
+      },
+      {
+        "seconds": 8.172,
+        "event": "native Player accepted transport; world replication is unfinished"
+      },
+      {
+        "seconds": 13.188,
+        "event": "network, character, and archived GUI observations collected"
+      },
+      {
+        "seconds": 13.188,
+        "event": "recording stopped before peer cleanup"
+      }
+    ],
+    "encoder_exit_code": 0,
+    "wall_seconds": 13.188,
+    "frames": 162,
+    "seconds": 13.5,
+    "size": [
+      1024,
+      768
+    ],
+    "fps": 12.0,
+    "sha256": "9b2df58e06dd195737e2cb2a2ee82cd0c2eba57e9c351db2c75b6228c26c852a",
+    "file": "join-recording.mp4"
+  },
+  "workflow_run": 39548968777,
+  "source_commit": "3fe4a2d6dd7e743449af8f43ead6c1bdfd9d7566",
+  "binary_commit": "de4a53016c1ea23cf99416ec4599ad5584781647",
+  "world_replication_implemented": false
+}
