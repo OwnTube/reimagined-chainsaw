@@ -72,7 +72,7 @@ class Trace:
             observation=observe(direction,payload)
             if observation and not any(o.get('sha256')==observation.get('sha256') for o in self.schema_observations):
                 self.schema_observations.append(observation)
-        if len(self.globals_observations)<2:
+        if len(self.globals_observations)<2 and not any(o['sha256']==record['sha256'] for o in self.globals_observations):
             from globals_observer import observe_globals
             observation=observe_globals(direction,payload,header.get('bits',len(payload)*8))
             if observation and not any(o['sha256']==observation['sha256'] for o in self.globals_observations):

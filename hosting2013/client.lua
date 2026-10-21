@@ -1,6 +1,21 @@
 -- The client receives world geometry only over the local engine connection.
 -- No server token or owned scene is embedded in this bootstrap.
 local marker = __RCC_MARKER__
+local function observeServiceGuidIndices()
+    local count = 0
+    local services = {game}
+    for _, child in ipairs(game:GetChildren()) do table.insert(services, child) end
+    for _, service in ipairs(services) do
+        if count >= 64 then break end
+        local got, debugId = pcall(function() return service:GetDebugId(0) end)
+        if got and type(debugId) == "string" and string.match(debugId, "^%d+$") then
+            print(marker .. "|SERVICE_GUID_INDEX|" .. service.ClassName .. "|" .. debugId)
+        else
+            print(marker .. "|SERVICE_GUID_INDEX_UNAVAILABLE|" .. service.ClassName)
+        end
+        count = count + 1
+    end
+end
 local port = __RCC_PORT__
 local stage = "services"
 local loadCoreGui = __RCC_CORE_GUI__
@@ -107,6 +122,7 @@ local ok, problem = pcall(function()
             if first == nil then
                 first = x
                 print(marker .. "|REPLICATED_TOKEN|" .. value.Value)
+                observeServiceGuidIndices()
             elseif x ~= first and math.abs(first) == 6 and math.abs(x) == 6 then
                 acknowledged = true
                 print(marker .. "|REPLICATED_MOVEMENT|" .. tostring(first) .. "|" .. tostring(x))

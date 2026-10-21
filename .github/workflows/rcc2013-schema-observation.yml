@@ -7,8 +7,11 @@ on:
       - 'hosting2013/schema_observer.py'
       - 'hosting2013/test_schema_observer.py'
       - 'hosting2013/globals_observer.py'
+      - 'hosting2013/host.lua'
+      - 'hosting2013/client.lua'
       - 'hosting2013/test_globals_observer.py'
       - 'hosting2013/verify_descriptor_writer.py'
+      - 'hosting2013/correlate_service_guids.py'
       - 'server2013/protocol/*.hpp'
       - 'server2013/protocol/*.cpp'
       - 'hosting2013/descriptor_codec.py'
@@ -64,11 +67,15 @@ jobs:
             Stop-Service W3SVC -Force -ErrorAction Stop
           }
       - name: Observe application symbol layout on owned reference connection
+        env:
+          RCC2013_CODEC_PROBE_PATH: ${{ github.workspace }}\server2013\build\descriptor_writer_probe.exe
         run: python hosting2013/windows_join_probe.py --studio rcc2013/vendor/studio/RobloxStudioBeta.exe --player rcc2013/vendor/player/RobloxPlayerBeta.exe --player-profile local-signed --host-profile local-player --trace-transport --output hosting2013/player-output --timeout 40
       - name: Require a complete decoded schema matching reviewed native fields
         run: python hosting2013/verify_schema_observation.py hosting2013/player-output/transport-trace.json
       - name: Compare generated C++ dictionary bits to actual reference wire hash
         run: python hosting2013/verify_descriptor_writer.py --encoder server2013/build/descriptor_writer_probe.exe --trace hosting2013/player-output/transport-trace.json --output hosting2013/player-output/descriptor-writer-result.json
+      - name: Match globals indices to independent service API observations
+        run: python hosting2013/correlate_service_guids.py --trace hosting2013/player-output/transport-trace.json --result hosting2013/player-output/result.json --output hosting2013/player-output/globals-service-result.json
       - name: Preserve bounded observations and owned fixture diagnostics
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

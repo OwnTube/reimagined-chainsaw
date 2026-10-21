@@ -31,6 +31,17 @@ class GlobalsObservationTests(unittest.TestCase):
         self.assertEqual(len(row['candidates']),1)
         self.assertFalse(row['body_exported'])
 
+    def test_service_names_require_unique_agreement_on_both_peers(self):
+        from correlate_service_guids import correlate
+        trace={'globals_observations':[{'candidates':[{'remaining_bits':0,
+            'cpp_encoder':{'native_wire_validated':True},'references':[{'index':17}]}]}]}
+        result={'peers':{role:{'engine_marker_lines':['owned|SERVICE_GUID_INDEX|Workspace|17']} for role in ('host','client')}}
+        self.assertTrue(correlate(trace,result)['all_service_classes_identified'])
+        result['peers']['client']['engine_marker_lines']=['owned|SERVICE_GUID_INDEX|Players|17']
+        self.assertFalse(correlate(trace,result)['all_service_classes_identified'])
+        result['peers']['host']['engine_marker_lines'].append('owned|SERVICE_GUID_INDEX|Players|17')
+        self.assertEqual(correlate(trace,result)['matched_count'],0)
+
     def test_undefined_cache_truncation_and_exact_bit_limit(self):
         payload,bits=fixture()
         for end in range(len(payload)):

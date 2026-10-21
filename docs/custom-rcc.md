@@ -274,3 +274,31 @@ must consume the RakNet frame's exact valid bit count. Three synthetic tests
 cover literal/cache scopes, x86 byte order, sensitive-message exclusion and
 truncation. Even a complete candidate does not identify which GUID belongs to
 which service, and it does not implement globals in the native host.
+
+Native [run 39547726331](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39547726331),
+source `6358ec85c2c302ca58cc6ca5ce345c3bda228cab`, passed MSVC compilation,
+all 18 Windows tests, native reference joining, the complete schema gate, and
+the independent C++ wire-prefix hash comparison. The C++ output matches the
+actual native dictionary prefix exactly: 319,267 bits, SHA-256
+`d6ee3d0df270316e36ac68fa5b7d5175d740f9dc090766a2f4a5230a6c57b409`.
+The first attempt, 39547581361, stopped before launching Roblox because cmd
+received a forward-slash build-script path; the corrected run used a native
+Windows path. No reference deployment was launched in that failed attempt.
+
+The globals observation found one complete framing candidate: **two bits [1,0],
+15 GUID references, a single literal 35-character scope in cache slot 1 followed
+by cached references, and raw little-endian 32-bit indices**. It consumed all
+1,035 valid bits in a 130-byte frame; the one-header-bit candidate failed. Scope
+values remain absent from exported evidence. Service order is not identified
+yet, and the two flag semantics are not claimed from framing alone.
+
+The next probe adds original C++ encoding of this observed globals subset and
+compares its masked valid bits directly with the owned wire message. Scope
+plaintext exists only briefly in an isolated temporary codec input, is deleted
+with that temporary directory and is not written into the trace/artifact. It
+also asks both reference peers for each existing service's `GetDebugId(0)` and
+correlates numeric indices to class names. The API call is guarded with pcall;
+no security-level changes or memory writes are made if it is unavailable. A
+class is identified only if host/client observations uniquely agree. These are
+new hypotheses; the already verified dictionary format is only a regression
+check in the combined bounded run.

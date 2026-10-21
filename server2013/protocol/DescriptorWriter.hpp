@@ -106,5 +106,19 @@ public:
         }
         return output;
     }
+    BitWriter globals(bool flag0,bool flag1,const std::string& scope,const std::vector<uint32_t>& indices) const {
+        if(scope.empty() || scope.size()>128 || indices.empty() || indices.size()>128)
+            throw std::runtime_error("globals scope/reference bound exceeded");
+        for(unsigned char c:scope) if(!((c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='_'||c=='-'))
+            throw std::runtime_error("invalid owned scope");
+        BitWriter output;output.uint32(0x81,8);output.bit(flag0);output.bit(flag1);
+        for(size_t i=0;i<indices.size();++i) {
+            output.uint32(i==0?0x81:1,8);
+            if(i==0) {output.uint32(static_cast<uint32_t>(scope.size()),32);string(output,scope);}
+            // Raw ReadBits/WriteBits on the exact x86 build's uint32 GUID index.
+            for(unsigned byte=0;byte<4;++byte) output.uint32((indices[i]>>(8*byte))&255,8);
+        }
+        return output;
+    }
 };
 }

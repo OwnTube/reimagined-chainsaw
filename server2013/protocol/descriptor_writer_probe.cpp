@@ -12,10 +12,25 @@ static uint32_t number(const std::string& text) {
 }
 int main(int argc,char** argv) {
     try {
-        if(argc!=3) throw std::runtime_error("usage: descriptor_writer_probe INPUT.tsv OUTPUT.bin");
-        std::ifstream input(argv[1]);if(!input) throw std::runtime_error("input open failed");
+        const bool globals=argc==4 && std::string(argv[1])=="--globals";
+        if(argc!=3 && !globals) throw std::runtime_error("usage: descriptor_writer_probe [--globals] INPUT.tsv OUTPUT.bin");
+        std::ifstream input(argv[globals?2:1]);if(!input) throw std::runtime_error("input open failed");
         std::vector<rcc2013::Dictionary> tables;std::string line;
-        for(unsigned t=0;t<4;++t) {
+        rcc2013::BitWriter output;
+        if(globals) {
+            if(!std::getline(input,line) || line.size()!=2 || line.find_first_not_of("01")!=std::string::npos)
+                throw std::runtime_error("expected two flag bits");
+            const bool flag0=line[0]=='1',flag1=line[1]=='1';
+            std::string scope;if(!std::getline(input,scope) || scope.size()>128) throw std::runtime_error("invalid scope");
+            if(!std::getline(input,line)) throw std::runtime_error("missing reference count");
+            const auto count=number(line);if(count>128) throw std::runtime_error("reference bound exceeded");
+            std::vector<uint32_t> indices;
+            for(uint32_t i=0;i<count;++i) {
+                if(!std::getline(input,line)) throw std::runtime_error("missing index");
+                indices.push_back(number(line));
+            }
+            output=rcc2013::DescriptorWriter().globals(flag0,flag1,scope,indices);
+        } else for(unsigned t=0;t<4;++t) {
             if(!std::getline(input,line)) throw std::runtime_error("missing table count");
             const auto count=number(line);if(count>4096) throw std::runtime_error("table count exceeded");
             rcc2013::Dictionary table;
@@ -27,8 +42,8 @@ int main(int argc,char** argv) {
             tables.push_back(std::move(table));
         }
         if(std::getline(input,line)) throw std::runtime_error("trailing input");
-        auto output=rcc2013::DescriptorWriter().dictionaries(tables);
-        std::ofstream file(argv[2],std::ios::binary);if(!file) throw std::runtime_error("output open failed");
+        if(!globals) output=rcc2013::DescriptorWriter().dictionaries(tables);
+        std::ofstream file(argv[globals?3:2],std::ios::binary);if(!file) throw std::runtime_error("output open failed");
         file.write(reinterpret_cast<const char*>(output.bytes().data()),output.bytes().size());
         file.close();if(!file) throw std::runtime_error("output write failed");
         std::cout<<"{\"bits\":"<<output.sizeBits()<<",\"bytes\":"<<output.bytes().size()<<"}\n";

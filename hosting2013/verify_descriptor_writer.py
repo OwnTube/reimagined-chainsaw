@@ -42,6 +42,25 @@ def encode_observation(executable, trace, require_wire_hash=True):
             'custom_host_world_implemented':False,'game_join_validated':False}
 
 
+def encode_globals(executable,payload,valid_bits,flags,scope,indices):
+    if len(scope)>128 or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-' for c in scope):
+        raise ValueError('Unexpected scope shape for bounded C++ comparison')
+    with tempfile.TemporaryDirectory(prefix='rcc-owned-globals-') as temporary:
+        root=Path(temporary);input_file=root/'globals.tsv';output=root/'encoded.bin'
+        lines=[''.join(map(str,flags)),scope,str(len(indices))]+list(map(str,indices))
+        input_file.write_text('\n'.join(lines)+'\n',encoding='ascii',newline='\n')
+        process=subprocess.run([str(Path(executable).resolve()),'--globals',str(input_file),str(output)],
+                               capture_output=True,text=True,timeout=10,check=True)
+        metadata=json.loads(process.stdout);encoded=output.read_bytes()
+    expected=bytearray(payload)
+    if valid_bits%8:expected[-1]&=(255<<(8-valid_bits%8))&255
+    if metadata!={'bits':valid_bits,'bytes':len(encoded)} or encoded!=expected:
+        raise ValueError('C++ globals bits differ from the actual native wire')
+    return {'native_wire_validated':True,'bits':valid_bits,'bytes':len(encoded),
+            'masked_sha256':hashlib.sha256(encoded).hexdigest(),'scope_value_exported':False,
+            'game_join_validated':False}
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--encoder',required=True,type=Path)
