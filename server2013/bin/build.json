@@ -1,0 +1,19 @@
+{
+  "source_commit": "ff3674c8bf5c4e75f73ccbdd158829f5e898abb3",
+  "workflow_run": "39518669688",
+  "platform": "Windows x64",
+  "service_implementation": "native C++",
+  "render_worker": "packaged original Python/NumPy CPU renderer",
+  "roblox_executables_included": false,
+  "game_join_validated": false,
+  "files": {
+    "RCCService.exe": {
+      "bytes": 344064,
+      "sha256": "abf02a2d7f0160b46fa409c67c7d97ab0b46628ef22a13b15a93cdf6ed83c7cb"
+    },
+    "RCCRenderWorker.exe": {
+      "bytes": 27980248,
+      "sha256": "848ce15a5155c97c70737fad474128a8eca3bafc40675a9784ad2d426f6649a4"
+    }
+  }
+}
