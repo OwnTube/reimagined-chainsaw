@@ -203,3 +203,45 @@ configuration-pair section. The observer now tests both three/four dictionaries
 with strict complete-message accounting; partial dictionaries cannot set
 `schema_complete=true`. A new synthetic fixture covers this boundary. The next
 reference run tests the fourth-dictionary hypothesis, not transport acceptance.
+
+## Complete ID 0x82 decode verified
+
+[Run 39542227943](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39542227943),
+source `39cc8bbeb9df2c20052b336b39354773d9b70944`, passed native reference
+joining/movement and the 14-test Windows suite. The four-dictionary candidate
+consumed exactly **320,080 bits, zero remaining**. Counts were 288 classes,
+814 properties, 244 events, and 159 type entries, followed by three configuration
+pairs. The fourth table ends at bit 319,267. The complete message hash matches
+the earlier observations. This verifies this message's framing, not the custom
+host's application handshake or world replication.
+
+Each dictionary is a big-endian uint32 count, followed by entries containing
+a big-endian uint32 ID, big-endian uint32 decoded character count, and a RakNet
+Huffman compressed string. The string's compressed-bit-count integer uses the
+network-endian RakNet compressed-integer representation. Fields are not generally
+byte aligned. After the fourth dictionary come a big-endian uint16 pair count
+and two uint16-length strings per pair; each raw string's bytes begin at the
+next byte boundary. Configuration values are retained only as lengths/hashes.
+
+The checked-in descriptor fixture now contains all four ID/name tables and
+redacted configuration fields. IDs, rather than names, must remain the identity:
+`AnimationTrackState:AdjustAnimation` has two event IDs, and several type entries
+share names. The standalone `verify_schema_observation.py` gate requires a fully
+consumed pinned message and compares every ID/name to the reviewed fixture. It
+rejects a partial parse even when the reference join succeeds. Native product
+binaries were not rebuilt for these research-only changes.
+
+Next implementation steps are original packet encoding, `0x81` globals/service
+GUIDs, then `0x83` instance/property replication. Read-only exact-build leads:
+the Player's `0x81` handler starts with a single bit (and a feature-dependent
+second bit), unlike the later Sala layout. Its service GUID reader uses a
+cached scope plus a variable-bit-width index. These are static observations
+requiring owned wire validation before a sender is implemented. Do not copy the
+later six-byte globals header or insert reference packet replay into our host.
+
+The new gate was run locally against the downloaded `39542227943` trace and
+passed. Deliberately marking the parse partial, changing a descriptor name, or
+changing the message hash each caused rejection. The gate itself is a new
+post-processing step for future native observations; it was not a step in that
+already-completed run. No unchanged native run was repeated merely to add this
+evidence check.

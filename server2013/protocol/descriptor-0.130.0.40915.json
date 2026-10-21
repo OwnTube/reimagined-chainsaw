@@ -2,13 +2,13 @@
   "scope": "Observed API descriptor names and IDs only; not engine code or replayable packets",
   "player_version": "0.130.0.40915",
   "player_sha256": "30502f062f428d3d808e7119ddb991865c91eb4beeed9f2c6b983198c007ea41",
-  "reference_run": 39541722885,
-  "source_commit": "ead0ec3e15077b64831a60f70e1ad55b99010160",
+  "reference_run": 39542227943,
+  "source_commit": "39cc8bbeb9df2c20052b336b39354773d9b70944",
   "message_id": 130,
   "message_bytes": 40010,
   "message_sha256": "07f8029b53d1216f29e459a623cc84e7e5980085e294b57c930b861151ea774a",
   "compressed_integer_endian": "big",
-  "schema_complete": false,
+  "schema_complete": true,
   "game_join_validated": false,
   "tables": [
     {
@@ -5418,6 +5418,669 @@
       ],
       "end_bit": 293884,
       "kind": "events"
+    },
+    {
+      "index": 3,
+      "count": 159,
+      "entries": [
+        {
+          "id": 0,
+          "name": "int"
+        },
+        {
+          "id": 1,
+          "name": "Object"
+        },
+        {
+          "id": 2,
+          "name": "void"
+        },
+        {
+          "id": 3,
+          "name": "Instance"
+        },
+        {
+          "id": 4,
+          "name": "bool"
+        },
+        {
+          "id": 5,
+          "name": "string"
+        },
+        {
+          "id": 6,
+          "name": "PlayerChatType"
+        },
+        {
+          "id": 7,
+          "name": "Objects"
+        },
+        {
+          "id": 8,
+          "name": "FriendRequestEvent"
+        },
+        {
+          "id": 9,
+          "name": "ChatStyle"
+        },
+        {
+          "id": 10,
+          "name": "double"
+        },
+        {
+          "id": 11,
+          "name": "MembershipType"
+        },
+        {
+          "id": 12,
+          "name": "Object"
+        },
+        {
+          "id": 13,
+          "name": "float"
+        },
+        {
+          "id": 14,
+          "name": "Vector3"
+        },
+        {
+          "id": 15,
+          "name": "FriendStatus"
+        },
+        {
+          "id": 16,
+          "name": "Dictionary"
+        },
+        {
+          "id": 17,
+          "name": "ChatMode"
+        },
+        {
+          "id": 18,
+          "name": "BrickColor"
+        },
+        {
+          "id": 19,
+          "name": "CameraMode"
+        },
+        {
+          "id": 20,
+          "name": "TeleportState"
+        },
+        {
+          "id": 21,
+          "name": "PacketPriority"
+        },
+        {
+          "id": 22,
+          "name": "PacketReliability"
+        },
+        {
+          "id": 23,
+          "name": "FilterResult"
+        },
+        {
+          "id": 24,
+          "name": "PhysicsSendMethod"
+        },
+        {
+          "id": 25,
+          "name": "PhysicsReceiveMethod"
+        },
+        {
+          "id": 26,
+          "name": "Variant"
+        },
+        {
+          "id": 27,
+          "name": "Tuple"
+        },
+        {
+          "id": 28,
+          "name": "Array"
+        },
+        {
+          "id": 29,
+          "name": "Map"
+        },
+        {
+          "id": 30,
+          "name": "Object"
+        },
+        {
+          "id": 31,
+          "name": "Property"
+        },
+        {
+          "id": 32,
+          "name": "CameraType"
+        },
+        {
+          "id": 33,
+          "name": "CoordinateFrame"
+        },
+        {
+          "id": 34,
+          "name": "CameraPanMode"
+        },
+        {
+          "id": 35,
+          "name": "long"
+        },
+        {
+          "id": 36,
+          "name": "ProtectedString"
+        },
+        {
+          "id": 37,
+          "name": "SystemAddress"
+        },
+        {
+          "id": 38,
+          "name": "Content"
+        },
+        {
+          "id": 39,
+          "name": "Vector3int16"
+        },
+        {
+          "id": 40,
+          "name": "Region3"
+        },
+        {
+          "id": 41,
+          "name": "Ray"
+        },
+        {
+          "id": 42,
+          "name": "Vector2"
+        },
+        {
+          "id": 43,
+          "name": "Vector2int16"
+        },
+        {
+          "id": 44,
+          "name": "Color3"
+        },
+        {
+          "id": 45,
+          "name": "UDim"
+        },
+        {
+          "id": 46,
+          "name": "UDim2"
+        },
+        {
+          "id": 47,
+          "name": "Faces"
+        },
+        {
+          "id": 48,
+          "name": "Axes"
+        },
+        {
+          "id": 49,
+          "name": "Object"
+        },
+        {
+          "id": 50,
+          "name": "Function"
+        },
+        {
+          "id": 51,
+          "name": "GenericFunction"
+        },
+        {
+          "id": 52,
+          "name": "GenericAsyncFunction"
+        },
+        {
+          "id": 53,
+          "name": "CellId"
+        },
+        {
+          "id": 54,
+          "name": "InputObject"
+        },
+        {
+          "id": 55,
+          "name": "RuntimeUndoBehavior"
+        },
+        {
+          "id": 56,
+          "name": "FunctionalTestResult"
+        },
+        {
+          "id": 57,
+          "name": "PriorityMethod"
+        },
+        {
+          "id": 58,
+          "name": "SleepAdjustMethod"
+        },
+        {
+          "id": 59,
+          "name": "ThreadPoolConfig"
+        },
+        {
+          "id": 60,
+          "name": "ActionType"
+        },
+        {
+          "id": 61,
+          "name": "Button"
+        },
+        {
+          "id": 62,
+          "name": "BinType"
+        },
+        {
+          "id": 63,
+          "name": "SizeConstraint"
+        },
+        {
+          "id": 64,
+          "name": "EasingStyle"
+        },
+        {
+          "id": 65,
+          "name": "TweenStatus"
+        },
+        {
+          "id": 66,
+          "name": "EasingDirection"
+        },
+        {
+          "id": 67,
+          "name": "TextXAlignment"
+        },
+        {
+          "id": 68,
+          "name": "TextYAlignment"
+        },
+        {
+          "id": 69,
+          "name": "FontSize"
+        },
+        {
+          "id": 70,
+          "name": "Font"
+        },
+        {
+          "id": 71,
+          "name": "InputType"
+        },
+        {
+          "id": 72,
+          "name": "ConcurrencyModel"
+        },
+        {
+          "id": 73,
+          "name": "LevelOfDetailSetting"
+        },
+        {
+          "id": 74,
+          "name": "ErrorReporting"
+        },
+        {
+          "id": 75,
+          "name": "EnviromentalPhysicsThrottle"
+        },
+        {
+          "id": 76,
+          "name": "InOut"
+        },
+        {
+          "id": 77,
+          "name": "LeftRight"
+        },
+        {
+          "id": 78,
+          "name": "TopBottom"
+        },
+        {
+          "id": 79,
+          "name": "JointType"
+        },
+        {
+          "id": 80,
+          "name": "KeywordFilterType"
+        },
+        {
+          "id": 81,
+          "name": "SurfaceConstraint"
+        },
+        {
+          "id": 82,
+          "name": "NormalId"
+        },
+        {
+          "id": 83,
+          "name": "Axis"
+        },
+        {
+          "id": 84,
+          "name": "Status"
+        },
+        {
+          "id": 85,
+          "name": "NameOcclusion"
+        },
+        {
+          "id": 86,
+          "name": "CreatorType"
+        },
+        {
+          "id": 87,
+          "name": "Genre"
+        },
+        {
+          "id": 88,
+          "name": "GearGenreSetting"
+        },
+        {
+          "id": 89,
+          "name": "GearType"
+        },
+        {
+          "id": 90,
+          "name": "SaveFilter"
+        },
+        {
+          "id": 91,
+          "name": "PartType"
+        },
+        {
+          "id": 92,
+          "name": "AnimationPriority"
+        },
+        {
+          "id": 93,
+          "name": "Stuff"
+        },
+        {
+          "id": 94,
+          "name": "PrivilegeType"
+        },
+        {
+          "id": 95,
+          "name": "Style"
+        },
+        {
+          "id": 96,
+          "name": "PrismSides"
+        },
+        {
+          "id": 97,
+          "name": "PyramidSides"
+        },
+        {
+          "id": 98,
+          "name": "HandlesStyle"
+        },
+        {
+          "id": 99,
+          "name": "MoveState"
+        },
+        {
+          "id": 100,
+          "name": "SoundType"
+        },
+        {
+          "id": 101,
+          "name": "MeshType"
+        },
+        {
+          "id": 102,
+          "name": "SurfaceType"
+        },
+        {
+          "id": 103,
+          "name": "FormFactor"
+        },
+        {
+          "id": 104,
+          "name": "SwipeDirection"
+        },
+        {
+          "id": 105,
+          "name": "Material"
+        },
+        {
+          "id": 106,
+          "name": "TickCountSampleMethod"
+        },
+        {
+          "id": 107,
+          "name": "SpecialKey"
+        },
+        {
+          "id": 108,
+          "name": "CenterDialogType"
+        },
+        {
+          "id": 109,
+          "name": "ChatColor"
+        },
+        {
+          "id": 110,
+          "name": "CurrencyType"
+        },
+        {
+          "id": 111,
+          "name": "BodyPart"
+        },
+        {
+          "id": 112,
+          "name": "VideoQualitySettings"
+        },
+        {
+          "id": 113,
+          "name": "UploadSetting"
+        },
+        {
+          "id": 114,
+          "name": "ControlMode"
+        },
+        {
+          "id": 115,
+          "name": "SavedQualitySetting"
+        },
+        {
+          "id": 116,
+          "name": "FrameStyle"
+        },
+        {
+          "id": 117,
+          "name": "ButtonStyle"
+        },
+        {
+          "id": 118,
+          "name": "DialogPurpose"
+        },
+        {
+          "id": 119,
+          "name": "DialogTone"
+        },
+        {
+          "id": 120,
+          "name": "CellMaterial"
+        },
+        {
+          "id": 121,
+          "name": "CellBlock"
+        },
+        {
+          "id": 122,
+          "name": "CellOrientation"
+        },
+        {
+          "id": 123,
+          "name": "WaterForce"
+        },
+        {
+          "id": 124,
+          "name": "WaterDirection"
+        },
+        {
+          "id": 125,
+          "name": "ExplosionType"
+        },
+        {
+          "id": 126,
+          "name": "UserInputType"
+        },
+        {
+          "id": 127,
+          "name": "UserInputState"
+        },
+        {
+          "id": 128,
+          "name": "AccessType"
+        },
+        {
+          "id": 129,
+          "name": "HttpContentType"
+        },
+        {
+          "id": 130,
+          "name": "CoreGuiType"
+        },
+        {
+          "id": 131,
+          "name": "Object"
+        },
+        {
+          "id": 132,
+          "name": "Object"
+        },
+        {
+          "id": 133,
+          "name": "ReverbType"
+        },
+        {
+          "id": 134,
+          "name": "Object"
+        },
+        {
+          "id": 135,
+          "name": "BinaryString"
+        },
+        {
+          "id": 136,
+          "name": "Region3int16"
+        },
+        {
+          "id": 137,
+          "name": "Object"
+        },
+        {
+          "id": 138,
+          "name": "Surface"
+        },
+        {
+          "id": 139,
+          "name": "Object"
+        },
+        {
+          "id": 140,
+          "name": "Object"
+        },
+        {
+          "id": 141,
+          "name": "Object"
+        },
+        {
+          "id": 142,
+          "name": "Connection"
+        },
+        {
+          "id": 143,
+          "name": "D3DFORMAT"
+        },
+        {
+          "id": 144,
+          "name": "D3DDEVTYPE"
+        },
+        {
+          "id": 145,
+          "name": "PermissionLevelShown"
+        },
+        {
+          "id": 146,
+          "name": "HoverAnimateSpeed"
+        },
+        {
+          "id": 147,
+          "name": "OutputLayoutMode"
+        },
+        {
+          "id": 148,
+          "name": "ListDisplayMode"
+        },
+        {
+          "id": 149,
+          "name": "UIStyle"
+        },
+        {
+          "id": 150,
+          "name": "QDir"
+        },
+        {
+          "id": 151,
+          "name": "QFont"
+        },
+        {
+          "id": 152,
+          "name": "AASamples"
+        },
+        {
+          "id": 153,
+          "name": "GraphicsMode"
+        },
+        {
+          "id": 154,
+          "name": "FramerateManagerMode"
+        },
+        {
+          "id": 155,
+          "name": "Antialiasing"
+        },
+        {
+          "id": 156,
+          "name": "QualityLevel"
+        },
+        {
+          "id": 157,
+          "name": "Resolution"
+        },
+        {
+          "id": 158,
+          "name": "Shadow"
+        }
+      ],
+      "end_bit": 319267,
+      "kind": "types"
+    }
+  ],
+  "consumed_bits": 320080,
+  "remaining_bits": 0,
+  "configuration": [
+    {
+      "name": "InfiniteTerrain",
+      "value_length": 5,
+      "value_sha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+    },
+    {
+      "name": "DisableGuidStringCompression",
+      "value_length": 5,
+      "value_sha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+    },
+    {
+      "name": "AllowPhysicsPacketCompression",
+      "value_length": 5,
+      "value_sha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
     }
   ]
 }

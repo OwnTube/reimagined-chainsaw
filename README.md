@@ -116,8 +116,9 @@ experiment remains untouched on its own branch.
 ### Exact 2013 protocol mapping (2026-10-21)
 
 The bounded native reference probe decoded 288 class, 814 property and 244 event
-names/network IDs using the public RakNet Huffman format. The observed mapping
+names/network IDs plus 159 type entries using the public RakNet Huffman format.
+The complete initial descriptor message was decoded with zero remaining bits. The observed mapping
 and provenance are in `server2013/protocol/descriptor-0.130.0.40915.json`; see
-`docs/custom-rcc.md` for the tests and incomplete message tail. This prepares
+`docs/custom-rcc.md` for the native evidence and validation gate. This prepares
 application replication work. **The custom host still has no playable world;
 `game_join_validated=false`.**
