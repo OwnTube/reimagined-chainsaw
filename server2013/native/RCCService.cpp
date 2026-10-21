@@ -53,9 +53,10 @@ class Host {
     uint64_t schemaTicket=0;size_t schemaBits=0,schemaBytes=0;std::string schemaHash;
     std::string propertyNonce;bool propertySent=false;
     std::string instanceNonce;uint32_t instanceIndex=0,instanceParent=0;bool instanceSent=false;
-    std::string ownedScope,secondNonce;bool firstReturn=false,secondSent=false,secondReturn=false;
+    std::string ownedScope,instanceScope,secondNonce;bool firstReturn=false,secondSent=false,secondReturn=false;
     rcc2013::PropertyReader propertyReader;unsigned parsedValues=0;
     std::vector<std::string> propertyReadErrors;
+    bool clientSchema=false;uint32_t clientValueId=0;std::vector<uint32_t> clientCounts;
     std::string phase="listening";
     std::vector<std::string> events,messages;
     std::set<uint32_t> seenDatagrams,seenReliable;
@@ -99,6 +100,10 @@ class Host {
             throw std::runtime_error("instance nonce random generation");
         instanceNonce="RCC2013_";const char* hex="0123456789abcdef";
         for(auto byte:random){instanceNonce+=hex[byte>>4];instanceNonce+=hex[byte&15];}
+        unsigned char scopeRandom[16];
+        if(BCryptGenRandom(nullptr,scopeRandom,sizeof(scopeRandom),BCRYPT_USE_SYSTEM_PREFERRED_RNG)<0)
+            throw std::runtime_error("instance scope random generation");
+        instanceScope="RBX";for(auto byte:scopeRandom){instanceScope+=hex[byte>>4];instanceScope+=hex[byte&15];}
         bool collision;
         do{
             if(BCryptGenRandom(nullptr,reinterpret_cast<unsigned char*>(&instanceIndex),sizeof(instanceIndex),BCRYPT_USE_SYSTEM_PREFERRED_RNG)<0)
@@ -108,7 +113,7 @@ class Host {
         }while(collision);
         for(const auto& binding:globalsBindings)if(binding.first=="Workspace")instanceParent=binding.second;
         if(!instanceParent)throw std::runtime_error("missing Workspace GUID");
-        const auto encoded=rcc2013::DescriptorWriter().stringValue(instanceIndex,instanceParent,instanceNonce);
+        const auto encoded=rcc2013::DescriptorWriter().stringValue(instanceIndex,instanceParent,instanceNonce,instanceScope);
         message(encoded.bytes(),true,true,encoded.sizeBits());instanceSent=true;
         event("original_stringvalue_instance_sent");
     }
@@ -141,12 +146,12 @@ class Host {
     }
     void receiveProperties(const Bytes& body,size_t bits){
         std::vector<rcc2013::StringProperty> values;
-        try{values=propertyReader.read(body,bits);}catch(const std::exception& error){
-            if(propertyReadErrors.size()<16)propertyReadErrors.push_back(error.what());return;
+        try{if(!clientSchema)throw std::runtime_error("client descriptor prefix missing");values=propertyReader.read(body,bits);}catch(const std::exception& error){
+            if(propertyReadErrors.size()<16 && std::find(propertyReadErrors.begin(),propertyReadErrors.end(),error.what())==propertyReadErrors.end())propertyReadErrors.push_back(error.what());return;
         }
         for(const auto& value:values){
             ++parsedValues;
-            if(!instanceSent || value.scope!=ownedScope || value.index!=instanceIndex)continue;
+            if(!instanceSent || value.scope!=instanceScope || value.index!=instanceIndex)continue;
             if(!firstReturn && value.value==instanceNonce+"_ack"){
                 firstReturn=true;event("native_client_initial_value_return_validated");
                 unsigned char random[16];
@@ -154,7 +159,7 @@ class Host {
                     throw std::runtime_error("second nonce random generation");
                 secondNonce="RCC2013_";const char* hex="0123456789abcdef";
                 for(auto byte:random){secondNonce+=hex[byte>>4];secondNonce+=hex[byte&15];}
-                auto encoded=rcc2013::DescriptorWriter().valueProperty(instanceIndex,secondNonce,2);
+                auto encoded=rcc2013::DescriptorWriter().valueProperty(instanceIndex,secondNonce,2,"",false,2);
                 message(encoded.bytes(),true,true,encoded.sizeBits());secondSent=true;
                 event("second_server_value_sent_after_native_client_return");
             }else if(firstReturn && secondSent && value.value==secondNonce+"_ack"){
@@ -167,7 +172,12 @@ class Host {
     }
     void dispatch(const Bytes& body,size_t bits=0){
         if(body.empty())throw std::runtime_error("empty message");
-        if(body[0]==0x83 && connected){observeMessage(body);receiveProperties(body,bits?bits:body.size()*8);}
+        if(body[0]==0x82 && connected){
+            observeMessage(body);
+            try{const auto prefix=propertyReader.descriptors(body,bits?bits:body.size()*8);clientCounts=prefix.counts;clientValueId=prefix.valueId;clientSchema=true;event("client_descriptor_prefix_resolved");}
+            catch(const std::exception& error){event(std::string("client_schema_error: ")+error.what());}
+        }
+        else if(body[0]==0x83 && connected){observeMessage(body);receiveProperties(body,bits?bits:body.size()*8);}
         else if(body[0]==9){
             if(phase!="offline_ready"&&phase!="accept_sent")throw std::runtime_error("connection request phase");
             if(body.size()<18||body[17]!=0)throw std::runtime_error("unsupported secure connection");
@@ -252,6 +262,8 @@ public:
             <<",\"owned_instance_probe\":{\"sent\":"<<(instanceSent?"true":"false")
             <<",\"class_name\":\"StringValue\",\"name\":\"RccServerToken\",\"nonce\":"<<escaped(instanceNonce)
             <<",\"index\":"<<instanceIndex<<",\"parent_index\":"<<instanceParent<<"}"
+            <<",\"client_descriptor_prefix\":{\"validated\":"<<(clientSchema?"true":"false")<<",\"value_property_id\":"<<clientValueId<<",\"counts\":[";
+        first=true;for(auto count:clientCounts){if(!first)r<<',';first=false;r<<count;}r<<"]}"
             <<",\"value_roundtrip\":{\"first_client_return_validated\":"<<(firstReturn?"true":"false")
             <<",\"second_value_sent\":"<<(secondSent?"true":"false")<<",\"second_nonce\":"<<escaped(secondNonce)
             <<",\"second_client_return_validated\":"<<(secondReturn?"true":"false")<<",\"parsed_value_properties\":"<<parsedValues

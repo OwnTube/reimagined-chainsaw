@@ -24,5 +24,15 @@ int main(){
     fixture.uint32(0x81,8);fixture.uint32(4,32);fixture.bit(false);fixture.uint32(24,32);
     fixture.uint32(0x31,8);fixture.uint32(0x36,8);fixture.uint32(0x81,8);fixture.uint32(0,6);
     decoded=empty.read(fixture.bytes(),fixture.sizeBits());assert(decoded[0].scope=="Name" && decoded[0].value=="Name");
+    // The peer's descriptor IDs are independent from our outgoing IDs.
+    std::vector<rcc2013::Dictionary> tables(4);
+    tables[0].push_back({0,"Part"});tables[2].push_back({0,"OwnedEvent"});tables[3].push_back({0,"OwnedType"});
+    for(uint32_t i=0;i<513;++i)tables[1].push_back({i,i==19?"StringValue:Value":"OwnedProperty"+std::to_string(i)});
+    auto schema=writer.dictionaries(tables);auto prefix=reader.descriptors(schema.bytes(),schema.sizeBits());
+    assert(prefix.valueId==19 && prefix.counts[1]==513 && prefix.remainingBits>0);
+    rcc2013::BitWriter reply;reply.uint32(0x83,8);reply.uint32(3,2);reply.uint32(1,8);
+    for(unsigned i=0;i<4;++i)reply.uint32((0x23456789>>(8*i))&255,8);
+    reply.uint32(19,8);reply.uint32(0,2);reply.bit(true);reply.uint32(1,8);reply.uint32(0,6);
+    decoded=reader.read(reply.bytes(),reply.sizeBits());assert(decoded[0].value==nonce && decoded[0].scope==scope);
     std::cout<<"Property reader: literal/cached scopes, raw IDs, control flags, fixed Huffman word, truncation and trailing data passed\n";
 }

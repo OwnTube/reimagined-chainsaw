@@ -138,13 +138,15 @@ public:
     // Measured StringValue reflection order: string Name, string Value, then
     // bool Archivable, bool RobloxLocked. Parent is a separate trailing GUID.
     // Name cache slot 1 was used by serviceName(); this new name uses slot 2.
-    BitWriter stringValue(uint32_t index,uint32_t parent,const std::string& nonce) const {
+    BitWriter stringValue(uint32_t index,uint32_t parent,const std::string& nonce,const std::string& literalScope="") const {
         if(index<0x20000000 || index>0x3fffffff || parent<0x20000000 || parent>0x3fffffff
            || nonce.size()!=40 || nonce.substr(0,8)!="RCC2013_")
             throw std::runtime_error("owned instance bounds");
         for(char c:nonce.substr(8))if(!((c>='a'&&c<='f')||(c>='0'&&c<='9')))
             throw std::runtime_error("owned instance nonce alphabet");
-        BitWriter out;out.uint32(0x83,8);out.uint32(2,2);out.uint32(1,8);
+        if(literalScope.size()>128)throw std::runtime_error("instance scope bound");
+        BitWriter out;out.uint32(0x83,8);out.uint32(2,2);out.uint32(literalScope.empty()?1:0x82,8);
+        if(!literalScope.empty()){out.uint32(static_cast<uint32_t>(literalScope.size()),32);string(out,literalScope);}
         for(unsigned byte=0;byte<4;++byte)out.uint32((index>>(byte*8))&255,8);
         out.uint32(250,8);out.bit(false); // StringValue ID250, raw x86 nine-bit ID.
         out.bit(false); // Per-instance lifetime flag, meaning not yet claimed.
@@ -157,12 +159,12 @@ public:
         out.uint32(0,6);return out;
     }
     BitWriter valueProperty(uint32_t index,const std::string& value,unsigned cacheSlot=2,
-                            const std::string& literalScope="",bool control=false) const {
-        if(index<0x20000000 || index>0x3fffffff || value.empty() || value.size()>128 || !cacheSlot || cacheSlot>127)
+                            const std::string& literalScope="",bool control=false,unsigned scopeCache=1) const {
+        if(index<0x20000000 || index>0x3fffffff || value.empty() || value.size()>128 || !cacheSlot || cacheSlot>127 || !scopeCache || scopeCache>127)
             throw std::runtime_error("owned value property bound");
         for(unsigned char c:value)if(c<32||c>126)throw std::runtime_error("owned value alphabet");
         if(literalScope.size()>128)throw std::runtime_error("literal scope bound");
-        BitWriter out;out.uint32(0x83,8);out.uint32(3,2);out.uint32(literalScope.empty()?1:0x81,8);
+        BitWriter out;out.uint32(0x83,8);out.uint32(3,2);out.uint32(literalScope.empty()?scopeCache:128|scopeCache,8);
         if(!literalScope.empty()){out.uint32(static_cast<uint32_t>(literalScope.size()),32);string(out,literalScope);}
         for(unsigned byte=0;byte<4;++byte)out.uint32((index>>(byte*8))&255,8);
         out.uint32(735&255,8);out.uint32(735>>8,2);out.bit(control);

@@ -547,3 +547,20 @@ The publication gate requires both native server returns and the second observed
 Player value. No expected nonce is supplied in client source, and HTTP/log-only
 callbacks cannot pass this gate. This new bidirectional hypothesis is pending;
 playable world and game_join_validated remain false.
+
+First native roundtrip probe 39559842840 on source4181c73 did not pass the new
+return gate; it preserved the last tested binaries. All previous application
+proofs still passed. The new reader encountered an unsupported initial client
+instance and then unresolved cache entries. The same observation also showed the
+client sends its own 38,608-byte descriptor message before replication; those
+IDs must be resolved independently from our outgoing table. Reference regression
+39559842821 passed.
+
+The revised hypothesis decodes the client's first three API dictionaries and
+resolves StringValue:Value by name; it does not claim a complete client schema
+or interpret its remaining tail. The owned StringValue now receives a fresh
+independent GUID scope, declared in outgoing scope cache2; its parent remains
+in service scope cache1. This makes the first client return for that object
+introduce its scope without requiring a general startup-instance decoder. The
+second server update uses outgoing GUID cache2 and Value string cache2. This is
+a bounded interoperability fixture, not general client instance admission.
