@@ -81,7 +81,7 @@ not bundled with the executable publication.
 | Game thumbnail, 640x360 | `dcd297d6dcfe192b15a90130b2c68406c781f92c37286861145ea00496a3bf93` |
 | Owned textured sword, 512x512 | `bff4d6d09c41bcb88332dab22389ade23e96adf259972d9c292ce674f9c939d9` |
 
-The current renderer deliberately rejects unsupported geometry/depencencies.
+The current renderer deliberately rejects unsupported geometry/dependencies.
 It is a static subset: Block Parts, XML containers, uploaded version-2 meshes,
 PNG textures and a small explicit BrickColor palette. It does not implement
 Terrain, original material shaders, decals on arbitrary place geometry, game
@@ -118,3 +118,17 @@ The older Studio subject cleanup test began failing at the native dark pass in
 run 39437930120 and remained failing in 39509102593. That reference regression
 is not fixed or relabeled as success. Reference workflows are manual now; the
 new native/custom pipeline is the active development path.
+
+## Binary publication completed
+
+[Run 39518669688](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39518669688)
+passed the native build, all four packaged render jobs, the recorded native
+Player transport connection with Studio absent, and binary publication.
+The generated commit `796a378` added both tested EXEs, the hash manifest and
+open-source runtime notices under `server2013/bin`. Source commit is
+`ff3674c8bf5c4e75f73ccbdd158829f5e898abb3`. Native service SHA-256 is
+`abf02a2d7f0160b46fa409c67c7d97ab0b46628ef22a13b15a93cdf6ed83c7cb`;
+worker SHA-256 is
+`848ce15a5155c97c70737fad474128a8eca3bafc40675a9784ad2d426f6649a4`.
+`game_join_validated` remains false. Subsequent source changes need a new
+verified build before replacing these binary identities.

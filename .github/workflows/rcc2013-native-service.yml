@@ -2,7 +2,7 @@ name: Build custom RCCService.exe and record real Player transport
 on:
   push:
     branches: [rcc2013-ci]
-    paths: ["server2013/native/**", ".github/workflows/rcc2013-native-service.yml"]
+    paths: ["server2013/native/**", "server2013/publish_binaries.py", "server2013/windows_exe_render_probe.py", "hosting2013/windows_join_probe.py", "rcc2013/**", ".github/workflows/rcc2013-native-service.yml"]
   workflow_dispatch:
 permissions:
   contents: write
