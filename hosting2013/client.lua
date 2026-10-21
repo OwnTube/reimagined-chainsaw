@@ -76,6 +76,7 @@ local ok, problem = pcall(function()
         end)
         print(marker .. "|KEYBOARD_OBSERVER_READY|" .. tostring(inputOk) .. "|" .. tostring(inputProblem))
     end
+    local ownedValueReported = false
     local guiReported, guiFrames = false, 0
     local menuFrames, menuWasShown, menuClosed = 0, false, false
     run.Stepped:connect(function()
@@ -117,6 +118,10 @@ local ok, problem = pcall(function()
             end
         end
         local value = world:FindFirstChild("RccServerToken")
+        if value and value.ClassName == "StringValue" and not ownedValueReported then
+            ownedValueReported = true
+            print(marker .. "|OWNED_STRINGVALUE|Workspace|StringValue|" .. value.Name .. "|" .. value.Value .. "|" .. value:GetDebugId(0))
+        end
         local beacon = world:FindFirstChild("RccReplicationBeacon")
         local signal = world:FindFirstChild("RccJoinSignal")
         if value and beacon and signal and not acknowledged then

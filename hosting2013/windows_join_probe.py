@@ -435,15 +435,18 @@ def main():
                 binding=verify_custom_globals(report.get('custom_server',{}),report['peers']['client']['engine_marker_lines'])
                 report['custom_globals_binding_observation']=binding
                 report['custom_globals_binding_validated']=binding['validated']
-                from verify_owned_schema import verify_delivery,verify_property
+                from verify_owned_schema import verify_delivery,verify_property,verify_instance
                 schema_delivery=verify_delivery(report.get('custom_server',{}))
                 report['custom_schema_delivery']=schema_delivery
                 report['custom_schema_delivery_validated']=schema_delivery['transport_delivery_validated']
                 property_evidence=verify_property(report.get('custom_server',{}),report['peers']['client']['engine_marker_lines'])
                 report['custom_property_replication']=property_evidence
                 report['custom_property_replication_validated']=property_evidence['property_replication_validated']
-                report['probe_checkpoint']='transport, server-generated service GUID binding and schema datagram ACKs and server-only service-name property; full game join remains unproved'
-                report['probe_checkpoint_passed']=report['probe_checkpoint_passed'] and binding['validated'] and schema_delivery['transport_delivery_validated'] and property_evidence['property_replication_validated']
+                instance_evidence=verify_instance(report.get('custom_server',{}),report['peers']['client']['engine_marker_lines'])
+                report['custom_instance_replication']=instance_evidence
+                report['custom_instance_replication_validated']=instance_evidence['new_instance_replication_validated']
+                report['probe_checkpoint']='transport, server-generated service GUID binding and schema datagram ACKs and server-only service-name property and owned StringValue; full game join remains unproved'
+                report['probe_checkpoint_passed']=report['probe_checkpoint_passed'] and binding['validated'] and schema_delivery['transport_delivery_validated'] and property_evidence['property_replication_validated'] and instance_evidence['new_instance_replication_validated']
                 report['error']=('Custom host globals checkpoint only: owned world replication and simulation remain unimplemented'
                                  if binding['validated'] else 'Server-generated service GUIDs were not observed completely in native Player objects')
         # A verified network round trip is separate from character locomotion.

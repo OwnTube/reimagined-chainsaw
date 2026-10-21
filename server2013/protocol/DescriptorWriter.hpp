@@ -135,6 +135,27 @@ public:
         out.uint32(0x81,8);out.uint32(static_cast<uint32_t>(value.size()),32);string(out,value);
         out.uint32(0,6);return out;
     }
+    // Measured StringValue reflection order: string Name, string Value, then
+    // bool Archivable, bool RobloxLocked. Parent is a separate trailing GUID.
+    // Name cache slot 1 was used by serviceName(); this new name uses slot 2.
+    BitWriter stringValue(uint32_t index,uint32_t parent,const std::string& nonce) const {
+        if(index<0x20000000 || index>0x3fffffff || parent<0x20000000 || parent>0x3fffffff
+           || nonce.size()!=40 || nonce.substr(0,8)!="RCC2013_")
+            throw std::runtime_error("owned instance bounds");
+        for(char c:nonce.substr(8))if(!((c>='a'&&c<='f')||(c>='0'&&c<='9')))
+            throw std::runtime_error("owned instance nonce alphabet");
+        BitWriter out;out.uint32(0x83,8);out.uint32(2,2);out.uint32(1,8);
+        for(unsigned byte=0;byte<4;++byte)out.uint32((index>>(byte*8))&255,8);
+        out.uint32(250,8);out.bit(false); // StringValue ID250, raw x86 nine-bit ID.
+        out.bit(false); // Per-instance lifetime flag, meaning not yet claimed.
+        const std::string name="RccServerToken";
+        out.bit(false);out.uint32(0x82,8);out.uint32(static_cast<uint32_t>(name.size()),32);string(out,name);
+        out.bit(false);out.uint32(0x81,8);out.uint32(static_cast<uint32_t>(nonce.size()),32);string(out,nonce);
+        out.bit(true);out.bit(false); // Archivable=true, RobloxLocked=false.
+        out.uint32(1,8);
+        for(unsigned byte=0;byte<4;++byte)out.uint32((parent>>(byte*8))&255,8);
+        out.uint32(0,6);return out;
+    }
     BitWriter globals(bool flag0,bool flag1,const std::string& scope,const std::vector<uint32_t>& indices) const {
         if(scope.empty() || scope.size()>128 || indices.empty() || indices.size()>128)
             throw std::runtime_error("globals scope/reference bound exceeded");

@@ -42,7 +42,10 @@ def main():
         raise RuntimeError('Server-only service name was not observed in native Player')
     manifest['schema_property_route_validated']=True
     manifest['property_replication_validated']=True
-    manifest['new_instance_replication_validated']=False
+    if evidence.get('custom_instance_replication_validated') is not True:
+        raise RuntimeError('Owned StringValue nonce/GUID was not observed in native Player scene')
+    manifest['new_instance_replication_validated']=True
+    manifest['playable_world_validated']=False
     manifest['application_globals_validated']=True
     manifest['world_replication_implemented']=False
     for name in ('LICENSE','PATENTS'):

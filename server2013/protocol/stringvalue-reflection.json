@@ -1,0 +1,68 @@
+{
+  "profile_sha256": "30502f062f428d3d808e7119ddb991865c91eb4beeed9f2c6b983198c007ea41",
+  "class_name": "StringValue",
+  "properties": [
+    {
+      "name": "Archivable",
+      "flags": 39,
+      "replicated": true,
+      "boolean": true
+    },
+    {
+      "name": "ClassName",
+      "flags": 35,
+      "replicated": false,
+      "boolean": false
+    },
+    {
+      "name": "DataCost",
+      "flags": 35,
+      "replicated": false,
+      "boolean": false
+    },
+    {
+      "name": "Name",
+      "flags": 63,
+      "replicated": true,
+      "boolean": false
+    },
+    {
+      "name": "Parent",
+      "flags": 43,
+      "replicated": false,
+      "boolean": false
+    },
+    {
+      "name": "RobloxLocked",
+      "flags": 39,
+      "replicated": true,
+      "boolean": true
+    },
+    {
+      "name": "Value",
+      "flags": 63,
+      "replicated": true,
+      "boolean": false
+    },
+    {
+      "name": "archivable",
+      "flags": 42,
+      "replicated": false,
+      "boolean": true
+    },
+    {
+      "name": "className",
+      "flags": 35,
+      "replicated": false,
+      "boolean": false
+    }
+  ],
+  "read_only": true,
+  "bytes_read": 620,
+  "raw_memory_exported": false,
+  "new_instance_replication_validated": false,
+  "game_join_validated": false,
+  "native_run": 39554828808,
+  "source_commit": "3ddf6b4c3388b423153257f30e0a416c69567d80",
+  "artifact_id": 12325830287
+}

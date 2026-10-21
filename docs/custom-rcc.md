@@ -465,3 +465,27 @@ reflection workflow reuses the already tested owned EXE without rebuilding it.
 The purpose is to resolve new-instance property ordering before implementing
 an original StringValue creation message. This observation is research only and
 cannot count as a replicated world.
+
+The reflection read succeeded in run 39554682970, reading only 620 bytes. That
+job failed later because the reused harness's screenshot cleanup lacked Pillow;
+run 39554828808 added that dependency and passed both reflection and the existing
+property checkpoint, without rebuilding the binaries. Sanitized field evidence
+is retained in `server2013/protocol/stringvalue-reflection.json`.
+
+Replicated fields in class reflection order are Archivable (boolean), Name
+(string), RobloxLocked (boolean), Value (string). The exact reader consumes its
+string-like group first (Name, Value), then ordinary types (Archivable,
+RobloxLocked), then a separate parent GUID. The original new-instance encoder
+uses ID2 (two bits), cached scope/index, raw x86 nine-bit class ID250, one lifetime
+flag (meaning unclaimed), the four fields with the proper default/cache framing,
+parent GUID and six-bit terminator. Name cache slot2 follows the earlier service
+name in slot1; the StringValue.Value cache starts at slot1.
+
+The new native hypothesis requires a fresh server-created StringValue named
+RccServerToken under native Workspace. Its 128-bit nonce and GUID index are
+created only by the C++ server. Client Lua only finds the existing object and
+logs its actual class/name/value/GetDebugId(0); it never constructs that object,
+sets its value or receives expected values in bootstrap source. Publication
+requires all those observed fields to match server evidence. A successful
+single-instance proof still leaves geometry, character admission, simulation,
+bidirectional updates and full game joining unimplemented. Validation pending.

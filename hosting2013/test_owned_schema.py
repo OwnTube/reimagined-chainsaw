@@ -29,3 +29,20 @@ class PropertyEvidenceTests(unittest.TestCase):
         self.assertFalse(verify_property(server,['owned|SERVICE_NAME|TestService|RCC2013_'+'b2'*16])['property_replication_validated'])
         self.assertFalse(verify_property(server,lines)['world_replication_validated'])
         self.assertFalse(verify_property(server,lines)['game_join_validated'])
+
+class InstanceEvidenceTests(unittest.TestCase):
+    def test_requires_native_object_value_guid_class_and_parent(self):
+        from verify_owned_schema import verify_instance
+        nonce='RCC2013_'+'a1'*16
+        server={'owned_instance_probe':{'sent':True,'class_name':'StringValue','name':'RccServerToken','nonce':nonce,
+                                       'index':0x23456789,'parent_index':0x3456789a},
+                'globals_bindings':[{'class_name':'Workspace','index':0x3456789a}]}
+        lines=['owned|OWNED_STRINGVALUE|Workspace|StringValue|RccServerToken|'+nonce+'|'+str(0x23456789)]
+        result=verify_instance(server,lines)
+        self.assertTrue(result['new_instance_replication_validated'])
+        self.assertFalse(result['game_join_validated'])
+        self.assertFalse(verify_instance(server,[])['new_instance_replication_validated'])
+        for before,after in [('Workspace','ReplicatedStorage'),('StringValue','Part'),(str(0x23456789),str(0x23456788)),(nonce,'RCC2013_'+'b2'*16)]:
+            self.assertFalse(verify_instance(server,[lines[0].replace(before,after)])['new_instance_replication_validated'])
+        server['owned_instance_probe']['parent_index']=0x3456789b
+        self.assertFalse(verify_instance(server,lines)['new_instance_replication_validated'])
