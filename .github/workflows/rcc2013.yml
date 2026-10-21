@@ -1,8 +1,5 @@
 name: Native 2013 rendering research
 on:
-  push:
-    branches: [rcc2013-ci]
-    paths: ["rcc2013/**", ".github/workflows/rcc2013.yml"]
   workflow_dispatch:
 permissions:
   contents: read

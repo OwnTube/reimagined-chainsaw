@@ -1,8 +1,5 @@
 name: Native 2013 local joining research
 on:
-  push:
-    branches: [rcc2013-ci]
-    paths: ["hosting2013/**", ".github/workflows/rcc2013-join.yml"]
   workflow_dispatch:
 permissions:
   contents: read

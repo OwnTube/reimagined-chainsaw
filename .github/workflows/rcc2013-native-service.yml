@@ -5,7 +5,7 @@ on:
     paths: ["server2013/native/**", ".github/workflows/rcc2013-native-service.yml"]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   native-service:
     runs-on: windows-2022
@@ -70,6 +70,11 @@ jobs:
         shell: pwsh
         run: |
           if (Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue) { throw 'Studio unexpectedly running' }
+      - name: Commit only our tested binaries and runtime notices to the isolated branch
+        if: success() && github.ref == 'refs/heads/rcc2013-ci'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python server2013/publish_binaries.py
       - name: Preserve our executable and measured native evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

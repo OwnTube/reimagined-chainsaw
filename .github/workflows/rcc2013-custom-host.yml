@@ -1,8 +1,5 @@
 name: Independent RCC transport with native 2013 Player
 on:
-  push:
-    branches: [rcc2013-ci]
-    paths: ["server2013/**", ".github/workflows/rcc2013-custom-host.yml"]
   workflow_dispatch:
 permissions:
   contents: read

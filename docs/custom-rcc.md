@@ -1,0 +1,120 @@
+# Custom RCC development checkpoint
+
+The user explicitly replaced the Studio-host approach with an original RCC and
+requested a compiled Windows executable, their supplied logo, all render types,
+native Player tests, recordings, committed source/binaries and overnight work.
+Do not return to searching for a 2013 RCC archive or call hidden Studio an RCC.
+
+## Original native host
+
+`server2013/native/RCCService.cpp` is our C++ implementation, built with MSVC
+and the Windows SDK. `RCCService.rc` embeds an ICO made from the exact existing
+owner logo at `rcc2013/static/logo.png`. No proprietary engine code is copied.
+
+It implements numeric-loopback, single-peer RakNet protocol 5 negotiation,
+the 96-byte connection acceptance, 94-byte new-incoming confirmation, 64-bit
+timestamps, pings, ACK parsing, bounded reliable-control retransmission,
+reliable duplicate suppression, ordered receive buffering and bounded split
+reassembly. Unknown Roblox application messages are retained only as IDs,
+lengths and SHA-256. This is a research transport, not a production game server.
+Congestion control, reconnects, complete NAK handling and wraparound/loss testing
+are not complete. There is no public listener or production authentication.
+
+Reference run [39472992617](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39472992617)
+observed the working Studio/Player control connection through our unchanged
+loopback UDP relay. It decoded 1,444 datagrams and 793 messages without a parser
+error. The initial server application messages were IDs 129, 130 and 131; ID 130
+was 40,010 bytes across 28 fragments. This records wire observations, not an
+assumption that a later engine's serialization is compatible.
+
+The transport layout was compared with the public
+[RakNet reference](https://github.com/facebookarchive/RakNet/tree/master/Source).
+The user-provided [wiki](https://github.com/Daniel-176/Roblox-Reverse-Engineering-Wiki/tree/a7a6802ed56263dfb8c97e199b2c65bce1db33a6/articles/rccservice/windows)
+documents RCC jobs and SOAP; it does not supply a complete original 2013 engine.
+REA 6.7.0's PE resource inspector verified the exact Player identity and the
+first native host's PE32+ x64 identity/resource inventory. No decompiled engine
+code, real account credential or private signing key was published.
+
+## Native executable proof
+
+Run [39508547826](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39508547826),
+source `c3f9ab180734c646f59084b93b04837809bfebd8`, built the first native EXE:
+
+- `RCCService.exe`: 344,064 bytes, SHA-256
+  `94b1e78c6660433f46197446a6b8f007783f1f1f8d8adc66c4581b2705855952`.
+- Same-process UDP ownership and native Player `ConnectionAccepted` both passed.
+- Studio deployment/process absence was checked before and after.
+- Continuous silent recording: 13.5 seconds, 162 frames, 1024x768 at 12 FPS,
+  SHA-256 `b2ac9ea656c4de2a659102e7266dbde28d52d54ac249d3bedc3e5241bf059142`.
+- `probe_checkpoint_passed=true`, **`game_join_validated=false`**.
+
+Run [39509102731](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39509102731),
+source `a24836d8b1a434864445c49a4f5fdc4f76c66baf`, also built and exercised the
+packaged renderer through the native C++ entry point:
+
+| Output | Bytes | SHA-256 |
+| --- | --- | --- |
+| RCCService.exe | 344064 | `5cf4fee5c650624f2b1a45d6eab346cb64986926885c0ecf63c131bb641a49e6` |
+| RCCRenderWorker.exe | 27980092 | `9e032f7837997e8aacfb3224b0a954ff6117e920b5d257177bdd02c94a555d76` |
+
+The native supervisor launched its worker, owned UDP, served the logo through
+the worker's HTTP console, completed four queued render jobs and delivered PNGs
+whose hashes matched their job records. The worker is a packaged Python/NumPy
+implementation; only the service/network host is currently native C++.
+The workflow subsequently verifies a real Player transport connection again.
+The generated `server2013/bin/build.json` is authoritative for later builds.
+
+## Studio-free rendering
+
+`rcc2013/software_render.py` implements perspective projection, triangle
+rasterization, a depth buffer, interpolated normals/UVs, local PNG textures,
+Lambert shading, two-times supersampling, and straight-alpha output. It does
+not use a Roblox process or screenshot a viewport. No GUI runtime exists in it.
+It reads six dedicated locally restored 2013 meshes and the face texture for
+the owned R6 fixture. These optional runtime data are pinned separately and are
+not bundled with the executable publication.
+
+| Native packaged job | Verified output SHA-256 |
+| --- | --- |
+| Headshot, 512x512 | `88e74ee3fb973a29a59d65cbb29ea530b4186b52cc666d2165424859af2e8ac6` |
+| Full body, 450x600 | `4d790875e19dc24716abcbf1049c8263441a59b061f89c20feab87b1e2fdbcd1` |
+| Game thumbnail, 640x360 | `dcd297d6dcfe192b15a90130b2c68406c781f92c37286861145ea00496a3bf93` |
+| Owned textured sword, 512x512 | `bff4d6d09c41bcb88332dab22389ade23e96adf259972d9c292ce674f9c939d9` |
+
+The current renderer deliberately rejects unsupported geometry/depencencies.
+It is a static subset: Block Parts, XML containers, uploaded version-2 meshes,
+PNG textures and a small explicit BrickColor palette. It does not implement
+Terrain, original material shaders, decals on arbitrary place geometry, game
+simulation, clothing compositing or arbitrary avatar appearances. Head/file
+mesh behavior and lighting are not established as identical to Studio.
+Headshots retain a transparent margin above the head. Full bodies/items fail
+if they touch the image border. Fully transparent pixels have RGB zeroed.
+
+The asset store sanitizes item models before storage, drops scripts/GUI/
+Humanoids/joints, validates local dependencies, and verifies immutable bytes
+before each read. The custom renderer reads canonical local bytes directly;
+that is separate from the tested HTTP delivery endpoints. It never claims the
+custom worker fetched assets over HTTP when it actually read local storage.
+
+## Next work in order
+
+1. Start by reading current source, binary manifest and Actions, not a stale
+   scratch checkout. All work stays on `rcc2013-ci`.
+2. Implement the 2013 Roblox application handshake/schema and initial replicated
+   world. Compare only owned loopback test traffic and explicit read-only binary
+   observations. Transport acceptance alone is already proved; repeating it
+   without a new hypothesis is not progress.
+3. Require a server-only random token received from native Player scene data,
+   followed by bidirectional RemoteEvent/character updates. Do not put the world
+   or expected server token in the client bootstrap and count it as replication.
+4. Add simulation/character control, then record a continuous actual playable
+   connection with our C++ host and no Studio process. The old Studio-hosted
+   walk/video is only a reference.
+5. Expand the custom renderer's supported scene/avatar formats and compare its
+   output against historical reference images; maintain transparent GUI-free
+   avatar/item output. Keep rendering parity claims separate from geometry.
+
+The older Studio subject cleanup test began failing at the native dark pass in
+run 39437930120 and remained failing in 39509102593. That reference regression
+is not fixed or relabeled as success. Reference workflows are manual now; the
+new native/custom pipeline is the active development path.
