@@ -488,4 +488,42 @@ logs its actual class/name/value/GetDebugId(0); it never constructs that object,
 sets its value or receives expected values in bootstrap source. Publication
 requires all those observed fields to match server evidence. A successful
 single-instance proof still leaves geometry, character admission, simulation,
-bidirectional updates and full game joining unimplemented. Validation pending.
+bidirectional updates and full game joining unimplemented.
+
+Native run
+[39555242394](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39555242394),
+source `e57a9176e8986527078369d6721c72ba3efd7b00`, passed this exact new-instance
+proof. Native Player found Workspace.RccServerToken as a StringValue, observed
+the exact server-only nonce and matched its GetDebugId(0) to the original
+server-generated GUID index. Parent, class, name, value and GUID were required;
+missing or corrupted observations fail the gate. All 15 service identities,
+schema ACKs, TestService.Name, same-process UDP ownership, all four render jobs
+and continuous recording also passed. Studio was absent.
+
+Binary commit `5be1102` published the tested owned service (509,440 bytes,
+SHA-256 `f981dbae8bbf625f7da1610ac4af73c4e1af7b6704b1c9b2ef672301309c560f`)
+and worker (27,979,568 bytes, SHA-256
+`8d697fe92a92dcaadeb663ff104fa1c49d5dcf282cc7d0d191a98b92952b37c4`).
+The continuous recording is 14.5 seconds / 174 frames, SHA-256
+`507ec3680741dc3700595bf748f3fbd5f4e8477f08ca8be19a62d625b3e8b254`.
+This remains an invisible StringValue/object-data milestone, not a playable-game
+video. Compact evidence: `server2013/protocol/native-instance-checkpoint.json`.
+The parallel reference schema regression run 39555242331 passed.
+
+The manifest now records `new_instance_replication_validated=true` separately
+from `playable_world_validated=false`, `world_replication_implemented=false` and
+`game_join_validated=false`. The native publication gate requires the original
+new-instance proof in addition to every preceding checkpoint. The sender is
+currently a bounded one-shot fixture, not a general world serializer: its Name
+and Value cache slot assignments depend on the documented message sequence.
+
+Next: server updates of the owned StringValue, a client-derived acknowledgement
+returned through actual Roblox replication, and native server decoding of that
+return; then owned geometry and character control. Do not use HTTP/log output
+alone as proof of a bidirectional Roblox property update. Incoming application
+messages currently remain metadata; no client-to-server property decoder exists.
+Exact-build read-only leads indicate compact ID5/6 ping items contain one bit,
+a 64-bit integer and a 32-bit integer. Client property writer emits a control bit
+before the value; later-client assumptions about extra version fields must be
+verified for this build. Retain actual incoming frame bit lengths and per-direction
+scope/property caches before implementing a general decoder.

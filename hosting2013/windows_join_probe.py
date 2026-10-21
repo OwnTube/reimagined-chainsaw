@@ -447,8 +447,16 @@ def main():
                 report['custom_instance_replication_validated']=instance_evidence['new_instance_replication_validated']
                 report['probe_checkpoint']='transport, server-generated service GUID binding and schema datagram ACKs and server-only service-name property and owned StringValue; full game join remains unproved'
                 report['probe_checkpoint_passed']=report['probe_checkpoint_passed'] and binding['validated'] and schema_delivery['transport_delivery_validated'] and property_evidence['property_replication_validated'] and instance_evidence['new_instance_replication_validated']
-                report['error']=('Custom host globals checkpoint only: owned world replication and simulation remain unimplemented'
-                                 if binding['validated'] else 'Server-generated service GUIDs were not observed completely in native Player objects')
+                if not binding['validated']:
+                    report['error']='Server-generated service GUIDs were not observed completely in native Player objects'
+                elif not schema_delivery['transport_delivery_validated']:
+                    report['error']='Complete schema fragment ACKs were not observed'
+                elif not property_evidence['property_replication_validated']:
+                    report['error']='Server-only TestService.Name was not observed in native Player'
+                elif not instance_evidence['new_instance_replication_validated']:
+                    report['error']='Owned StringValue class, value, GUID and Workspace parent proof was incomplete'
+                else:
+                    report['error']='Owned single-instance replication checkpoint only; playable world and simulation remain unimplemented'
         # A verified network round trip is separate from character locomotion.
         if not report['client_character_movement_validated']:
             report['movement_limitation'] = 'Character locomotion was not verified on both peers'

@@ -10,9 +10,10 @@ not yet been rewritten in C++.
 
 **Hosting is unfinished.** The real, locally configured November 2013 Player
 accepts the custom service's connection and applies all 15 server-generated
-built-in service GUIDs. Roblox world replication, character admission, Lua
-simulation, and playable joining are not implemented. This application checkpoint
-must never be called a full join.
+built-in service GUIDs. It now also receives one server-created StringValue under
+Workspace, including its server-only random value and GUID. Geometry, character
+admission, Lua simulation, bidirectional updates and playable joining remain
+unfinished. These application checkpoints must never be called a full join.
 
 ## Verified checkpoint
 
@@ -29,7 +30,8 @@ source `3fe4a2d6dd7e743449af8f43ead6c1bdfd9d7566`, verified:
 | Headshot, full body, game and item rendering through EXE entry point | All four passed |
 | Transparent avatars/items and no GUI objects created | Passed for tested fixtures |
 | Original 2013 lighting/material parity | Unverified; current lighting is our approximation |
-| Playable game, player replication and physics | Not implemented |
+| New StringValue with server-only nonce/GUID in native Workspace | Passed in run 39555242394 |
+| Bidirectional updates, playable game, player replication and physics | Not implemented |
 
 See [custom service development](docs/custom-rcc.md) for exact evidence, limits,
 and the next protocol work. The old [Studio reference](docs/studio-reference-renderer.md)
@@ -43,6 +45,13 @@ then verified our first original property update: a fresh server-only nonce was
 observed as `TestService.Name` in the real Player. The tested executables are
 committed. This verifies one schema/property route, with no new world instances
 or playable game yet.
+
+[Native run 39555242394](https://github.com/vibecodeforever/reimagined-chainsaw/actions/runs/39555242394)
+passed the first **new-instance replication proof**: the Player found our
+`Workspace.RccServerToken` StringValue and reported its exact server-generated
+nonce and GUID. The client did not create the object or contain expected values.
+All four render jobs and continuous recording passed; updated EXEs are committed.
+This is one replicated object, with no playable world or character yet.
 
 ## Use the executable bundle
 

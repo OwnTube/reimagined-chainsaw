@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-21",
+  "native_run": 39555242394,
+  "source_commit": "e57a9176e8986527078369d6721c72ba3efd7b00",
+  "binary_commit": "5be1102d3f8b82aebc6e40e311ff6f95ce93dcf5",
+  "artifact_id": 12325895508,
+  "globals_validated": true,
+  "schema_delivery_validated": true,
+  "service_property_replication_validated": true,
+  "instance_replication": {
+    "new_instance_replication_validated": true,
+    "server_only_nonce_observed": true,
+    "native_class_name_parent_guid_validated": true,
+    "subject": "Workspace.RccServerToken (StringValue)",
+    "playable_world_validated": false,
+    "game_join_validated": false,
+    "limitation": "One owned StringValue instance; geometry, character, simulation and bidirectional updates unimplemented"
+  },
+  "recording": {
+    "validated": true,
+    "edited": false,
+    "seconds": 14.5,
+    "frames": 174,
+    "sha256": "507ec3680741dc3700595bf748f3fbd5f4e8477f08ca8be19a62d625b3e8b254"
+  },
+  "manifest_files": {
+    "RCCService.exe": {
+      "bytes": 509440,
+      "sha256": "f981dbae8bbf625f7da1610ac4af73c4e1af7b6704b1c9b2ef672301309c560f"
+    },
+    "RCCRenderWorker.exe": {
+      "bytes": 27979568,
+      "sha256": "8d697fe92a92dcaadeb663ff104fa1c49d5dcf282cc7d0d191a98b92952b37c4"
+    }
+  },
+  "world_replication_implemented": false,
+  "game_join_validated": false,
+  "owned_fields": {
+    "class_name": "StringValue",
+    "name": "RccServerToken",
+    "index": 568567102,
+    "parent_index": 976345872,
+    "nonce_sha256": "1cd6972fc7557a8089f4bc22e467390f82fc99aecdbfc985c4bcd538e7e6ac75"
+  }
+}
