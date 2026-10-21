@@ -50,7 +50,7 @@ jobs:
           cl /nologo /std:c++17 /O2 /EHsc /MT server2013\protocol\descriptor_writer_probe.cpp /Fo:"$build\descriptor_writer_probe.obj" /Fe:"$build\descriptor_writer_probe.exe"
           exit /b %errorlevel%
           "@ | Set-Content server2013/build/build-codec.cmd -Encoding ascii
-          cmd /c server2013/build/build-codec.cmd
+          cmd /c "$build\build-codec.cmd"
           if ($LASTEXITCODE -ne 0) { throw 'Owned descriptor encoder compilation failed' }
       - name: Restore pinned reference programs only on disposable runner
         working-directory: rcc2013
